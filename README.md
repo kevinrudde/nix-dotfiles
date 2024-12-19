@@ -20,7 +20,7 @@ If you want to have your secrets decrypted lying in the repository, you need to 
 
 1. Clone the repository
 ```bash
-git clone git@github.com:kevinrudde/nix-dotfiles.git ~/.config/nix-dotfiles
+git clone git@github.com:nickolaus/nix-dotfiles.git ~/.config/nix-dotfiles
 ```
 
 2. Initialize the Nix setup with

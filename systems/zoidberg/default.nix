@@ -13,18 +13,18 @@
   ];
 
   system.stateVersion = 5;
-  system.primaryUser = "kevin";
+  system.primaryUser = "C.Hessel";
 
   ids.gids.nixbld = 30000;
 
-  users.users.kevin = {
-    home = "/Users/kevin";
+  users.users."C.Hessel" = {
+    home = "/Users/C.Hessel";
     shell = "${pkgs.fish}/bin/fish";
   };
 
-  home-manager.users.kevin = {
+  home-manager.users."C.Hessel" = {
     imports = [
-      ../../home/phobos.nix
+      ../../home/zoidberg.nix
     ];
   };
 
@@ -55,7 +55,7 @@
 
   nix.settings = {
     download-buffer-size = 524288000;
-    trusted-users = [ "root" "kevin" ];
+    trusted-users = [ "root" "C.Hessel" ];
     trusted-substituters = [
       "https://cachix.cachix.org"
       "https://nixpkgs.cachix.org"

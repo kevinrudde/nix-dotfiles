@@ -12,6 +12,6 @@
     ./features/hammerspoon
   ];
 
-  home.username = "kevin";
-  home.homeDirectory = lib.mkForce "/Users/kevin";
+  home.username = "C.Hessel";
+  home.homeDirectory = lib.mkForce "/Users/C.Hessel";
 }

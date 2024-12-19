@@ -35,9 +35,6 @@
       set -gx VOLTA_HOME $HOME/.volta
       fish_add_path $VOLTA_HOME/bin
 
-      # Krew
-      fish_add_path $HOME/.krew/bin
-
       # Go Binaries
       fish_add_path $GOPATH/bin
 
@@ -75,10 +72,6 @@
         else
             echo "Found valid SSO session, using it!"
         end
-      '';
-      ssm-headscale = ''
-        set HEADSCALE_INSTANCE_ID (aws ec2 describe-instances --filters "Name=tag:Name,Values=headscale" --query 'Reservations[].Instances[].InstanceId' --output text)
-        aws ssm start-session --document-name AWS-StartInteractiveCommand  --parameters command="bash -l" --target $HEADSCALE_INSTANCE_ID
       '';
     };
   };
