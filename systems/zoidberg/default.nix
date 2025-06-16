@@ -15,7 +15,7 @@
   system.stateVersion = 5;
   system.primaryUser = "C.Hessel";
 
-  ids.gids.nixbld = 30000;
+  ids.gids.nixbld = 350;
 
   users.users."C.Hessel" = {
     home = "/Users/C.Hessel";

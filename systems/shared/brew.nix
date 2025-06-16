@@ -17,7 +17,6 @@
     brews = [
       "docker-credential-helper"
       "argocd"
-      "eks-node-viewer"
       "mysql-client"
       "television"
     ];

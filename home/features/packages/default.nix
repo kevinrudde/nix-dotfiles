@@ -8,6 +8,8 @@
     sops
 
     _1password-cli
+    slack
+    chatgpt
     jq
     gnused
     ripgrep
@@ -25,6 +27,8 @@
     stern
     uv
     cargo
+    jetbrains.phpstorm
+    code-cursor
 
     terraform
 
