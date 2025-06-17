@@ -4,6 +4,16 @@
     fzf
     fd
     bat
+    lazygit
+    delta
+    bottom
+    duf
+    dust
+    just
+    watchexec
+    hyperfine
+    tree
+    tldr
   ];
 
   programs.direnv = {
