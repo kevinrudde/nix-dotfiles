@@ -36,7 +36,6 @@
     # 🌐 NETWORK & MONITORING TOOLS
     # ═══════════════════════════════════════════════════════════════════════════
     nmap
-    ngrok
     bandwhich
     dogdns                   # Modern dig replacement for DNS queries
     httpie                   # User-friendly HTTP client (modern curl)
