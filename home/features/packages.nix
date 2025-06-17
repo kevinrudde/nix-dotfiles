@@ -22,6 +22,8 @@
     ripgrep
     unixtools.watch
     htop
+    ncdu
+    lsof
     coreutils
     pigz
     wget
@@ -31,6 +33,7 @@
     # ═══════════════════════════════════════════════════════════════════════════
     nmap
     ngrok
+    bandwhich
     
     # ═══════════════════════════════════════════════════════════════════════════
     # ☁️ CLOUD & INFRASTRUCTURE TOOLS
@@ -83,6 +86,9 @@
     # 🧪 TESTING & QUALITY ASSURANCE
     # ═══════════════════════════════════════════════════════════════════════════
     k6
+    shellcheck
+    shfmt
+    yamllint
     
     # ═══════════════════════════════════════════════════════════════════════════
     # 🏢 ENTERPRISE & IDENTITY TOOLS
