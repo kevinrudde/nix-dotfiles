@@ -633,4 +633,191 @@ ngrok http 3000                   # Expose to internet if needed
 
 ---
 
+## 🐟 Fish Shell Plugins
+
+The fish shell configuration includes several productivity-enhancing plugins to improve your command line experience.
+
+### Autopair Plugin
+```bash
+# Automatically closes parentheses, quotes, brackets
+echo "hello    # → automatically adds closing quote: echo "hello"
+git log --grep=(    # → automatically adds closing paren: git log --grep=()
+```
+
+### Done Plugin
+```bash
+# Get desktop notifications when long-running commands finish
+# Automatically triggers for commands taking longer than 5 seconds
+npm install           # You'll get a notification when it completes
+./long-running-script.sh   # Desktop notification on completion
+```
+
+### Sponge Plugin
+```bash
+# Automatically removes failed commands from history
+# Failed commands won't clutter your command history
+invalid-command       # This won't appear in your history if it fails
+git pus               # Typos that fail are automatically cleaned up
+```
+
+### Colored Man Pages
+```bash
+# All man pages are automatically colorized for better readability
+man git               # Color-coded sections and syntax highlighting
+man fish              # Better visual hierarchy in documentation
+```
+
+### GRC (Generic Colouriser)
+```bash
+# Automatically colorizes output of common commands
+ping google.com       # Colorized ping output
+ps aux               # Color-coded process list
+df -h                # Colored disk usage
+netstat -tuln        # Colored network connections
+```
+
+### Forgit Plugin
+```bash
+# Interactive git commands using fzf - available after shell restart
+glo                  # Interactive git log with fzf
+gss                  # Interactive git status
+gaa                  # Interactive git add
+gcf                  # Interactive git checkout file
+gbd                  # Interactive git branch delete
+grh                  # Interactive git reset HEAD
+```
+
+### Plugin-Git 
+```bash
+# Enhanced git aliases and functions
+gs                   # git status
+ga                   # git add
+gc                   # git commit
+gp                   # git push
+gl                   # git pull
+gco                  # git checkout
+```
+
+### Bass Plugin
+```bash
+# Run bash utilities in fish shell
+bass source ~/.bashrc    # Source bash configuration
+bass export VAR=value    # Set environment variables bash-style
+```
+
+### Foreign-Env Plugin
+```bash
+# Source bash/zsh environment files
+fenv source ~/.bashrc    # Import bash environment
+fenv source some-script.sh   # Source bash scripts
+```
+
+### Pisces Plugin
+```bash
+# Smart auto-matching for quotes and brackets
+echo "hello    # → closes quote automatically
+git log --grep=(  # → adds closing parenthesis
+[1, 2, 3    # → completes bracket
+```
+
+### Fish Abbreviation Tips Plugin
+```bash
+# Get helpful tips when typing commands that have shorter abbreviations
+docker ps                # → 💡 dps => docker ps
+kubectl get pods         # → 💡 kgp => kubectl get pods
+lazygit                  # → 💡 lg => lazygit
+```
+
+### Custom Abbreviations Available
+
+#### 🐳 Docker & Containers
+```bash
+d        # docker
+dc       # docker-compose
+dps      # docker ps
+di       # docker images
+dcup     # docker-compose up -d
+dcdown   # docker-compose down
+```
+
+#### ☸️ Kubernetes
+```bash
+kc       # kubectl
+kgp      # kubectl get pods
+kgs      # kubectl get services
+kgd      # kubectl get deployments
+kdp      # kubectl describe pod
+kl       # kubectl logs
+```
+
+#### 📁 File Operations
+```bash
+la       # eza -la --icons
+lt       # eza --tree --icons
+lz       # eza -la --icons | head -20
+```
+
+#### 🔍 Search & Find
+```bash
+rg       # rg --color=always
+fd       # fd --color=always
+bat      # bat --style=numbers,changes
+```
+
+#### 📦 Package Management
+```bash
+nr       # nix-rebuild
+ns       # nix search nixpkgs
+nsh      # nix-shell
+nb       # nix build
+```
+
+#### 🚀 Development
+```bash
+v        # nvim
+lg       # lazygit
+t        # tmux
+ta       # tmux attach
+tn       # tmux new-session
+```
+
+#### 🌐 Network & System
+```bash
+ping     # ping -c 4
+ports    # netstat -tuln
+myip     # curl -s ifconfig.me
+```
+
+#### 📊 System Monitoring
+```bash
+btm      # btm --color always
+htop     # btm (aliased to bottom)
+df       # duf
+du       # dust
+ps       # procs
+```
+
+### Enhanced Features Summary
+
+🔍 **Better Navigation**
+- `fzf-fish`: Enhanced fuzzy finding for files, history, processes
+- Interactive command history with Ctrl+R
+
+🧠 **Smart Productivity** 
+- `autopair`: Auto-close brackets, quotes, parentheses
+- `pisces`: Advanced bracket/quote matching
+- `sponge`: Auto-remove failed commands from history
+- `fish-abbreviation-tips`: Shows helpful tips for available abbreviations
+
+🎨 **Visual Improvements**
+- `colored-man-pages`: Colorized documentation
+
+🔧 **Git Workflow**
+- `forgit`: Interactive git with fzf integration
+- `plugin-git`: Comprehensive git aliases
+
+🚀 **Environment Integration**
+- `bass`: Run bash utilities seamlessly
+- `foreign-env`: Import bash/zsh configurations
+
 *This cheatsheet covers the enhanced tools added to your nix-dotfiles configuration. All tools are installed and ready to use in your development environment.* 

@@ -24,11 +24,75 @@
   programs.fish = {
     enable = true;
 
+    # Custom abbreviations for productivity
+    shellAbbrs = {
+      # 🐳 Docker & Containers
+      "d" = "docker";
+      "dc" = "docker-compose";
+      "dps" = "docker ps";
+      "di" = "docker images";
+      "dcup" = "docker-compose up -d";
+      "dcdown" = "docker-compose down";
+      
+      # ☸️ Kubernetes  
+      "kc" = "kubectl";
+      "kgp" = "kubectl get pods";
+      "kgs" = "kubectl get services";
+      "kgd" = "kubectl get deployments";
+      "kdp" = "kubectl describe pod";
+      "kl" = "kubectl logs";
+      
+      # 📁 File operations
+      "la" = "eza -la --icons";
+      "lt" = "eza --tree --icons";
+      "lz" = "eza -la --icons | head -20";
+      
+      # 🔍 Search & Find
+      "rg" = "rg --color=always";
+      "fd" = "fd --color=always";
+      "bat" = "bat --style=numbers,changes";
+      
+      # 📦 Package Management
+      "nr" = "nix-rebuild";
+      "ns" = "nix search nixpkgs";
+      "nsh" = "nix-shell";
+      "nb" = "nix build";
+      
+      # 🚀 Development
+      "vim" = "nvim";
+      "v" = "nvim";
+      "lg" = "lazygit";
+      "t" = "tmux";
+      "ta" = "tmux attach";
+      "tn" = "tmux new-session";
+      
+      # 🌐 Network & System
+      "ping" = "ping -c 4";
+      "ports" = "netstat -tuln";
+      "myip" = "curl -s ifconfig.me";
+      "speed" = "speedtest-cli";
+      
+      # 📊 System monitoring
+      "btm" = "btm --color always";
+      "htop" = "btm";
+      "df" = "duf";
+      "du" = "dust";
+      "ps" = "procs";
+    };
+
     interactiveShellInit = ''
       set fish_greeting # Disable greeting
 
       # Overwrite default ctrl+r history-pager
       fzf_configure_bindings
+      
+      # Configure fish-abbreviation-tips plugin
+      set -U ABBR_TIPS_PROMPT "\n💡 \e[1;36m{{ .abbr }}\e[0m \e[2m=>\e[0m \e[32m{{ .cmd }}\e[0m"
+      set -U ABBR_TIPS_REGEXES \
+        '(^(\w+\s+)+(-{1,2})\w+)(\s\S+)' \
+        '(^( ?\w+){3}).*' \
+        '(^( ?\w+){2}).*' \
+        '(^( ?\w+){1}).*'
     '';
 
     # workaround for fixing the path order: https://github.com/LnL7/nix-darwin/issues/122
@@ -56,7 +120,37 @@
     '';
 
     plugins = [
+      # 🔍 Enhanced fuzzy finding and file navigation
       { name = "fzf"; src = pkgs.fishPlugins.fzf-fish.src; }
+      
+      # 🧠 Auto-completion and productivity
+      { name = "autopair"; src = pkgs.fishPlugins.autopair.src; }        # Auto-close parentheses, quotes, etc.
+      { name = "sponge"; src = pkgs.fishPlugins.sponge.src; }            # Remove failed commands from history
+      
+      # 🎨 Better command output and experience  
+      { name = "colored-man-pages"; src = pkgs.fishPlugins.colored-man-pages.src; } # Colorized man pages
+      
+      # 🔧 Git workflow enhancement
+      { name = "forgit"; src = pkgs.fishPlugins.forgit.src; }            # Interactive git commands using fzf
+      { name = "plugin-git"; src = pkgs.fishPlugins.plugin-git.src; }    # Git aliases and functions
+      
+      # 🚀 Shell environment and compatibility
+      { name = "bass"; src = pkgs.fishPlugins.bass.src; }                # Run bash utilities in fish shell
+      { name = "foreign-env"; src = pkgs.fishPlugins.foreign-env.src; }  # Source bash scripts in fish
+      
+      # 💡 Smart command suggestions
+      { name = "pisces"; src = pkgs.fishPlugins.pisces.src; }            # Auto-matching quotes, brackets, etc.
+      
+      # 🧠 Learning and productivity aids
+      { 
+        name = "fish-abbreviation-tips"; 
+        src = pkgs.fetchFromGitHub {
+          owner = "Gazorby";
+          repo = "fish-abbreviation-tips";
+          rev = "v0.7.0";
+          sha256 = "sha256-F1t81VliD+v6WEWqj1c1ehFBXzqLyumx5vV46s/FZRU=";
+        };
+      }
     ];
 
     functions = {
