@@ -315,7 +315,7 @@ cd ~/.config/nix-dotfiles
 nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles#zoidberg
 
 # After first setup, use darwin-rebuild directly
-darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace
 ```
 
 #### Linux (NixOS)
@@ -353,7 +353,7 @@ nix build .#darwinConfigurations.zoidberg.system --dry-run    # macOS
 nix build .#nixosConfigurations.your-host.config.system.build.toplevel --dry-run    # Linux
 
 # 4. Apply changes with detailed output
-darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
 ```
 
 ### Rolling Back Changes
