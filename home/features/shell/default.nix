@@ -112,5 +112,11 @@
     "tailscale" = "/Applications/Tailscale.localized/Tailscale.app/Contents/MacOS/Tailscale";
     "k" = "kubectl";
     "ll" = "eza --icons --group --group-directories-first -l";
+    # New CLI tool shortcuts
+    "tree" = "broot --height 20";               # Interactive directory navigator
+    "json" = "jless";                           # Interactive JSON viewer
+    "cut" = "choose";                           # Human-friendly cut replacement
+    "dig" = "dog";                              # Modern DNS lookup (dogdns)
+    "curl" = "httpie --print=HhBb";             # Modern HTTP client
   };
 }

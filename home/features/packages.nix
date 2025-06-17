@@ -18,11 +18,15 @@
     # 🛠️ SYSTEM UTILITIES & CLI TOOLS
     # ═══════════════════════════════════════════════════════════════════════════
     jq
+    jless                    # Interactive JSON viewer/explorer
     gnused
     ripgrep
+    choose                   # Human-friendly cut/awk alternative
     unixtools.watch
+    entr                     # File watcher for automatic command execution
     htop
     ncdu
+    broot                    # Interactive directory tree navigator
     lsof
     coreutils
     pigz
@@ -34,6 +38,8 @@
     nmap
     ngrok
     bandwhich
+    dogdns                   # Modern dig replacement for DNS queries
+    httpie                   # User-friendly HTTP client (modern curl)
     
     # ═══════════════════════════════════════════════════════════════════════════
     # ☁️ CLOUD & INFRASTRUCTURE TOOLS
@@ -71,6 +77,7 @@
     # 🔧 DEVELOPMENT TOOLS & VERSION CONTROL
     # ═══════════════════════════════════════════════════════════════════════════
     gh
+    gh-dash                  # GitHub dashboard in terminal
     act
     just
     watchexec
@@ -79,8 +86,11 @@
     procs
     sd
     glow
+    slides                   # Terminal-based presentations
     tokei
     mkcert
+    commitizen               # Interactive commit message builder
+    ast-grep                 # Structural code search and rewriting
     
     # ═══════════════════════════════════════════════════════════════════════════
     # 🧪 TESTING & QUALITY ASSURANCE
