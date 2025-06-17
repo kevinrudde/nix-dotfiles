@@ -177,6 +177,22 @@
             echo "Found valid SSO session, using it!"
         end
       '';
+      
+      # 🔍 Find unmerged remote branches by author
+      gunmerged = ''
+        # Default to current git user if no argument provided
+        set author_filter $argv[1]
+        if test -z "$author_filter"
+            set author_filter (git config user.name)
+        end
+        
+        echo "🔍 Searching for unmerged branches by: $author_filter"
+        
+        for b in (git branch -r --no-merged | grep 'origin/' | string trim)
+            set info (git log -1 --pretty=format:'%ci | %an' $b)
+            echo "$info | $b"
+        end | grep -i "$author_filter" | sort -t '|' -k2,2 -k1,1r
+      '';
     };
   };
 
