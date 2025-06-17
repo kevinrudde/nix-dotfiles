@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Nix-Dotfiles Configuration Rules
 
 This repository contains a cross-platform Nix configuration using nix-darwin, Home Manager, and SOPS for secret management. Follow these rules when making changes.
