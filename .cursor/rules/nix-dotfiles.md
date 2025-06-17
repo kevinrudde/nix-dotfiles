@@ -1,0 +1,626 @@
+# Nix-Dotfiles Configuration Rules
+
+This repository contains a cross-platform Nix configuration using nix-darwin, Home Manager, and SOPS for secret management. Follow these rules when making changes.
+
+## Architecture Overview
+
+```
+├── flake.nix                    # Main flake configuration
+├── hosts/                      # System-specific configurations
+│   └── zoidberg/               # macOS system configuration
+├── modules/                    # Reusable system modules
+└── home/                       # User-level configuration
+    ├── default.nix             # Main entry point (imports ./features)
+    ├── zoidberg.nix             # User-specific config
+    └── features/                # Feature modules
+        ├── default.nix          # Feature orchestrator
+        ├── packages.nix         # Cross-platform packages
+        ├── darwin/              # macOS-specific features
+        ├── linux/               # Linux-specific features
+        ├── editors/             # Editor configurations
+        ├── terminals/           # Terminal configurations
+        └── development/         # Development tools
+```
+
+## Core Principles
+
+### 1. Two-Layer Import Rule
+- Main configs (`home/default.nix`) import only second layer (`./features`)
+- Second layer (`home/features/default.nix`) imports all feature modules
+- This prevents deep import chains and maintains clarity
+
+### 2. Files vs Folders
+- **Simple configurations**: Use single `.nix` files
+- **Complex features**: Use folders with `default.nix` entry points
+- Always provide `default.nix` for folders to maintain consistent imports
+
+### 3. Platform Separation
+- **Cross-platform**: `home/features/packages.nix`, shared modules
+- **macOS-specific**: `home/features/darwin/` (GUI apps, system integrations)
+- **Linux-specific**: `home/features/linux/` (desktop environments, Linux tools)
+
+### 4. Conditional Logic Pattern
+- NEVER use `pkgs.stdenv.isDarwin` in `imports` sections (causes infinite recursion)
+- Use `lib.mkIf pkgs.stdenv.isDarwin` within module content
+- Always import platform modules unconditionally, condition their content
+
+## How to Add Features
+
+### Adding Cross-Platform CLI Tools
+Add to `home/features/packages.nix` in the appropriate emoji-categorized section:
+
+```nix
+# 🛠️ DEVELOPMENT ENVIRONMENT
+ripgrep
+fd
+# ... existing tools
+```
+
+### Adding macOS-Specific GUI Applications
+Add to `home/features/darwin/packages.nix`:
+
+```nix
+# 💻 DEVELOPMENT ENVIRONMENTS & IDEs
+jetbrains.phpstorm
+code-cursor
+your-new-app
+```
+
+### Adding Linux-Specific Applications
+Add to `home/features/linux/packages.nix`:
+
+```nix
+# 🌐 BROWSERS & WEB TOOLS
+firefox
+chromium
+your-new-browser
+```
+
+### Creating New Feature Modules
+
+1. **Simple feature** (single file):
+```nix
+# home/features/your-feature.nix
+{ pkgs, lib, ... }:
+{
+  programs.your-tool = {
+    enable = true;
+    # configuration
+  };
+}
+```
+
+2. **Complex feature** (folder):
+```nix
+# home/features/your-feature/default.nix
+{ ... }:
+{
+  imports = [
+    ./config.nix
+    ./keybindings.nix
+  ];
+}
+```
+
+3. **Update feature orchestrator**:
+```nix
+# home/features/default.nix
+{
+  imports = [
+    # ... existing imports
+    ./your-feature        # for folders
+    ./your-feature.nix     # for files
+  ];
+}
+```
+
+## Package Organization
+
+### Categories with Emoji Headers
+Use these standardized categories for organizing packages:
+
+**Cross-platform** (`packages.nix`):
+- 🛠️ DEVELOPMENT ENVIRONMENT
+- 🔒 SECURITY & ENCRYPTION
+- ⚙️ SYSTEM UTILITIES
+- ☁️ CLOUD & INFRASTRUCTURE
+- 🐳 CONTAINER & VIRTUALIZATION
+- 🔧 LANGUAGES & RUNTIMES
+- 📝 VERSION CONTROL & DOCUMENTATION
+- 🧪 TESTING & QUALITY ASSURANCE
+- 🏢 ENTERPRISE & COLLABORATION
+
+**macOS-specific** (`darwin/packages.nix`):
+- 💬 COMMUNICATION & COLLABORATION
+- 🤖 AI & PRODUCTIVITY TOOLS
+- 💻 DEVELOPMENT ENVIRONMENTS & IDEs
+- 🎨 DESIGN & CREATIVE TOOLS
+- 📱 MOBILE DEVELOPMENT
+- 🛠️ SYSTEM UTILITIES
+
+**Linux-specific** (`linux/packages.nix`):
+- 🌐 BROWSERS & WEB TOOLS
+- 💬 COMMUNICATION & COLLABORATION
+- 💻 DEVELOPMENT ENVIRONMENTS & IDEs
+- 🖥️ DESKTOP ENVIRONMENT & WINDOW MANAGERS
+- 🎨 DESIGN & CREATIVE TOOLS
+
+## System Configuration
+
+### Adding System-Level Features
+Create modules in `modules/` and import them in `hosts/zoidberg/default.nix`:
+
+```nix
+# modules/your-system-feature.nix
+{ pkgs, lib, ... }:
+{
+  system.defaults.your-setting = value;
+}
+```
+
+### macOS System Preferences
+Configure in `hosts/zoidberg/darwin-configuration.nix`:
+
+```nix
+system.defaults = {
+  dock.autohide = true;
+  # ... other settings
+};
+```
+
+## SOPS Secret Management
+
+### Adding New Secrets
+1. Edit secrets file: `sops secrets/secrets.yaml`
+2. Reference in configuration:
+```nix
+sops.secrets."your-secret" = {
+  path = "/path/to/secret";
+  owner = "your-user";
+};
+```
+
+### Secret Integration
+- Secrets defined in `hosts/zoidberg/secrets.nix`
+- Age key path: `~/.config/sops/age/keys.txt`
+- Always encrypt before committing
+
+## Testing and Validation
+
+### Before Committing
+```bash
+# Validate configuration
+nix flake check
+
+# Test build without applying
+nix build .#darwinConfigurations.zoidberg.system --dry-run
+
+# Apply changes
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/
+```
+
+### Common Issues
+- **Infinite recursion**: Check for `pkgs.stdenv.isDarwin` in imports
+- **Missing packages**: Ensure proper categorization in packages.nix
+- **Import errors**: Verify `default.nix` exists for all folders
+
+## Home Manager Patterns
+
+### Program Configuration
+```nix
+programs.your-program = {
+  enable = true;
+  settings = {
+    key = "value";
+  };
+};
+```
+
+### File Management
+```nix
+home.file.".config/your-app/config" = {
+  source = ./config/your-app-config;
+};
+```
+
+### Environment Variables
+```nix
+home.sessionVariables = {
+  YOUR_VAR = "value";
+};
+```
+
+## Best Practices
+
+1. **Always test with `--dry-run` first**
+2. **Use emoji categories for package organization**
+3. **Keep platform-specific code in platform folders**
+4. **Document complex configurations with comments**
+5. **Use SOPS for any sensitive data**
+6. **Follow the two-layer import rule consistently**
+7. **Prefer Home Manager over system-level when possible**
+
+## Emergency Recovery
+
+If configuration breaks:
+```bash
+# Rollback to previous generation
+sudo darwin-rebuild --rollback
+
+# Check available generations
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+```
+
+## File Modification Guidelines
+
+- **flake.nix**: Only modify for new inputs or system additions
+- **packages.nix**: Add new cross-platform CLI tools
+- **darwin/packages.nix**: Add new macOS GUI applications
+- **linux/packages.nix**: Add new Linux applications (when using Linux)
+- **features/default.nix**: Add imports for new feature modules
+- **hosts/zoidberg/**: Modify system-level macOS settings
+
+Remember: This is a living configuration. Always test changes and maintain the clean architecture that makes it cross-platform and maintainable.
+
+---
+
+# 🚀 Dotfiles Installation, Adjustment & Update Guide
+
+## 📋 Prerequisites & Initial Setup
+
+### 1. Install Nix (Required First Step)
+```bash
+# Install Nix using the Determinate Systems installer (recommended)
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+
+# Restart your shell or source the Nix profile
+source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+```
+
+### 2. Install Homebrew (macOS Only - Optional but Recommended)
+```bash
+# Install Homebrew for applications not available in Nix
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### 3. Clone the Dotfiles Repository
+```bash
+# Clone to the standard dotfiles location
+git clone https://github.com/your-username/nix-dotfiles ~/.config/nix-dotfiles
+cd ~/.config/nix-dotfiles
+```
+
+## 🔧 Installation Methods
+
+### Automated Installation (Recommended)
+```bash
+# Use the provided install script (detects platform automatically)
+./install.sh
+
+# Or specify platform explicitly
+./install.sh darwin    # for macOS
+./install.sh linux     # for Linux
+```
+
+### Manual Installation
+
+#### macOS (nix-darwin)
+```bash
+# First-time setup
+nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles#zoidberg
+
+# After first setup, use darwin-rebuild directly
+darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace
+```
+
+#### Linux (NixOS)
+```bash
+# For NixOS systems
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles#linux-example --show-trace
+
+# For standalone Home Manager
+nix run home-manager -- switch --flake ~/.config/nix-dotfiles#C.Hessel
+```
+
+## 🔄 Update Procedures
+
+### Daily Updates
+```bash
+# Update flake inputs to latest versions
+nix flake update
+
+# Apply updates (choose your platform)
+darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace    # macOS
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles                      # Linux
+```
+
+### Safe Update Workflow
+```bash
+# 1. Check current configuration is valid
+nix flake check
+
+# 2. Update inputs gradually (optional - for safety)
+nix flake lock --update-input nixpkgs    # Update just nixpkgs
+nix flake lock --update-input home-manager    # Update just home-manager
+
+# 3. Test build without applying changes
+nix build .#darwinConfigurations.zoidberg.system --dry-run    # macOS
+nix build .#nixosConfigurations.your-host.config.system.build.toplevel --dry-run    # Linux
+
+# 4. Apply changes with detailed output
+darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
+```
+
+### Rolling Back Changes
+```bash
+# Rollback to previous generation (macOS)
+sudo darwin-rebuild --rollback
+
+# Rollback to previous generation (Linux)
+sudo nixos-rebuild --rollback
+
+# List available generations
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+
+# Rollback to specific generation
+sudo nix-env --profile /nix/var/nix/profiles/system --switch-generation 42
+```
+
+## ⚙️ Configuration Adjustments
+
+### Adding New Packages
+
+#### Cross-Platform CLI Tools
+1. Open `home/features/packages.nix`
+2. Add package to appropriate emoji category:
+```nix
+# 🛠️ DEVELOPMENT ENVIRONMENT
+ripgrep
+fd
+your-new-tool    # Add here
+```
+
+#### macOS GUI Applications
+1. Open `home/features/darwin/packages.nix`
+2. Add to appropriate category:
+```nix
+# 💻 DEVELOPMENT ENVIRONMENTS & IDEs
+jetbrains.phpstorm
+your-new-app    # Add here
+```
+
+#### Linux-Specific Applications
+1. Open `home/features/linux/packages.nix`
+2. Add to appropriate category:
+```nix
+# 🌐 BROWSERS & WEB TOOLS
+firefox
+your-new-browser    # Add here
+```
+
+### Creating New Feature Modules
+
+#### Simple Feature (Single File)
+```bash
+# Create new feature file
+touch home/features/your-feature.nix
+
+# Add content:
+# { pkgs, lib, ... }:
+# {
+#   programs.your-tool = {
+#     enable = true;
+#     settings = {
+#       key = "value";
+#     };
+#   };
+# }
+
+# Import in features/default.nix
+# imports = [
+#   ./your-feature.nix
+# ];
+```
+
+#### Complex Feature (Directory)
+```bash
+# Create feature directory
+mkdir -p home/features/your-feature
+
+# Create entry point
+touch home/features/your-feature/default.nix
+
+# Create supporting files
+touch home/features/your-feature/config.nix
+touch home/features/your-feature/keybindings.nix
+
+# Import in features/default.nix
+# imports = [
+#   ./your-feature    # directory auto-imports default.nix
+# ];
+```
+
+### System-Level Configuration (macOS)
+```bash
+# Edit system settings
+vim hosts/zoidberg/darwin-configuration.nix
+
+# Common system settings:
+# system.defaults.dock.autohide = true;
+# system.defaults.finder.AppleShowAllExtensions = true;
+# system.defaults.trackpad.Clicking = true;
+```
+
+## 🔐 Secrets Management (SOPS)
+
+### Initial SOPS Setup
+```bash
+# Generate age key (one-time setup)
+mkdir -p ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt
+
+# Note your public key for .sops.yaml configuration
+# age1abc123def456...
+```
+
+### Managing Secrets
+```bash
+# Create/edit encrypted secrets
+sops home/features/secrets/example.yaml
+
+# View encrypted secrets (for debugging)
+sops -d home/features/secrets/example.yaml
+
+# Re-encrypt all secrets after adding team members
+find . -name "*.yaml" -path "./home/features/secrets/*" -exec sops updatekeys {} \;
+```
+
+### Using Secrets in Configuration
+```nix
+# Define secret in any .nix file
+sops.secrets.api_key = {
+  sopsFile = ./secrets/example.yaml;
+  owner = "C.Hessel";
+};
+
+# Reference secret path in configuration
+programs.some-app.apiKey = config.sops.secrets.api_key.path;
+```
+
+## 🛠️ Maintenance Commands
+
+### Daily Maintenance
+```bash
+# Check configuration health
+nix flake check
+
+# Clean up old generations (saves disk space)
+nix-collect-garbage --delete-older-than 7d
+
+# Clean up user profile generations
+nix-collect-garbage -d
+```
+
+### Troubleshooting
+
+#### Common Issues and Solutions
+```bash
+# Issue: "infinite recursion" errors
+# Solution: Check for pkgs.stdenv.isDarwin in imports sections
+
+# Issue: Package not found
+# Solution: Search available packages
+nix search nixpkgs your-package-name
+
+# Issue: Build failures
+# Solution: Check build logs with verbose output
+darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
+
+# Issue: Configuration won't apply
+# Solution: Validate syntax first
+nix flake check
+```
+
+#### Emergency Recovery
+```bash
+# Boot into recovery mode and rollback
+sudo darwin-rebuild --rollback
+
+# Or manually switch to working generation
+sudo nix-env --profile /nix/var/nix/profiles/system --switch-generation WORKING_GENERATION_NUMBER
+
+# Check what changed between generations
+nix store diff-closures /nix/var/nix/profiles/system-OLD-link /nix/var/nix/profiles/system-NEW-link
+```
+
+## 📊 Monitoring & Validation
+
+### Pre-Deployment Checks
+```bash
+# Validate flake syntax and dependencies
+nix flake check
+
+# Check for potential issues
+nix build .#darwinConfigurations.zoidberg.system --dry-run
+
+# Preview what will change
+darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --dry-run
+```
+
+### Post-Deployment Validation
+```bash
+# Check system status
+darwin-rebuild list-generations
+
+# Verify services are running
+launchctl list | grep nix
+
+# Test new packages/programs
+which your-new-program
+your-new-program --version
+```
+
+## 🔄 Development Workflow
+
+### Making Configuration Changes
+1. **Make changes** to appropriate `.nix` files
+2. **Validate syntax**: `nix flake check`
+3. **Test build**: `nix build .#darwinConfigurations.zoidberg.system --dry-run`
+4. **Apply changes**: `darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace`
+5. **Test functionality**: Verify new packages/settings work
+6. **Commit changes**: `git add . && git commit -m "description"`
+
+### Contributing to Dotfiles
+```bash
+# Create feature branch
+git checkout -b add-new-feature
+
+# Make changes following architecture guidelines
+# Test thoroughly
+./install.sh --dry-run
+
+# Commit and push
+git add .
+git commit -m "feat: add new development tool"
+git push origin add-new-feature
+```
+
+## 🎯 Quick Reference Commands
+
+### Essential Commands
+```bash
+# Apply configuration changes
+darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+
+# Update all flake inputs
+nix flake update
+
+# Check configuration validity
+nix flake check
+
+# Rollback to previous generation
+sudo darwin-rebuild --rollback
+
+# Clean up old generations
+nix-collect-garbage --delete-older-than 7d
+
+# Search for packages
+nix search nixpkgs package-name
+
+# View build logs
+darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
+
+# List system generations
+darwin-rebuild list-generations
+```
+
+### File Locations Reference
+- **Main flake**: `flake.nix`
+- **macOS system config**: `hosts/zoidberg/`
+- **User packages**: `home/features/packages.nix`
+- **macOS GUI apps**: `home/features/darwin/packages.nix`
+- **Feature modules**: `home/features/`
+- **Secrets**: `home/features/secrets/`
+- **SOPS age keys**: `~/.config/sops/age/keys.txt`
+
+Remember: Always test changes with `--dry-run` first, and keep your configuration clean and well-organized following the established architecture patterns. 
