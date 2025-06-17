@@ -40,10 +40,7 @@
       };
     in
     {
-      defaultPackage.x86_64-linux = home-manager.defaultPackage.x86_64-linux;
-      defaultPackage.aarch64-darwin = home-manager.defaultPackage.aarch64-darwin;
-      defaultPackage.x86_64-darwin = home-manager.defaultPackage.x86_64-darwin;
-
+      # macOS configurations
       darwinConfigurations = {
         zoidberg = nix-darwin.lib.darwinSystem {
           specialArgs = extraArgs // {
@@ -51,7 +48,7 @@
           };
           system = "aarch64-darwin";
           modules = [
-            ./systems/zoidberg
+            ./hosts/zoidberg
             home-manager.darwinModules.default
             {
               home-manager.useGlobalPkgs = true;
@@ -59,6 +56,38 @@
               home-manager.extraSpecialArgs = extraArgs;
             }
             nix.darwinModules.default
+          ];
+        };
+      };
+
+      # NixOS configurations (for future Linux support)
+      # nixosConfigurations = {
+      #   # Example Linux configuration
+      #   linux-example = nixpkgs.lib.nixosSystem {
+      #     system = "x86_64-linux";
+      #     specialArgs = extraArgs;
+      #     modules = [
+      #       ./hosts/example-linux
+      #       home-manager.nixosModules.default
+      #       {
+      #         home-manager.useGlobalPkgs = true;
+      #         home-manager.useUserPackages = true;
+      #         home-manager.extraSpecialArgs = extraArgs;
+      #         home-manager.users."C.Hessel" = {
+      #           imports = [ ./home ];
+      #         };
+      #       }
+      #     ];
+      #   };
+      # };
+
+      # Standalone home-manager configurations
+      homeConfigurations = {
+        "C.Hessel" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          extraSpecialArgs = extraArgs;
+          modules = [
+            ./home
           ];
         };
       };

@@ -1,20 +1,16 @@
 { pkgs
+, lib
 , flake
 , ...
 }: {
 
   imports = [
     flake.inputs.sops-nix.homeManagerModule
-    ./features/shell
-    ./features/packages
-    ./features/git
-    ./features/nvim
-    ./features/secrets
-    ./features/tmux
-    ./features/wezterm
-    ./features/go
-    ./features/php
+    ./features
   ];
+
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -29,6 +25,11 @@
     EDITOR = "nvim";
   };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  # User information (will be overridden by host-specific config)
+  home.username = lib.mkDefault "C.Hessel";
+  home.homeDirectory = lib.mkDefault (
+    if pkgs.stdenv.isDarwin 
+    then "/Users/C.Hessel"
+    else "/home/C.Hessel"
+  );
 }

@@ -6,10 +6,10 @@
 , ...
 }: {
   imports = [
-    ../shared/aerospace.nix
-    ../shared/brew.nix
-    ../shared/system.nix
     ../shared/fonts.nix
+    ../../modules/darwin/aerospace
+    ../../modules/darwin/brew
+    ../../modules/darwin/system
   ];
 
   system.stateVersion = 5;
@@ -27,7 +27,6 @@
       ../../home/zoidberg.nix
     ];
   };
-
 
   nix.gc = {
     automatic = true;
