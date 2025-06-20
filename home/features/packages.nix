@@ -39,6 +39,7 @@
     bandwhich
     dogdns                   # Modern dig replacement for DNS queries
     httpie                   # User-friendly HTTP client (modern curl)
+    tailscale
     
     # ═══════════════════════════════════════════════════════════════════════════
     # ☁️ CLOUD & INFRASTRUCTURE TOOLS
