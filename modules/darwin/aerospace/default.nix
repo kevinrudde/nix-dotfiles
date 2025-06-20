@@ -50,11 +50,11 @@
         alt-3 = "workspace 3";
         alt-4 = "workspace 4";
         alt-5 = "workspace 5";
-        alt-6 = "workspace 6";
-        alt-7 = "workspace 7";
-        alt-8 = "workspace 8";
-        alt-9 = "workspace 9";
-        alt-0 = "workspace 0";
+        alt-f1 = "workspace 6";
+        alt-f2 = "workspace 7";
+        alt-f3 = "workspace 8";
+        alt-6 = "workspace 9";
+        alt-f4 = "workspace 0";
 
         alt-shift-p = "workspace --wrap-around prev";
         alt-shift-n = "workspace --wrap-around next";
@@ -65,11 +65,11 @@
         alt-shift-3 = ["move-node-to-workspace 3" "workspace 3"];
         alt-shift-4 = ["move-node-to-workspace 4" "workspace 4"];
         alt-shift-5 = ["move-node-to-workspace 5" "workspace 5"];
-        alt-shift-6 = ["move-node-to-workspace 6" "workspace 6"];
-        alt-shift-7 = ["move-node-to-workspace 7" "workspace 7"];
-        alt-shift-8 = ["move-node-to-workspace 8" "workspace 8"];
-        alt-shift-9 = ["move-node-to-workspace 9" "workspace 9"];
-        alt-shift-0 = ["move-node-to-workspace 0" "workspace 0"];
+        alt-shift-f1 = ["move-node-to-workspace 6" "workspace 6"];
+        alt-shift-f2 = ["move-node-to-workspace 7" "workspace 7"];
+        alt-shift-f3 = ["move-node-to-workspace 8" "workspace 8"];
+        alt-shift-6 = ["move-node-to-workspace 9" "workspace 9"];
+        alt-shift-f4 = ["move-node-to-workspace 0" "workspace 0"];
 
         # Window focus navigation
         alt-left = "focus --boundaries-action wrap-around-the-workspace left";
