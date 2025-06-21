@@ -255,6 +255,42 @@ cat /etc/shells
 chsh -s /run/current-system/sw/bin/fish  # or your preferred shell
 ```
 
+### 🖥️ Monitor Management (AeroSpace + Hammerspoon)
+
+This configuration includes intelligent monitor detection and automatic window layout management for external displays.
+
+#### Features
+- **Automatic Detection**: Detects when external monitors are connected/disconnected
+- **Smart Layouts**: Automatically applies appropriate window layouts based on monitor orientation
+- **LG HDR 4K Support**: Special handling for portrait-oriented displays
+
+#### How It Works
+- **Portrait Display (LG HDR 4K)**: Automatically uses horizontal splits (windows stack vertically)
+- **Laptop Display**: Uses vertical splits (windows arrange side-by-side)
+- **Hot-Plugging**: Detects monitor changes and reapplies layouts automatically
+
+#### Manual Control
+- **`Alt + Shift + M`**: Manually trigger layout detection and application
+- **Debug**: Check Hammerspoon console for detailed monitoring logs
+
+#### Configuration Files
+- **AeroSpace**: `modules/darwin/aerospace/default.nix` (keyboard shortcuts)
+- **Monitor Logic**: `home/features/darwin/keybindings/hammerspoon/config/MonitorManager.lua`
+- **Workspaces**: Workspaces 6, 7, 8 are assigned to external monitors
+
+#### Troubleshooting
+```bash
+# Check if AeroSpace is running
+pgrep -fl aerospace
+
+# View Hammerspoon console logs
+# Open Hammerspoon app → Console (to see monitor detection messages)
+
+# Test manual trigger
+# Press Alt + Shift + M or run in Hammerspoon console:
+MonitorManager.applyLayouts()
+```
+
 ## 🧪 Testing
 
 ### Validate Configuration

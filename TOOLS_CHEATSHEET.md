@@ -4,6 +4,7 @@ A comprehensive reference for all the enhanced tools in your nix-dotfiles config
 
 ## 📋 Table of Contents
 
+- [🖥️ Monitor Management](#️-monitor-management)
 - [🔧 Git Workflow](#-git-workflow)
 - [🖥️ Enhanced Tmux](#️-enhanced-tmux)
 - [⚡ Workflow Automation](#-workflow-automation)
@@ -13,6 +14,86 @@ A comprehensive reference for all the enhanced tools in your nix-dotfiles config
 - [🧪 Code Quality & Testing](#-code-quality--testing)
 - [📝 Documentation & Viewing](#-documentation--viewing)
 - [🚀 Productivity Utilities](#-productivity-utilities)
+
+---
+
+## 🖥️ Monitor Management
+
+### AeroSpace + Hammerspoon Integration
+
+**Automatic monitor detection and window layout management for external displays.**
+
+#### Key Features
+- **Intelligent Detection**: Automatically detects LG HDR 4K and other external monitors
+- **Dynamic Layouts**: Switches between horizontal and vertical window splits based on display orientation
+- **Hot-Plug Support**: Responds to monitor connection/disconnection events
+- **Workspace Assignment**: Workspaces 6, 7, 8 are assigned to external monitors
+
+#### Keyboard Shortcuts
+```bash
+# Manual layout trigger
+Alt + Shift + M      # Force re-detect monitors and apply appropriate layouts
+
+# Workspace navigation (External monitor workspaces)
+Alt + F1             # Switch to workspace 6 (LG HDR 4K)
+Alt + F2             # Switch to workspace 7 (LG HDR 4K)  
+Alt + F3             # Switch to workspace 8 (LG HDR 4K)
+
+# Move windows to external monitor workspaces
+Alt + Shift + F1     # Move window to workspace 6 and follow
+Alt + Shift + F2     # Move window to workspace 7 and follow
+Alt + Shift + F3     # Move window to workspace 8 and follow
+```
+
+#### Automatic Behavior
+```bash
+# When LG HDR 4K is connected (Portrait mode):
+# - Workspaces 6, 7, 8 use horizontal splits (windows stack vertically)
+# - Perfect for rotated 4K displays
+
+# When LG HDR 4K is disconnected (Laptop only):
+# - Workspaces 6, 7, 8 use vertical splits (windows arrange side-by-side)
+# - Optimized for laptop screen aspect ratio
+```
+
+#### Monitoring & Debugging
+```bash
+# Check AeroSpace status
+pgrep -fl aerospace
+
+# View current workspace
+/run/current-system/sw/bin/aerospace list-workspaces --focused
+
+# List windows in workspace
+/run/current-system/sw/bin/aerospace list-windows --workspace 6
+
+# Hammerspoon Console (for debug logs)
+# Open Hammerspoon app → Console
+# Look for "MonitorManager" messages
+```
+
+#### Configuration Files
+- **AeroSpace Config**: `modules/darwin/aerospace/default.nix`
+- **Monitor Detection**: `home/features/darwin/keybindings/hammerspoon/config/MonitorManager.lua`
+- **Initialization**: `home/features/darwin/keybindings/hammerspoon/config/init.lua`
+
+#### Troubleshooting
+```bash
+# Force trigger monitor detection
+Alt + Shift + M
+
+# Check Hammerspoon console for errors
+# Open Hammerspoon → Console
+
+# Test monitor detection manually (in Hammerspoon console)
+MonitorManager.applyLayouts()
+
+# Restart AeroSpace service
+launchctl kickstart -k gui/$(id -u)/org.nixos.aerospace
+
+# Restart Hammerspoon
+# Hammerspoon → Reload Config
+```
 
 ---
 
