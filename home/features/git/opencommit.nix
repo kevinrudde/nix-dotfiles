@@ -51,69 +51,25 @@
   
   # Essential scripts only
   home.packages = with pkgs; [
-    # Conventional commit wrapper
+    # Simple conventional commit wrapper - OpenCommit already generates conventional format
     (writeShellScriptBin "oco-conventional" ''
       #!/usr/bin/env bash
       
-      # Ensure we're in a git repository
+      # Basic validation
       if ! git rev-parse --git-dir >/dev/null 2>&1; then
         echo "❌ Not in a git repository"
         exit 1
       fi
       
-      # Check for staged changes
       if git diff --cached --quiet; then
         echo "❌ No staged changes"
         echo "💡 Run: git add <files>"
         exit 1
       fi
       
-      echo "🤖 Generating conventional commit message..."
-      
-      # Run opencommit and capture output
-      if output=$(opencommit "$@" --dry-run 2>/dev/null); then
-        # Extract just the commit message part (after "Generated commit message:")
-        commit_msg=$(echo "$output" | sed -n '/Generated commit message:/,/^$/p' | sed '1d;$d' | sed 's/^—*$//' | grep -v '^$' | head -1)
-        
-        # If message doesn't start with conventional format, try to fix it
-        if [[ ! "$commit_msg" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?!?:\ .+ ]]; then
-          echo "⚠️  Non-conventional format detected, reformatting..."
-          
-          # Determine type based on file changes
-          files=$(git diff --cached --name-only)
-          if echo "$files" | grep -q "\\.md$\|README\|CHANGELOG"; then
-            type="docs"
-          elif echo "$files" | grep -q "test\|spec"; then
-            type="test"
-          elif echo "$files" | grep -q "package\\.json\|flake\\.nix\|Cargo\\.toml"; then
-            type="chore"
-          else
-            type="feat"
-          fi
-          
-          # Clean and format the message
-          clean_msg=$(echo "$commit_msg" | sed 's/^[^a-zA-Z]*//' | sed 's/^[[:space:]]*//')
-          commit_msg="$type: $clean_msg"
-        fi
-        
-        echo ""
-        echo "📝 Conventional commit message:"
-        echo "   $commit_msg"
-        echo ""
-        read -p "🚀 Commit with this message? (y/N): " -n 1 -r
-        echo
-        
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-          git commit -m "$commit_msg"
-          echo "✅ Committed with conventional format!"
-        else
-          echo "❌ Commit cancelled"
-        fi
-      else
-        echo "❌ Failed to generate commit message"
-        echo "💡 Check: oco-check"
-        exit 1
-      fi
+      # OpenCommit already generates conventional commits, just run it
+      echo "🤖 Generating conventional commit message with OpenCommit..."
+      opencommit "$@"
     '')
     
     # Simple health check
