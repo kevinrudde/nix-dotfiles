@@ -10,6 +10,7 @@ A cross-platform Nix configuration for macOS (nix-darwin) and Linux (NixOS) with
 - 🔒 **Secrets Management**: SOPS-encrypted secrets with age
 - 📦 **Package Management**: Organized cross-platform and platform-specific packages
 - 🛠️ **Development Tools**: Go, PHP, Neovim, tmux, and more
+- 🤖 **AI-Powered Tools**: Local LLM with ollama + AI commit messages via opencommit
 - 🎨 **Modern Terminal**: WezTerm with custom configuration
 - ⌨️ **Automation**: Hammerspoon-based macOS window management and shortcuts
 
@@ -231,6 +232,33 @@ Add to appropriate category:
 - **System Level**: Add modules to `modules/darwin/` or `modules/nixos/`
 - **User Level**: Add features to `home/features/darwin/` or `home/features/linux/`
 - **Conditional Logic**: Use `lib.mkIf pkgs.stdenv.isDarwin` for conditional activation
+
+### 🤖 AI Tools Quick Start
+
+After installation, you have local AI-powered development tools ready to use:
+
+#### OpenCommit - AI Commit Messages
+```bash
+# Generate AI-powered commit messages (no OpenAI API key needed!)
+git add .
+oco                    # Generate and commit with local AI
+
+# Check status and configuration
+oco-check             # Validate AI setup
+oco-model             # Switch between model presets
+```
+
+#### Ollama - Local LLM Server
+```bash
+# Check if local AI server is running
+ollama-health         # Service status and available models
+ollama-setup          # Initial setup and model download
+
+# Interactive AI chat
+ollama run llama3.2:3b "Explain this code: $(cat file.js)"
+```
+
+**🔧 For detailed AI tools usage, see [TOOLS_CHEATSHEET.md](./TOOLS_CHEATSHEET.md#-ai--llm-tools)**
 
 ## 🍎 macOS-Specific Setup
 

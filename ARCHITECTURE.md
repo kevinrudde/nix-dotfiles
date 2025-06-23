@@ -35,6 +35,9 @@ nix-dotfiles/
 │       │   └── languages/ # Programming language configurations
 │       │       ├── go/    # Go development setup
 │       │       └── php/   # PHP development setup
+│       ├── ai/            # AI & Machine Learning tools
+│       │   ├── default.nix # Imports AI modules
+│       │   └── ollama.nix # Local LLM server configuration
 │       ├── darwin/        # macOS-specific user configurations
 │       │   ├── default.nix # Imports darwin features and packages
 │       │   ├── packages.nix # macOS-specific packages (categorized)
@@ -107,6 +110,7 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 - **`home/features/editors/default.nix`**: Imports `./nvim`
 - **`home/features/terminals/default.nix`**: Imports `./tmux`, `./wezterm`
 - **`home/features/development/default.nix`**: Imports `./languages/go`, `./languages/php`
+- **`home/features/ai/default.nix`**: Imports `./ollama.nix`
 - **`home/features/darwin/default.nix`**: Imports `./packages.nix`, `./keybindings`
 - **`home/features/linux/default.nix`**: Imports `./packages.nix` (and future features)
 
@@ -118,6 +122,7 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
   - ☁️ Cloud & Infrastructure Tools
   - 💻 Development Languages & Runtimes
   - 🔧 Development Tools & Version Control
+  - 🤖 AI & Machine Learning
   - And more...
 
 - **`home/features/darwin/packages.nix`**: macOS-specific packages organized by:

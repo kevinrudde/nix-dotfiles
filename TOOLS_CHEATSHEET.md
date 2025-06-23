@@ -6,6 +6,7 @@ A comprehensive reference for all the enhanced tools in your nix-dotfiles config
 
 - [🖥️ Monitor Management](#️-monitor-management)
 - [🔧 Git Workflow](#-git-workflow)
+- [🤖 AI & LLM Tools](#-ai--llm-tools)
 - [🖥️ Enhanced Tmux](#️-enhanced-tmux)
 - [⚡ Workflow Automation](#-workflow-automation)
 - [📊 System Monitoring](#-system-monitoring)
@@ -122,6 +123,159 @@ lazygit
 git diff              # Shows beautiful syntax-highlighted diffs
 git log -p            # Shows commit history with enhanced diffs
 git show HEAD         # Shows last commit with delta formatting
+```
+
+---
+
+## 🤖 AI & LLM Tools
+
+### OpenCommit - AI-Powered Commit Messages
+
+**Generate intelligent commit messages using local LLM (ollama) instead of OpenAI.**
+
+#### Quick Start
+```bash
+# Stage your changes and generate commit message
+git add .
+oco                   # Generate and commit with AI
+
+# Dry run (preview without committing)
+oco --dry-run        # See what message would be generated
+```
+
+#### Available Commands
+```bash
+# Main commands
+oco                   # Generate commit message (alias: opencommit)
+oc                    # Short alias for opencommit
+
+# Git hook integration
+oco-hook-enable       # Enable automatic commit message generation
+oco-hook-disable      # Disable git hook integration
+
+# Configuration and health checks
+oco-check            # Validate configuration and service status
+oco-config           # View/edit opencommit settings
+oco-status           # Show current configuration
+
+# Model management
+oco-model            # List available model presets
+oco-model fast       # Switch to fast model (llama3.2:3b)
+oco-model detailed   # Switch to detailed model (llama3.2:8b)
+oco-model coding     # Switch to coding model (codellama:7b)
+oco-model creative   # Switch to creative model
+```
+
+#### Conventional Commit Types
+```bash
+# Generate commits with specific types
+oco-feat             # feat: commit message
+oco-fix              # fix: commit message  
+oco-docs             # docs: commit message
+oco-style            # style: commit message
+oco-refactor         # refactor: commit message
+oco-test             # test: commit message
+oco-chore            # chore: commit message
+```
+
+#### Configuration (Auto-configured!)
+Your opencommit is pre-configured to use local ollama:
+- **API URL**: `http://127.0.0.1:11434/v1` (local ollama)
+- **Model**: `llama3.2:3b` (fast, efficient for commit messages)
+- **Format**: Conventional commits with emojis
+- **Language**: English
+- **Behavior**: No auto-push, concise messages
+
+### Ollama - Local LLM Server
+
+**Run large language models locally for privacy and offline use.**
+
+#### Service Management
+```bash
+# Health and status
+ollama-health        # Check service status and available models
+ollama-status        # Show running models (alias: ollama ps)
+ollama-setup         # Initial setup and model download
+
+# Model management  
+ollama list          # List downloaded models
+ollama-list          # Alias for ollama list
+ollama pull <model>  # Download a model
+ollama-pull          # Alias for ollama pull
+ollama rm <model>    # Remove a model
+ollama-rm            # Alias for ollama rm
+```
+
+#### Quick Model Setup
+```bash
+# Essential models for development
+ollama-setup-coding        # Download codellama:7b + llama3.2:3b
+ollama-setup-opencommit    # Download llama3.2:3b (optimized for commits)
+
+# Individual model downloads
+ollama pull llama3.2:3b    # Fast, good for commit messages
+ollama pull llama3.2:8b    # More detailed responses
+ollama pull codellama:7b   # Optimized for code tasks
+ollama pull llama3.2:1b    # Ultra-fast, minimal model
+```
+
+#### Interactive Usage
+```bash
+# Start interactive chat with model
+ollama run llama3.2:3b
+ollama run codellama:7b
+
+# One-shot commands
+ollama run llama3.2:3b "Explain this bash command: ls -la"
+ollama run codellama:7b "Write a Python function to reverse a string"
+```
+
+#### Service Configuration
+- **Host**: `127.0.0.1` (localhost only for security)
+- **Port**: `11434` (default ollama port)
+- **Acceleration**: CPU-only on macOS for stability
+- **Models**: Stored in `~/.ollama/models/`
+- **Logs**: Available via `launchctl` service logs
+
+#### Troubleshooting
+```bash
+# Check service status
+ollama-health
+
+# Restart ollama service
+launchctl restart org.nixos.ollama
+
+# View service logs
+launchctl list | grep ollama
+
+# Force reload service
+launchctl unload ~/Library/LaunchAgents/org.nixos.ollama.plist
+launchctl load ~/Library/LaunchAgents/org.nixos.ollama.plist
+
+# Check disk space (models can be large)
+df -h ~/.ollama/
+```
+
+#### Model Presets (via oco-model)
+| Preset | Model | Use Case | Size |
+|--------|-------|----------|------|
+| `fast` | llama3.2:3b | Quick responses, commit messages | ~2GB |
+| `detailed` | llama3.2:8b | Detailed explanations | ~4.7GB |
+| `coding` | codellama:7b | Code-specific tasks | ~3.8GB |
+| `creative` | llama3.2:3b | Creative writing | ~2GB |
+
+#### Integration Examples
+```bash
+# Use with opencommit
+git add .
+oco                  # Uses configured model for commit messages
+
+# Quick model switching for different tasks
+oco-model coding     # Switch to code-optimized model
+git add .
+oco                  # Generate commit with coding model
+
+oco-model fast       # Switch back to fast model for regular commits
 ```
 
 ---

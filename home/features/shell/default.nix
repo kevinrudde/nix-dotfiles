@@ -14,6 +14,9 @@
     hyperfine
     tree
     tldr
+    commitizen
+    opencommit
+    ast-grep
   ];
 
   programs.direnv = {

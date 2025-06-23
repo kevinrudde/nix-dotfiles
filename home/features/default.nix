@@ -7,6 +7,7 @@
     ./secrets
     ./terminals
     ./development
+    ./ai
     ./darwin
     ./linux
   ];

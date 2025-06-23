@@ -1,4 +1,7 @@
 { pkgs, ... }: {
+  imports = [
+    ./opencommit.nix
+  ];
 
   home.packages = with pkgs; [
     delta
