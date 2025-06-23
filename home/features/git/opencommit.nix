@@ -27,22 +27,21 @@
   
   # Simple aliases for opencommit usage
   home.shellAliases = {
-    # Main commands - conventional commits enforced
-    "oco" = "oco-conventional";
-    "oc" = "oco-conventional";
-    "oco-raw" = "opencommit";  # Direct access if needed
+    # Main commands - OpenCommit with native conventional commits
+    "oco" = "opencommit";
+    "oc" = "opencommit";
     
     # Jira integration
     "oco-jira" = "oco-jira-commit";
     "oco-ticket" = "oco-jira-commit";
     
     # Quick commit types (conventional)
-    "oco-feat" = "oco-conventional --context='feat: feature implementation'";
-    "oco-fix" = "oco-conventional --context='fix: bug fix'";
-    "oco-docs" = "oco-conventional --context='docs: documentation update'";
-    "oco-refactor" = "oco-conventional --context='refactor: code refactoring'";
-    "oco-test" = "oco-conventional --context='test: testing changes'";
-    "oco-chore" = "oco-conventional --context='chore: maintenance task'";
+    "oco-feat" = "opencommit --context='feat: feature implementation'";
+    "oco-fix" = "opencommit --context='fix: bug fix'";
+    "oco-docs" = "opencommit --context='docs: documentation update'";
+    "oco-refactor" = "opencommit --context='refactor: code refactoring'";
+    "oco-test" = "opencommit --context='test: testing changes'";
+    "oco-chore" = "opencommit --context='chore: maintenance task'";
     
     # Configuration
     "oco-config" = "opencommit config";
@@ -51,27 +50,6 @@
   
   # Essential scripts only
   home.packages = with pkgs; [
-    # Simple conventional commit wrapper - OpenCommit already generates conventional format
-    (writeShellScriptBin "oco-conventional" ''
-      #!/usr/bin/env bash
-      
-      # Basic validation
-      if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "❌ Not in a git repository"
-        exit 1
-      fi
-      
-      if git diff --cached --quiet; then
-        echo "❌ No staged changes"
-        echo "💡 Run: git add <files>"
-        exit 1
-      fi
-      
-      # OpenCommit already generates conventional commits, just run it
-      echo "🤖 Generating conventional commit message with OpenCommit..."
-      opencommit "$@"
-    '')
-    
     # Simple health check
     (writeShellScriptBin "oco-check" ''
       #!/usr/bin/env bash
