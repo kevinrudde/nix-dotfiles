@@ -1,38 +1,48 @@
 { pkgs, lib, ... }: {
   
-  # OpenCommit configuration via Home Manager activation
+  # OpenCommit initial configuration (only sets defaults if not already configured)
   home.activation.opencommitConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # Configure OpenCommit for local ollama usage
+    # Configure OpenCommit for local ollama usage with conventional commits
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_API_URL=http://127.0.0.1:11434/v1
-    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_MODEL=qwen2.5-coder:3b
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_API_KEY=ollama
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_TOKENS_MAX_INPUT=8192
-    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_TOKENS_MAX_OUTPUT=300
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_TOKENS_MAX_OUTPUT=200
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_DESCRIPTION=false
-    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_EMOJI=true
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_EMOJI=false
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_LANGUAGE=en
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_GITPUSH=false
-    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_ONE_LINE_COMMIT=false
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_ONE_LINE_COMMIT=true
     $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_PROMPT_MODULE=conventional-commit
+    
+    # Only set default model if not already configured
+    if ! ${pkgs.opencommit}/bin/opencommit config get OCO_MODEL >/dev/null 2>&1; then
+      $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_MODEL=qwen2.5-coder:3b
+    fi
   '';
+  
+  # Environment variables for dynamic model switching
+  home.sessionVariables = {
+    OCO_DEFAULT_MODEL = "qwen2.5-coder:3b";
+  };
   
   # Simple aliases for opencommit usage
   home.shellAliases = {
-    # Main commands - simple and direct
-    "oco" = "opencommit";
-    "oc" = "opencommit";
+    # Main commands - conventional commits enforced
+    "oco" = "oco-conventional";
+    "oc" = "oco-conventional";
+    "oco-raw" = "opencommit";  # Direct access if needed
     
     # Jira integration
     "oco-jira" = "oco-jira-commit";
     "oco-ticket" = "oco-jira-commit";
     
-    # Quick commit types
-    "oco-feat" = "opencommit 'feat: '";
-    "oco-fix" = "opencommit 'fix: '";
-    "oco-docs" = "opencommit 'docs: '";
-    "oco-refactor" = "opencommit 'refactor: '";
-    "oco-test" = "opencommit 'test: '";
-    "oco-chore" = "opencommit 'chore: '";
+    # Quick commit types (conventional)
+    "oco-feat" = "oco-conventional --context='feat: feature implementation'";
+    "oco-fix" = "oco-conventional --context='fix: bug fix'";
+    "oco-docs" = "oco-conventional --context='docs: documentation update'";
+    "oco-refactor" = "oco-conventional --context='refactor: code refactoring'";
+    "oco-test" = "oco-conventional --context='test: testing changes'";
+    "oco-chore" = "oco-conventional --context='chore: maintenance task'";
     
     # Configuration
     "oco-config" = "opencommit config";
@@ -41,6 +51,71 @@
   
   # Essential scripts only
   home.packages = with pkgs; [
+    # Conventional commit wrapper
+    (writeShellScriptBin "oco-conventional" ''
+      #!/usr/bin/env bash
+      
+      # Ensure we're in a git repository
+      if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "❌ Not in a git repository"
+        exit 1
+      fi
+      
+      # Check for staged changes
+      if git diff --cached --quiet; then
+        echo "❌ No staged changes"
+        echo "💡 Run: git add <files>"
+        exit 1
+      fi
+      
+      echo "🤖 Generating conventional commit message..."
+      
+      # Run opencommit and capture output
+      if output=$(opencommit "$@" --dry-run 2>/dev/null); then
+        # Extract just the commit message part (after "Generated commit message:")
+        commit_msg=$(echo "$output" | sed -n '/Generated commit message:/,/^$/p' | sed '1d;$d' | sed 's/^—*$//' | grep -v '^$' | head -1)
+        
+        # If message doesn't start with conventional format, try to fix it
+        if [[ ! "$commit_msg" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?!?:\ .+ ]]; then
+          echo "⚠️  Non-conventional format detected, reformatting..."
+          
+          # Determine type based on file changes
+          files=$(git diff --cached --name-only)
+          if echo "$files" | grep -q "\\.md$\|README\|CHANGELOG"; then
+            type="docs"
+          elif echo "$files" | grep -q "test\|spec"; then
+            type="test"
+          elif echo "$files" | grep -q "package\\.json\|flake\\.nix\|Cargo\\.toml"; then
+            type="chore"
+          else
+            type="feat"
+          fi
+          
+          # Clean and format the message
+          clean_msg=$(echo "$commit_msg" | sed 's/^[^a-zA-Z]*//' | sed 's/^[[:space:]]*//')
+          commit_msg="$type: $clean_msg"
+        fi
+        
+        echo ""
+        echo "📝 Conventional commit message:"
+        echo "   $commit_msg"
+        echo ""
+        read -p "🚀 Commit with this message? (y/N): " -n 1 -r
+        echo
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+          git commit -m "$commit_msg"
+          echo "✅ Committed with conventional format!"
+        else
+          echo "❌ Commit cancelled"
+        fi
+      else
+        echo "❌ Failed to generate commit message"
+        echo "💡 Check: oco-check"
+        exit 1
+      fi
+    '')
+    
     # Simple health check
     (writeShellScriptBin "oco-check" ''
       #!/usr/bin/env bash
@@ -78,7 +153,7 @@
       fi
     '')
     
-    # Model switcher
+    # Enhanced model switcher with persistence
     (writeShellScriptBin "oco-model" ''
       #!/usr/bin/env bash
       
@@ -90,36 +165,67 @@
       )
       
       if [ $# -eq 0 ]; then
-        current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "not set")
+        current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "''${OCO_DEFAULT_MODEL:-not set}")
         echo "🤖 Current model: $current"
+        echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
         echo ""
         echo "Available presets:"
         for preset in "''${!models[@]}"; do
           echo "  $preset: ''${models[$preset]}"
         done
         echo ""
-        echo "Usage: oco-model <preset>"
+        echo "Commands:"
+        echo "  oco-model <preset>  - Switch to preset model"
+        echo "  oco-model reset     - Reset to default model"
+        echo "  oco-model status    - Show current configuration"
         exit 0
       fi
       
-      preset="$1"
-      if [[ -n "''${models[$preset]}" ]]; then
-        model="''${models[$preset]}"
-        echo "🔄 Switching to: $model"
-        
-        # Pull model if needed
-        if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
-          echo "📦 Downloading model..."
-          ollama pull "$model"
-        fi
-        
-        # Update config
-        opencommit config set OCO_MODEL="$model"
-        echo "✅ Model switched to: $model"
-      else
-        echo "❌ Unknown preset: $preset"
-        echo "Available: ''${!models[*]}"
-      fi
+      case "$1" in
+        "reset")
+          default_model="''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
+          echo "🔄 Resetting to default model: $default_model"
+          opencommit config set OCO_MODEL="$default_model"
+          echo "✅ Reset to default model"
+          ;;
+        "status")
+          current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "not set")
+          echo "🤖 Current model: $current"
+          echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
+          
+          # Check if model is available
+          if curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$current$"; then
+            echo "✅ Model status: Available"
+          else
+            echo "⚠️  Model status: Not downloaded"
+            echo "💡 Run: ollama pull $current"
+          fi
+          ;;
+        *)
+          preset="$1"
+          if [[ -n "''${models[$preset]}" ]]; then
+            model="''${models[$preset]}"
+            echo "🔄 Switching to $preset model: $model"
+            
+            # Pull model if needed
+            if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
+              echo "📦 Downloading model..."
+              ollama pull "$model" || {
+                echo "❌ Failed to download model"
+                exit 1
+              }
+            fi
+            
+            # Update config
+            opencommit config set OCO_MODEL="$model"
+            echo "✅ Model switched to: $model"
+            echo "💡 This setting persists across system rebuilds"
+          else
+            echo "❌ Unknown preset: $preset"
+            echo "Available: ''${!models[*]} reset status"
+          fi
+          ;;
+      esac
     '')
     
     # Jira integration
