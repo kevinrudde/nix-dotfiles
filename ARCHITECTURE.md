@@ -122,7 +122,7 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
   - ☁️ Cloud & Infrastructure Tools
   - 💻 Development Languages & Runtimes
   - 🔧 Development Tools & Version Control
-  - 🤖 AI & Machine Learning
+  - 🤖 AI & Machine Learning (ollama, opencommit)
   - And more...
 
 - **`home/features/darwin/packages.nix`**: macOS-specific packages organized by:

@@ -36,8 +36,10 @@
     "ollama-rm" = "ollama rm";
     
     # Quick model pulls for development
-    "ollama-setup-coding" = "ollama pull codellama:7b && ollama pull llama3.2:3b";
-    "ollama-setup-opencommit" = "ollama pull llama3.2:3b";  # Good for commit messages
+    "ollama-setup-minimal" = "ollama pull qwen2.5-coder:3b";  # Just one model for everything
+    "ollama-setup-coding" = "ollama pull qwen2.5-coder:7b";   # Advanced coding model
+    "ollama-setup-both" = "ollama pull qwen2.5-coder:3b && ollama pull qwen2.5-coder:7b";  # Both models
+    "ollama-setup-opencommit" = "ollama pull qwen2.5-coder:3b";  # Code-specialized for commits
     
     # Service management
     "ollama-status" = "ollama ps";
@@ -88,12 +90,12 @@
       echo "📦 Pulling recommended models for coding and commit messages..."
       echo "   This may take a while for the first time..."
       
-      # Pull primary model for commit messages
-      if ollama pull llama3.2:3b; then
-        echo "✅ Successfully pulled llama3.2:3b (fast, good for commit messages)"
-      else
-        echo "⚠️  Failed to pull llama3.2:3b - you may need to pull it manually later"
-      fi
+             # Pull primary model for commit messages
+       if ollama pull qwen2.5-coder:3b; then
+         echo "✅ Successfully pulled qwen2.5-coder:3b (code-specialized, best for commits)"
+       else
+         echo "⚠️  Failed to pull qwen2.5-coder:3b - you may need to pull it manually later"
+       fi
       
       echo ""
       echo "🎉 Setup complete! Available commands:"

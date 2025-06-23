@@ -168,7 +168,7 @@ nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles
 
 #### Manual Setup (Linux)
 ```bash
-sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
 ```
 
 ### 3. Apply Future Changes
@@ -182,6 +182,50 @@ darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
 ```bash
 sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
 ```
+
+## 🤖 AI Tools Quick Start
+
+After installation, you have local AI-powered development tools ready to use:
+
+### OpenCommit - AI Commit Messages
+```bash
+# Generate AI-powered commit messages (no OpenAI API key needed!)
+git add .
+oco                    # Generate and commit with local AI
+
+# Preview messages without committing
+oco --dry-run         # See what message would be generated
+
+# Check status and configuration
+oco-check             # Validate AI setup and service status
+oco-model             # List and switch between model presets
+
+# Conventional commit types
+oco-feat              # Generate feat: commit
+oco-fix               # Generate fix: commit
+oco-docs              # Generate docs: commit
+```
+
+### Ollama - Local LLM Server
+```bash
+# Check if local AI server is running
+ollama-health         # Service status and available models
+ollama-setup          # Initial setup and model download
+
+# Interactive AI chat
+ollama run qwen2.5-coder:3b "Explain this code:"
+ollama run qwen2.5-coder:7b "Help me debug this function:"
+
+# Model management
+ollama list           # Show downloaded models
+ollama pull qwen2.5-coder:7b  # Download coding model
+```
+
+### Model Selection
+- **qwen2.5-coder:3b** (~2GB): Fast responses, optimized for commit messages
+- **qwen2.5-coder:7b** (~4GB): Advanced coding assistance, better for complex tasks
+
+**🔧 For detailed AI tools usage, see [TOOLS_CHEATSHEET.md](./TOOLS_CHEATSHEET.md#-ai--llm-tools)**
 
 ## 🏗️ Architecture
 
@@ -232,33 +276,6 @@ Add to appropriate category:
 - **System Level**: Add modules to `modules/darwin/` or `modules/nixos/`
 - **User Level**: Add features to `home/features/darwin/` or `home/features/linux/`
 - **Conditional Logic**: Use `lib.mkIf pkgs.stdenv.isDarwin` for conditional activation
-
-### 🤖 AI Tools Quick Start
-
-After installation, you have local AI-powered development tools ready to use:
-
-#### OpenCommit - AI Commit Messages
-```bash
-# Generate AI-powered commit messages (no OpenAI API key needed!)
-git add .
-oco                    # Generate and commit with local AI
-
-# Check status and configuration
-oco-check             # Validate AI setup
-oco-model             # Switch between model presets
-```
-
-#### Ollama - Local LLM Server
-```bash
-# Check if local AI server is running
-ollama-health         # Service status and available models
-ollama-setup          # Initial setup and model download
-
-# Interactive AI chat
-ollama run llama3.2:3b "Explain this code: $(cat file.js)"
-```
-
-**🔧 For detailed AI tools usage, see [TOOLS_CHEATSHEET.md](./TOOLS_CHEATSHEET.md#-ai--llm-tools)**
 
 ## 🍎 macOS-Specific Setup
 

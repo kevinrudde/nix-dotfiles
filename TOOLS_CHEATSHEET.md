@@ -213,10 +213,10 @@ ollama-setup-coding        # Download codellama:7b + llama3.2:3b
 ollama-setup-opencommit    # Download llama3.2:3b (optimized for commits)
 
 # Individual model downloads
-ollama pull llama3.2:3b    # Fast, good for commit messages
-ollama pull llama3.2:8b    # More detailed responses
-ollama pull codellama:7b   # Optimized for code tasks
-ollama pull llama3.2:1b    # Ultra-fast, minimal model
+ollama pull qwen2.5-coder:3b  # Best for commit messages (code-specialized)
+ollama pull llama3.2:1b       # Ultra-fast for quick responses
+ollama pull qwen2.5-coder:7b  # Advanced code understanding
+ollama pull llama3.2:8b       # Detailed general responses
 ```
 
 #### Interactive Usage
@@ -259,9 +259,10 @@ df -h ~/.ollama/
 #### Model Presets (via oco-model)
 | Preset | Model | Use Case | Size |
 |--------|-------|----------|------|
-| `fast` | llama3.2:3b | Quick responses, commit messages | ~2GB |
+| `fast` | llama3.2:1b | Ultra-fast responses | ~1GB |
 | `detailed` | llama3.2:8b | Detailed explanations | ~4.7GB |
-| `coding` | codellama:7b | Code-specific tasks | ~3.8GB |
+| `coding` | qwen2.5-coder:7b | Advanced code tasks | ~4GB |
+| `commits` | qwen2.5-coder:3b | Optimized for commit messages | ~2GB |
 | `creative` | llama3.2:3b | Creative writing | ~2GB |
 
 #### Integration Examples
@@ -277,6 +278,26 @@ oco                  # Generate commit with coding model
 
 oco-model fast       # Switch back to fast model for regular commits
 ```
+
+#### Advanced Configuration
+```bash
+# Custom model setup for specific projects
+echo 'OCO_MODEL="qwen2.5-coder:7b"' > .env    # Project-specific model
+
+# Batch commit with different models
+oco-model commits && git add . && oco         # Use commit-optimized model
+oco-model coding && git add . && oco          # Use code-optimized model
+
+# Performance monitoring
+time ollama run qwen2.5-coder:3b "test prompt"  # Check response time
+ollama-health                                    # Check service performance
+```
+
+#### Privacy & Security
+- **Local Processing**: All AI processing happens on your machine
+- **No API Keys**: No external API calls or data sharing
+- **Offline Capable**: Works without internet connection once models are downloaded
+- **Data Privacy**: Your code never leaves your machine
 
 ---
 

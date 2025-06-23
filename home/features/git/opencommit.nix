@@ -4,7 +4,7 @@
   home.sessionVariables = {
     # Configure opencommit to use local ollama instead of OpenAI
     OCO_API_URL = "http://127.0.0.1:11434/v1";
-    OCO_MODEL = "llama3.2:3b";  # Fast, efficient model for commit messages
+    OCO_MODEL = "qwen2.5-coder:3b";  # Code-specialized model for better commit messages
     
     # Optimize for local usage
     OCO_TOKENS_MAX_INPUT = "4096";    # Reasonable input limit
@@ -112,13 +112,14 @@
       echo "🤖 OpenCommit Model Manager"
       echo ""
       
-      # Available models for different use cases
-      declare -A models=(
-        ["fast"]="llama3.2:3b"
-        ["detailed"]="llama3.2:8b" 
-        ["coding"]="codellama:7b"
-        ["creative"]="llama3.2:3b"
-      )
+             # Available models for different use cases
+       declare -A models=(
+         ["fast"]="llama3.2:1b"
+         ["detailed"]="llama3.2:8b" 
+         ["coding"]="qwen2.5-coder:7b"
+         ["creative"]="llama3.2:3b"
+         ["commits"]="qwen2.5-coder:3b"
+       )
       
       if [ $# -eq 0 ]; then
         echo "📋 Available models:"
