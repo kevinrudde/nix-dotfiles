@@ -93,6 +93,10 @@
         '(^( ?\w+){3}).*' \
         '(^( ?\w+){2}).*' \
         '(^( ?\w+){1}).*'
+      
+      # Configure sponge to keep git commit commands in history even when pre-commit hooks fail
+      # This allows commit messages to remain accessible for retry after fixing hook failures
+      set -U sponge_regex_patterns '^git\s+commit.*'
     '';
 
     # workaround for fixing the path order: https://github.com/LnL7/nix-darwin/issues/122
