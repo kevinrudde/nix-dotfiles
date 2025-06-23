@@ -11,10 +11,18 @@
     
     # Set up environment variables for optimal performance
     environmentVariables = {
-      # Optimize for local development use
-      OLLAMA_NUM_PARALLEL = "1";          # Limit parallel requests for stability
-      OLLAMA_MAX_LOADED_MODELS = "1";     # Keep memory usage reasonable
-      OLLAMA_FLASH_ATTENTION = "1";       # Enable if supported by model
+      # Maximize performance for local development
+      OLLAMA_NUM_PARALLEL = "4";          # Allow multiple parallel requests
+      OLLAMA_MAX_LOADED_MODELS = "2";     # Allow 2 models in memory
+      OLLAMA_FLASH_ATTENTION = "1";       # Enable flash attention for speed
+      
+      # CPU optimization
+      OLLAMA_NUM_THREADS = "0";           # Use all available CPU cores (0 = auto-detect)
+      OLLAMA_MAX_VRAM = "0";              # Don't limit VRAM usage
+      
+      # Performance tuning
+      OLLAMA_KEEP_ALIVE = "5m";           # Keep models loaded for 5 minutes
+      OLLAMA_NOPRUNE = "false";           # Allow pruning old models
       
       # Enable logging for debugging if needed
       OLLAMA_DEBUG = "0";  # Set to "1" for debugging
@@ -57,9 +65,44 @@
       if curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
         echo "✅ Ollama service is running on http://127.0.0.1:11434"
         
-        # List available models
+        # Show performance info
+        echo ""
+        echo "⚡ Performance Status:"
+        
+        # Check loaded models
+        loaded_models=$(curl -s http://127.0.0.1:11434/api/ps 2>/dev/null)
+        if [[ -n "$loaded_models" ]]; then
+          echo "🧠 Loaded models:"
+          echo "$loaded_models" | ${jq}/bin/jq -r '.models[]? | "   • \(.name) - \(.details.parameter_size) params"' 2>/dev/null || echo "   (none currently loaded)"
+        fi
+        
+        # Show available models
+        echo ""
         echo "📚 Available models:"
-        curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name // "No models found"' 2>/dev/null || echo "   No models found - run 'ollama pull <model-name>' to download models"
+        curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]? | "   📦 \(.name) (\(.size / 1024 / 1024 / 1024 | floor)GB)"' 2>/dev/null || echo "   No models found - run 'ollama pull <model-name>' to download models"
+        
+        # Show resource usage
+        echo ""
+        echo "💻 Resource Usage:"
+        if command -v pgrep >/dev/null; then
+          ollama_pid=$(pgrep -x ollama)
+          if [[ -n "$ollama_pid" ]]; then
+            memory_mb=$(ps -p "$ollama_pid" -o rss= 2>/dev/null | awk '{print int($1/1024)}')
+            cpu_percent=$(ps -p "$ollama_pid" -o %cpu= 2>/dev/null | awk '{print $1}')
+            echo "   🧮 Memory: ''${memory_mb}MB"
+            echo "   🔥 CPU: ''${cpu_percent}%"
+            echo "   🔧 PID: $ollama_pid"
+          fi
+        fi
+        
+        # Show environment settings
+        echo ""
+        echo "⚙️  Configuration:"
+        echo "   Threads: ''${OLLAMA_NUM_THREADS:-auto}"
+        echo "   Parallel: ''${OLLAMA_NUM_PARALLEL:-1}"
+        echo "   Max Models: ''${OLLAMA_MAX_LOADED_MODELS:-1}"
+        echo "   Keep Alive: ''${OLLAMA_KEEP_ALIVE:-5m}"
+        
       else
         echo "❌ Ollama service is not responding"
         echo "💡 Try: 'launchctl restart org.nixos.ollama' or check service logs"
@@ -112,6 +155,58 @@
       echo "   • oco-hook-enable   - Enable git hook integration"
       echo ""
       echo "💡 Try 'oco-model' to see available model presets for different use cases"
+    '')
+
+    (writeShellScriptBin "ollama-turbo" ''
+      #!/usr/bin/env bash
+      
+      echo "🚀 Ollama Performance Turbo Mode"
+      echo "This will restart ollama with maximum performance settings"
+      echo ""
+      
+      # Stop current ollama service
+      echo "🛑 Stopping ollama service..."
+      launchctl stop org.nixos.ollama || true
+      sleep 2
+      
+      # Kill any remaining processes
+      pkill -f ollama || true
+      sleep 1
+      
+      # Export optimized environment variables for this session
+      export OLLAMA_NUM_THREADS=0              # Use all CPU cores
+      export OLLAMA_NUM_PARALLEL=4             # Allow 4 parallel requests
+      export OLLAMA_MAX_LOADED_MODELS=2        # Keep 2 models in memory
+      export OLLAMA_KEEP_ALIVE=10m             # Keep models loaded longer
+      export OLLAMA_FLASH_ATTENTION=1          # Enable flash attention
+      export OLLAMA_MAX_VRAM=0                 # Don't limit VRAM
+      
+      echo "⚡ Starting ollama with turbo settings..."
+      echo "   Threads: $OLLAMA_NUM_THREADS (all cores)"
+      echo "   Parallel: $OLLAMA_NUM_PARALLEL"
+      echo "   Max Models: $OLLAMA_MAX_LOADED_MODELS"
+      echo "   Keep Alive: $OLLAMA_KEEP_ALIVE"
+      
+      # Start ollama service
+      launchctl start org.nixos.ollama
+      
+      # Wait for service to be ready
+      echo "⏳ Waiting for service to start..."
+      timeout=15
+      while ! curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1 && [ $timeout -gt 0 ]; do
+        sleep 1
+        ((timeout--))
+      done
+      
+      if [ $timeout -eq 0 ]; then
+        echo "❌ Service failed to start within 15 seconds"
+        exit 1
+      fi
+      
+      echo "✅ Ollama turbo mode activated!"
+      echo ""
+      echo "💡 Test performance with: oco-verbose --dry-run"
+      echo "💡 Check status with: ollama-health"
     '')
   ];
 } 

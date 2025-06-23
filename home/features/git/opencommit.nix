@@ -1,210 +1,222 @@
 { pkgs, lib, ... }: {
   
-  # OpenCommit configuration for local ollama usage
-  home.sessionVariables = {
-    # Configure opencommit to use local ollama instead of OpenAI
-    OCO_API_URL = "http://127.0.0.1:11434/v1";
-    OCO_MODEL = "qwen2.5-coder:3b";  # Code-specialized model for better commit messages
-    
-    # Optimize for local usage
-    OCO_TOKENS_MAX_INPUT = "4096";    # Reasonable input limit
-    OCO_TOKENS_MAX_OUTPUT = "200";    # Concise commit messages
-    
-    # Disable OpenAI API requirements
-    OCO_API_KEY = "ollama";  # Required but unused with local ollama
-    
-    # OpenCommit behavior settings
-    OCO_DESCRIPTION = "false";        # Keep commit messages concise
-    OCO_EMOJI = "true";              # Add emojis for better readability
-    OCO_LANGUAGE = "en";             # English commit messages
-    OCO_GITPUSH = "false";           # Don't auto-push after commit
-    OCO_ONE_LINE_COMMIT = "false";   # Allow multi-line when needed
-    
-    # Use conventional commit format
-    OCO_PROMPT_MODULE = "conventional-commit";
-    
-    # Message template (can be customized)
-    OCO_MESSAGE_TEMPLATE_PLACEHOLDER = "$msg";
-  };
+  # OpenCommit configuration via Home Manager activation
+  home.activation.opencommitConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Configure OpenCommit for local ollama usage
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_API_URL=http://127.0.0.1:11434/v1
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_MODEL=qwen2.5-coder:3b
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_API_KEY=ollama
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_TOKENS_MAX_INPUT=8192
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_TOKENS_MAX_OUTPUT=300
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_DESCRIPTION=false
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_EMOJI=true
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_LANGUAGE=en
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_GITPUSH=false
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_ONE_LINE_COMMIT=false
+    $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_PROMPT_MODULE=conventional-commit
+  '';
   
-  # Add helpful aliases for opencommit usage
+  # Simple aliases for opencommit usage
   home.shellAliases = {
-    # Main opencommit commands
+    # Main commands - simple and direct
     "oco" = "opencommit";
     "oc" = "opencommit";
     
-    # Quick commit with specific types
-    "oco-feat" = "opencommit 'feat: $msg'";
-    "oco-fix" = "opencommit 'fix: $msg'";
-    "oco-docs" = "opencommit 'docs: $msg'";
-    "oco-style" = "opencommit 'style: $msg'";
-    "oco-refactor" = "opencommit 'refactor: $msg'";
-    "oco-test" = "opencommit 'test: $msg'";
-    "oco-chore" = "opencommit 'chore: $msg'";
+    # Jira integration
+    "oco-jira" = "oco-jira-commit";
+    "oco-ticket" = "oco-jira-commit";
     
-    # Git hooks integration
-    "oco-hook-enable" = "opencommit hook set";
-    "oco-hook-disable" = "opencommit hook unset";
+    # Quick commit types
+    "oco-feat" = "opencommit 'feat: '";
+    "oco-fix" = "opencommit 'fix: '";
+    "oco-docs" = "opencommit 'docs: '";
+    "oco-refactor" = "opencommit 'refactor: '";
+    "oco-test" = "opencommit 'test: '";
+    "oco-chore" = "opencommit 'chore: '";
     
-    # Configuration management
+    # Configuration
     "oco-config" = "opencommit config";
     "oco-status" = "opencommit config get";
   };
   
-  # Create a setup script for opencommit + ollama integration
+  # Essential scripts only
   home.packages = with pkgs; [
-    (writeShellScriptBin "opencommit-setup" ''
+    # Simple health check
+    (writeShellScriptBin "oco-check" ''
       #!/usr/bin/env bash
       
-      echo "🔧 Setting up opencommit with local ollama..."
+      echo "🔍 OpenCommit Health Check"
+      echo ""
       
-      # Check if ollama is running
-      if ! curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-        echo "❌ Ollama service is not running"
-        echo "💡 Start it first with: launchctl start org.nixos.ollama"
-        echo "   Or run: ollama-setup"
-        exit 1
-      fi
-      
-      # Check if the model is available
-      model="llama3.2:3b"
-      if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "$model"; then
-        echo "📦 Model $model not found. Pulling it now..."
-        ollama pull "$model" || {
-          echo "❌ Failed to pull model $model"
-          exit 1
-        }
-      fi
-      
-      echo "✅ Ollama is running with model $model"
-      
-      # Test opencommit configuration
-      echo "🧪 Testing opencommit configuration..."
-      
-      # Create a temporary git repo for testing if we're not in one
-      if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "ℹ️  Not in a git repository - configuration looks good!"
-        echo "   Test opencommit in a git repository with staged changes"
+      # Check ollama service
+      if curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+        echo "✅ Ollama: Running"
+        
+        # Check model
+        model=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "qwen2.5-coder:3b")
+        if curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
+          echo "✅ Model: $model available"
+        else
+          echo "⚠️  Model: $model not found"
+          echo "💡 Run: ollama pull $model"
+        fi
       else
-        echo "✅ Git repository detected"
-        echo "   Stage some changes and run 'oco' to test commit message generation"
+        echo "❌ Ollama: Not running"
+        echo "💡 Run: launchctl start org.nixos.ollama"
       fi
       
-      echo ""
-      echo "🎉 OpenCommit setup complete!"
-      echo ""
-      echo "📖 Usage:"
-      echo "   1. Stage your changes: git add ."
-      echo "   2. Generate commit: oco"
-      echo "   3. Review and confirm the generated message"
-      echo ""
-      echo "🔧 Available commands:"
-      echo "   • oco                - Generate commit message"
-      echo "   • oco-feat           - Commit with feat: prefix"
-      echo "   • oco-fix            - Commit with fix: prefix"
-      echo "   • oco-config         - View/edit opencommit config"
-      echo "   • ollama-health      - Check ollama service status"
+      # Check git repo
+      if git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "✅ Git: Repository detected"
+        if git diff --cached --quiet; then
+          echo "ℹ️  Staged: No changes (run 'git add .' first)"
+        else
+          echo "✅ Staged: Ready for commit"
+        fi
+      else
+        echo "ℹ️  Git: Not in repository"
+      fi
     '')
     
+    # Model switcher
     (writeShellScriptBin "oco-model" ''
       #!/usr/bin/env bash
       
-      echo "🤖 OpenCommit Model Manager"
-      echo ""
-      
-             # Available models for different use cases
-       declare -A models=(
-         ["fast"]="llama3.2:1b"
-         ["detailed"]="llama3.2:8b" 
-         ["coding"]="qwen2.5-coder:7b"
-         ["creative"]="llama3.2:3b"
-         ["commits"]="qwen2.5-coder:3b"
-       )
+      declare -A models=(
+        ["fast"]="qwen2.5-coder:1.5b"
+        ["default"]="qwen2.5-coder:3b"
+        ["detailed"]="qwen2.5-coder:7b"
+        ["creative"]="llama3.2:3b"
+      )
       
       if [ $# -eq 0 ]; then
-        echo "📋 Available models:"
+        current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "not set")
+        echo "🤖 Current model: $current"
+        echo ""
+        echo "Available presets:"
         for preset in "''${!models[@]}"; do
-          echo "   $preset: ''${models[$preset]}"
+          echo "  $preset: ''${models[$preset]}"
         done
         echo ""
-        echo "Current model: $OCO_MODEL"
-        echo ""
         echo "Usage: oco-model <preset>"
-        echo "Example: oco-model fast"
         exit 0
       fi
       
       preset="$1"
       if [[ -n "''${models[$preset]}" ]]; then
         model="''${models[$preset]}"
-        echo "🔄 Switching to $preset model: $model"
+        echo "🔄 Switching to: $model"
         
-        # Check if model is available locally
-        if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "$model"; then
-          echo "📦 Model $model not found locally. Pulling..."
-          ollama pull "$model" || {
-            echo "❌ Failed to pull model $model"
-            exit 1
-          }
+        # Pull model if needed
+        if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
+          echo "📦 Downloading model..."
+          ollama pull "$model"
         fi
         
-        # Update opencommit configuration
+        # Update config
         opencommit config set OCO_MODEL="$model"
         echo "✅ Model switched to: $model"
-        echo "💡 New shells will use this model automatically"
       else
         echo "❌ Unknown preset: $preset"
-        echo "Available presets: ''${!models[*]}"
-        exit 1
+        echo "Available: ''${!models[*]}"
       fi
     '')
     
-    (writeShellScriptBin "oco-check" ''
+    # Jira integration
+    (writeShellScriptBin "oco-jira-commit" ''
       #!/usr/bin/env bash
       
-      echo "🔍 OpenCommit Health Check..."
-      echo ""
+      # Check git repo
+      if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "❌ Not in a git repository"
+        exit 1
+      fi
       
-      # Check environment variables
-             echo "📋 Configuration:"
-       echo "   Model: $OCO_MODEL"
-       echo "   Base URL: $OCO_API_URL"
-       echo "   Emoji: $OCO_EMOJI"
-       echo "   Language: $OCO_LANGUAGE"
-      echo ""
+      # Check staged changes
+      if git diff --cached --quiet; then
+        echo "❌ No staged changes"
+        echo "💡 Run: git add <files>"
+        exit 1
+      fi
       
-      # Check ollama service
-      echo "🤖 Ollama Service:"
-      if curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-        echo "   ✅ Running on http://127.0.0.1:11434"
+      # Extract Jira ticket from branch
+      branch=$(git rev-parse --abbrev-ref HEAD)
+      jira_ticket=""
+      
+      # Try multiple patterns
+      jira_ticket=$(echo "$branch" | sed -nr 's,^[a-z]+/([A-Z0-9]+-[0-9]+)-.+,\1,p')
+      if [[ -z "$jira_ticket" ]]; then
+        jira_ticket=$(echo "$branch" | sed -nr 's,^([A-Z0-9]+-[0-9]+).*,\1,p')
+      fi
+      
+      if [[ -n "$jira_ticket" ]]; then
+        echo "🎫 Found ticket: $jira_ticket"
+        echo "🤖 Generating commit message..."
         
-        # Check if model is available
-        if curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "$OCO_MODEL"; then
-          echo "   ✅ Model $OCO_MODEL is available"
+        # Generate message and add Jira prefix
+        if msg=$(opencommit --dry-run 2>/dev/null); then
+          full_msg="$jira_ticket: $msg"
+          echo ""
+          echo "📝 Commit message:"
+          echo "   $full_msg"
+          echo ""
+          read -p "🚀 Commit? (y/N): " -n 1 -r
+          echo
+          
+          if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git commit -m "$full_msg"
+            echo "✅ Committed!"
+          else
+            echo "❌ Cancelled"
+          fi
         else
-          echo "   ❌ Model $OCO_MODEL not found"
-          echo "   💡 Run: ollama pull $OCO_MODEL"
+          echo "❌ Failed to generate message"
+          echo "💡 Check: oco-check"
         fi
       else
-        echo "   ❌ Not running or not responding"
-        echo "   💡 Run: ollama-setup"
+        echo "❌ No Jira ticket in branch: $branch"
+        echo ""
+        echo "💡 Supported formats:"
+        echo "   • feature/PROJ-123-description"
+        echo "   • PROJ-123-description"
+        echo "   • bugfix/TEAM-456-fix"
+        echo ""
+        echo "💡 Or use regular commit: oco"
       fi
+    '')
+    
+    # Simple setup script
+    (writeShellScriptBin "opencommit-setup" ''
+      #!/usr/bin/env bash
+      
+      echo "🔧 OpenCommit Setup"
       echo ""
       
-      # Check git repository
-      echo "📁 Git Repository:"
-      if git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "   ✅ In git repository"
-        
-        # Check for staged changes
-        if git diff --cached --quiet; then
-          echo "   ℹ️  No staged changes - add some files to test opencommit"
-        else
-          echo "   ✅ Staged changes detected - ready to test oco"
-        fi
-      else
-        echo "   ℹ️  Not in git repository"
+      # Check ollama
+      if ! curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+        echo "❌ Ollama not running"
+        echo "💡 Start with: launchctl start org.nixos.ollama"
+        exit 1
       fi
+      
+      # Check/pull model
+      model="qwen2.5-coder:3b"
+      if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
+        echo "📦 Pulling model: $model"
+        ollama pull "$model" || exit 1
+      fi
+      
+      echo "✅ Setup complete!"
+      echo ""
+      echo "📖 Usage:"
+      echo "   1. Stage changes: git add ."
+      echo "   2. Generate commit: oco"
+      echo "   3. Jira integration: oco-jira"
+      echo ""
+      echo "🔧 Commands:"
+      echo "   • oco-check    - Health check"
+      echo "   • oco-model    - Switch models"
+      echo "   • oco-config   - View config"
     '')
   ];
 } 
