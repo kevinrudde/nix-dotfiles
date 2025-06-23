@@ -8,6 +8,8 @@ This document describes the architecture and organization of this cross-platform
 nix-dotfiles/
 ├── flake.nix              # Main flake configuration with outputs
 ├── install.sh             # Cross-platform installation script
+├── scripts/               # Utility scripts and tools
+│   └── hot-benchmark.sh   # AI model performance benchmarking tool
 ├── 
 ├── hosts/                 # System configurations per machine
 │   ├── zoidberg/          # Primary macOS system (nix-darwin)
@@ -57,6 +59,7 @@ nix-dotfiles/
 │   ├── nixos/             # Linux system modules (NixOS) 
 │   └── shared/            # Cross-platform system modules
 │
+├── scripts/               # Utility scripts and development tools
 ├── lib/                   # Helper functions and utilities
 ├── overlays/              # Package overlays and custom packages
 └── [config files]        # .sops.yaml, .gitignore, etc.
@@ -159,6 +162,14 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 ### Adding System-Level Modules
 1. Create `modules/darwin/new-module.nix` or `modules/nixos/new-module.nix`
 2. Import in appropriate host configuration (`hosts/*/default.nix`)
+
+## 🛠️ Utility Scripts
+
+The `scripts/` directory contains development and maintenance tools:
+- **`hot-benchmark.sh`**: AI model performance benchmarking tool for comparing ollama models with OpenCommit
+- Future utility scripts for configuration management, testing, and automation
+
+These scripts are not part of the Nix configuration but provide helpful tools for managing and testing the dotfiles setup.
 
 ## 🔒 Secrets Management
 
