@@ -1,47 +1,17 @@
 -- MonitorManager.lua
--- Automatically manages AeroSpace layouts based on connected monitors
+-- Simple AeroSpace layout management
 
 local MonitorManager = {}
 
 -- AeroSpace binary path
 local AEROSPACE = "/run/current-system/sw/bin/aerospace"
 
--- Monitor name to detect (adjust if needed)
+-- Monitor name to detect
 local LG_HDR_4K_NAME = "LG HDR 4K"
-
--- Workspaces assigned to LG HDR 4K
-local LG_WORKSPACES = {"6", "7", "8"}
-
--- Execute aerospace command with proper argument handling
-local function aerospaceExec(cmdArray)
-    hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
-        if exitCode ~= 0 then
-            -- Only show errors that aren't expected/normal
-            local cmdStr = table.concat(cmdArray, " ")
-            if stdErr ~= "" and 
-               not string.find(stdErr, "No window is focused") and
-               not string.find(stdErr, "The window is non%-tiling") then
-                hs.console.printStyledtext("AeroSpace command failed: " .. cmdStr .. "\nError: " .. stdErr)
-            end
-        end
-    end, cmdArray):start()
-end
-
--- List connected monitors for logging
-local function logConnectedMonitors()
-    local screens = hs.screen.allScreens()
-    local monitorNames = {}
-    for _, screen in ipairs(screens) do
-        local name = screen:name() or "Unknown"
-        table.insert(monitorNames, name)
-    end
-    hs.console.printStyledtext("Connected monitors: " .. table.concat(monitorNames, ", "))
-end
 
 -- Check if LG HDR 4K monitor is connected
 local function isLGHDR4KConnected()
     local screens = hs.screen.allScreens()
-    
     for _, screen in ipairs(screens) do
         local name = screen:name()
         if name and (name == LG_HDR_4K_NAME or string.match(name, "^LG HDR 4K")) then
@@ -51,55 +21,60 @@ local function isLGHDR4KConnected()
     return false
 end
 
--- Apply layouts based on monitor configuration
-local function applyLayouts()
-    logConnectedMonitors()
-    local lgConnected = isLGHDR4KConnected()
-    
-    -- Get current workspace to return to it later
+-- Simple layout fix function
+local function fixWorkspaceLayout(workspace)
     local currentWorkspace = nil
+    
+    -- Get current workspace
     hs.task.new(AEROSPACE, function(exitCode, stdOut, stdErr)
         if exitCode == 0 then
-            currentWorkspace = stdOut:gsub("%s+$", "") -- trim whitespace
+            currentWorkspace = stdOut:gsub("%s+$", "")
+            
+            -- Switch to target workspace, flatten, apply layout, return
+            hs.task.new(AEROSPACE, nil, {"workspace", workspace}):start()
+            hs.timer.doAfter(0.1, function()
+                hs.task.new(AEROSPACE, nil, {"flatten-workspace-tree"}):start()
+                hs.timer.doAfter(0.1, function()
+                    hs.task.new(AEROSPACE, nil, {"layout", "tiles", "horizontal", "vertical"}):start()
+                    hs.console.printStyledtext("Fixed layout for workspace " .. workspace)
+                    
+                    -- Return to original workspace if different
+                    if currentWorkspace ~= workspace then
+                        hs.timer.doAfter(0.1, function()
+                            hs.task.new(AEROSPACE, nil, {"workspace", currentWorkspace}):start()
+                        end)
+                    end
+                end)
+            end)
         end
     end, {"list-workspaces", "--focused"}):start()
-    
-    if lgConnected then
-        hs.console.printStyledtext("🏠 HOME SETUP: LG HDR 4K detected - Setting HORIZONTAL layouts for workspaces 6, 7, 8")
-        -- Set horizontal layout for LG HDR 4K workspaces (for portrait display)
-        for i, workspace in ipairs(LG_WORKSPACES) do
-            hs.timer.doAfter(i * 0.2, function()  -- Stagger the commands
-                aerospaceExec({"workspace", workspace})
-                hs.timer.doAfter(0.1, function()
-                    aerospaceExec({"layout", "tiles", "horizontal", "vertical"})
-                    hs.console.printStyledtext("Applied HORIZONTAL layout to workspace " .. workspace)
-                end)
-            end)
-        end
-    else
-        hs.console.printStyledtext("🏢 OFFICE SETUP: LG HDR 4K not detected - Setting VERTICAL layouts for workspaces 6, 7, 8")
-        -- Set vertical layout for office setup when LG is not connected
-        for i, workspace in ipairs(LG_WORKSPACES) do
-            hs.timer.doAfter(i * 0.2, function()  -- Stagger the commands
-                aerospaceExec({"workspace", workspace})
-                hs.timer.doAfter(0.1, function()
-                    aerospaceExec({"layout", "tiles", "vertical", "horizontal"})
-                    hs.console.printStyledtext("Applied VERTICAL layout to workspace " .. workspace)
-                end)
-            end)
-        end
-    end
-    
-    -- Return to original workspace after all layouts are applied
-    hs.timer.doAfter(1.5, function()
-        if currentWorkspace then
-            aerospaceExec({"workspace", currentWorkspace})
-            hs.console.printStyledtext("Returned to workspace " .. currentWorkspace)
-        end
-    end)
 end
 
--- Track previous screen configuration to avoid false triggers
+-- Apply all layouts
+local function applyAllLayouts()
+    local lgConnected = isLGHDR4KConnected()
+    
+    if lgConnected then
+        hs.console.printStyledtext("🏠 HOME: LG HDR 4K detected")
+        hs.console.printStyledtext("⚠️  Manual layout management required for external monitor")
+    else
+        hs.console.printStyledtext("🏢 OFFICE: No LG - fixing laptop workspaces")
+        
+        -- Fix main workspaces for laptop mode
+        fixWorkspaceLayout("1")
+        hs.timer.doAfter(0.5, function()
+            fixWorkspaceLayout("6")
+        end)
+        hs.timer.doAfter(1.0, function()
+            fixWorkspaceLayout("7")
+        end)
+        hs.timer.doAfter(1.5, function()
+            fixWorkspaceLayout("8")
+        end)
+    end
+end
+
+-- Track previous screen configuration
 local previousScreenConfig = nil
 local lastApplyTime = 0
 local APPLY_COOLDOWN = 5 -- seconds
@@ -113,44 +88,36 @@ local function getScreenConfig()
         local frame = screen:frame()
         table.insert(config, name .. ":" .. frame.w .. "x" .. frame.h)
     end
-    table.sort(config) -- Sort to ensure consistent comparison
+    table.sort(config)
     return table.concat(config, "|")
 end
 
--- Monitor change callback with debouncing
+-- Monitor change callback
 local function onScreenChange()
     local currentTime = os.time()
     local currentConfig = getScreenConfig()
     
-    -- Only apply if configuration actually changed and cooldown period has passed
     if currentConfig ~= previousScreenConfig and (currentTime - lastApplyTime) > APPLY_COOLDOWN then
         previousScreenConfig = currentConfig
         lastApplyTime = currentTime
         
-        hs.timer.doAfter(2, function()  -- Delay to let system settle
-            hs.console.printStyledtext("🔄 Screen hardware configuration changed - reapplying layouts...")
-            applyLayouts()
+        hs.timer.doAfter(2, function()
+            hs.console.printStyledtext("🔄 Screen configuration changed")
+            applyAllLayouts()
         end)
     end
 end
 
 -- Start monitoring
 function MonitorManager.start()
-    -- Initialize screen configuration tracking
     previousScreenConfig = getScreenConfig()
     lastApplyTime = os.time()
-    
-    -- Apply layouts on startup
-    hs.timer.doAfter(2, function()  -- Initial delay for system startup
-        hs.console.printStyledtext("MonitorManager: Applying initial layouts...")
-        applyLayouts()
-    end)
     
     -- Watch for screen configuration changes
     MonitorManager.watcher = hs.screen.watcher.new(onScreenChange)
     MonitorManager.watcher:start()
     
-    hs.console.printStyledtext("MonitorManager started - watching for display changes")
+    hs.console.printStyledtext("MonitorManager started - manual mode")
 end
 
 -- Stop monitoring
@@ -161,17 +128,21 @@ function MonitorManager.stop()
     end
 end
 
--- Manual trigger (for testing or manual execution)
+-- Manual trigger
 function MonitorManager.applyLayouts()
-    hs.console.printStyledtext("Manual applyLayouts() triggered")
-    applyLayouts()
+    hs.console.printStyledtext("Manual layout fix triggered")
+    applyAllLayouts()
 end
 
--- Debug function (for manual troubleshooting if needed)
+-- Debug function
 function MonitorManager.debugMonitors()
-    logConnectedMonitors()
-    local lgConnected = isLGHDR4KConnected()
-    hs.console.printStyledtext("LG HDR 4K Connected: " .. tostring(lgConnected))
+    local screens = hs.screen.allScreens()
+    local monitorNames = {}
+    for _, screen in ipairs(screens) do
+        table.insert(monitorNames, screen:name() or "Unknown")
+    end
+    hs.console.printStyledtext("Connected monitors: " .. table.concat(monitorNames, ", "))
+    hs.console.printStyledtext("LG HDR 4K Connected: " .. tostring(isLGHDR4KConnected()))
 end
 
 return MonitorManager 
