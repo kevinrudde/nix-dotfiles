@@ -31,6 +31,7 @@ lib.mkIf pkgs.stdenv.isDarwin {
     # 🛠️ SYSTEM UTILITIES (macOS)
     # ═══════════════════════════════════════════════════════════════════════════
     betterdisplay # Display management tool for macOS
+    flameshot # Powerful screenshot software
     # Add macOS-specific utilities here
     
     # ═══════════════════════════════════════════════════════════════════════════

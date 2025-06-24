@@ -105,6 +105,10 @@
         # System utilities
         alt-l = "exec-and-forget pmset displaysleepnow";
         alt-shift-q = "close --quit-if-last-window";
+        
+        # Screenshot utilities
+        cmd-shift-x = "exec-and-forget /etc/profiles/per-user/C.Hessel/bin/flameshot gui";
+        cmd-shift-a = "exec-and-forget /etc/profiles/per-user/C.Hessel/bin/flameshot full -c";
 
         # Disable unwanted cmd+letter bindings that conflict with apps
         cmd-b = []; # Disable default workspace B binding
