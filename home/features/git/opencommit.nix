@@ -29,7 +29,6 @@
   home.shellAliases = {
     # Main commands - OpenCommit with native conventional commits
     "oco" = "opencommit";
-    "oc" = "opencommit";
     
     # Jira integration
     "oco-jira" = "oco-jira-commit";

@@ -24,7 +24,7 @@
       gaps = {
         outer.bottom = 0;
         outer.top = 0;
-        outer.left = 1;
+                outer.left = 1;
         outer.right = 1;
         inner.horizontal = 3;
         inner.vertical = 3;
