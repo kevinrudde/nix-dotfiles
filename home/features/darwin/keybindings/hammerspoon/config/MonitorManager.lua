@@ -60,77 +60,93 @@ local function getCurrentWorkspaceInfo(callback)
     end, {"list-workspaces", "--focused"}):start()
 end
 
--- Apply layout based on workspace and monitor configuration
-local function applyLayoutToWorkspace(workspaceNum, isLGConnected)
-    if not workspaceNum then 
-        log("❌ Cannot apply layout: invalid workspace")
-        return 
-    end
-    
-    -- Determine if this workspace should use stacking (portrait) layout
-    local shouldStack = isLGConnected and (workspaceNum >= 6 and workspaceNum <= 8)
-    
-    -- AeroSpace layout parameters
-    -- For side-by-side: "tiles horizontal vertical"
-    -- For stacking: "tiles vertical horizontal"
-    local primary = shouldStack and "vertical" or "horizontal"
-    local secondary = shouldStack and "horizontal" or "vertical"
-    
-    -- Create the layout command
-    local layoutCmd = string.format("%s layout --workspace %d tiles %s %s", 
-        AEROSPACE, workspaceNum, primary, secondary)
-    
-    log(string.format("🔧 Applying to workspace %d: %s %s", 
-        workspaceNum, primary, secondary))
-    
-    hs.task.new("/bin/sh", function(exitCode, stdout, stderr)
-        local status = exitCode == 0 and "✅" or "❌"
-        local layoutType = shouldStack and "STACKING" or "SIDE-BY-SIDE"
-        local reason = isLGConnected and 
-            (shouldStack and "(LG portrait mode)" or "(regular layout)") or 
-            "(no LG detected)"
-        
-        log(string.format("%s Workspace %d: %s %s", 
-            status, workspaceNum, layoutType, reason))
-            
-        if exitCode ~= 0 and stderr and stderr ~= "" then
-            log(string.format("❌ Layout error: %s", stderr))
+-- Helper: get current layout for a workspace
+local function getCurrentLayout(workspaceNum, callback)
+    hs.task.new(AEROSPACE, function(exitCode, stdout, stderr)
+        if exitCode == 0 then
+            -- Example output: "tiles horizontal vertical"
+            local layout = stdout:match("layout: ([^\n]+)")
+            callback(layout)
+        else
+            callback(nil)
         end
-    end, {"-c", layoutCmd}):start()
+    end, {"layout", "--workspace", tostring(workspaceNum)}):start()
 end
 
--- Apply layouts to all relevant workspaces
+-- Helper: focus a workspace
+local function focusWorkspace(workspaceNum, cb)
+    hs.task.new(AEROSPACE, function(exitCode, stdout, stderr)
+        hs.timer.doAfter(0.2, function() cb() end) -- Give time for focus to settle
+    end, {"workspace", tostring(workspaceNum)}):start()
+end
+
+-- Determine desired layout for a workspace
+local function desiredLayoutFor(ws, lgConnected)
+    if lgConnected and ws >= 6 and ws <= 8 then
+        return "tiles horizontal vertical" -- side-by-side
+    else
+        return "tiles vertical horizontal" -- stacking
+    end
+end
+
+-- Apply layouts to all workspaces 1-0 (1-10)
 local function applyAllLayouts()
-    getCurrentWorkspaceInfo(function(currentWorkspace, monitorInfo)
-        local lgConnected = isLGConnected()
-        
-        log(string.format("🔄 Layout update - LG connected: %s, Current workspace: %s", 
-            tostring(lgConnected), tostring(currentWorkspace or "unknown")))
-        
-        if #monitorInfo > 0 then
-            log("📺 Monitors detected by AeroSpace:")
-            for _, info in ipairs(monitorInfo) do
-                log("   " .. info)
-            end
+    local lgConnected = isLGConnected()
+    local workspaces = {1,2,3,4,5,6,7,8,9,0}
+    -- Remember the currently focused workspace
+    hs.task.new(AEROSPACE, function(exitCode, stdout, stderr)
+        log("Focused workspace output: " .. tostring(stdout))
+        local wsnum = nil
+        if stdout then
+            wsnum = tonumber(stdout:match("%d+"))
         end
-        
-        -- Apply layout to current workspace first
-        if currentWorkspace then
-            applyLayoutToWorkspace(currentWorkspace, lgConnected)
-        end
-        
-        -- If LG is connected, also ensure workspaces 6-8 have correct layout
-        -- If LG is disconnected, ensure workspaces 6-8 revert to side-by-side
-        if lgConnected or (currentWorkspace and currentWorkspace >= 6 and currentWorkspace <= 8) then
-            for ws = 6, 8 do
-                if ws ~= currentWorkspace then
-                    hs.timer.doAfter(0.5 * (ws - 5), function()
-                        applyLayoutToWorkspace(ws, lgConnected)
-                    end)
+        local originalWorkspace = wsnum
+
+        -- Step 1: Query all workspaces for their current layout
+        local toChange = {}
+        local checked = 0
+        for i, ws in ipairs(workspaces) do
+            getCurrentLayout(ws, function(currentLayout)
+                local want = desiredLayoutFor(ws, lgConnected)
+                if currentLayout ~= want then
+                    table.insert(toChange, ws)
                 end
-            end
+                checked = checked + 1
+                if checked == #workspaces then
+                    -- Step 2: Sequentially focus and apply layout only to those workspaces
+                    local idx = 1
+                    local function nextChange()
+                        if idx > #toChange then
+                            -- Restore original workspace focus at the end
+                            if originalWorkspace then
+                                focusWorkspace(originalWorkspace, function() end)
+                            end
+                            return
+                        end
+                        local ws = toChange[idx]
+                        idx = idx + 1
+                        focusWorkspace(ws, function()
+                            local want = desiredLayoutFor(ws, lgConnected)
+                            -- Only run layout command on the active workspace, no --workspace argument
+                            local layoutCmd = string.format("%s layout %s", AEROSPACE, want)
+                            log(string.format("🔧 Setting workspace %d to %s (active only)", ws, want))
+                            hs.task.new("/bin/sh", function()
+                                hs.timer.doAfter(0.5, nextChange)
+                            end, {"-c", layoutCmd}):start()
+                        end)
+                    end
+                    if #toChange > 0 then
+                        nextChange()
+                    else
+                        -- Nothing to change, just restore focus if needed
+                        if originalWorkspace then
+                            focusWorkspace(originalWorkspace, function() end)
+                        end
+                    end
+                end
+            end)
         end
-    end)
+    end, {"list-workspaces", "--focused"}):start()
 end
 
 -- Monitor change detection with improved logic
