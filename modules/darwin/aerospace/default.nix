@@ -95,8 +95,8 @@
         alt-shift-space = "layout floating tiling";
         alt-f = "layout floating tiling";
 
-        # Monitor layout management (calls Hammerspoon for hardware detection)
-        alt-shift-m = "exec-and-forget /opt/homebrew/bin/hs -c 'MonitorManager.applyLayouts()'";
+        # Monitor layout management
+        alt-m = "exec-and-forget /opt/homebrew/bin/hs -c 'MonitorManager.fix()'";
 
         # Development-focused app launches
         alt-enter = "exec-and-forget open -na WezTerm";

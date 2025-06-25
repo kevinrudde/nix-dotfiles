@@ -58,6 +58,18 @@
       DSDontWriteNetworkStores = true;
       DSDontWriteUSBStores = true;
     };
+    "com.apple.spaces" = {
+      # Disable displays from spanning across multiple desktops/spaces
+      # 
+      # This prevents windows from spanning across monitors when using Mission Control
+      # or desktop spaces, which is essential for proper AeroSpace window management.
+      # AeroSpace assigns specific workspaces to specific monitors (see ../aerospace/default.nix)
+      # and spans-displays interferes with this by allowing windows to stretch across displays.
+      #
+      # Equivalent to: defaults write com.apple.spaces spans-displays -bool false && killall SystemUIServer
+      # ⚠️ IMPORTANT: Requires logout to take effect after first installation
+      spans-displays = false;
+    };
     "com.apple.AdLib" = {
       allowApplePersonalizedAdvertising = false;
     };

@@ -182,43 +182,74 @@
       branch=$(git rev-parse --abbrev-ref HEAD)
       jira_ticket=""
       
-      # Try multiple patterns
-      jira_ticket=$(echo "$branch" | sed -nr 's,^[a-z]+/([A-Z0-9]+-[0-9]+)-.+,\1,p')
+      # Try multiple patterns (most specific to least specific)
+      # Pattern 1: prefix/TICKET-123-description or prefix/TICKET-123
+      jira_ticket=$(echo "$branch" | sed -nr 's,^[a-z]+/([A-Z0-9]+-[0-9]+)($|-.+),\1,p')
+      # Pattern 2: TICKET-123-description or TICKET-123 (at start)
       if [[ -z "$jira_ticket" ]]; then
-        jira_ticket=$(echo "$branch" | sed -nr 's,^([A-Z0-9]+-[0-9]+).*,\1,p')
+        jira_ticket=$(echo "$branch" | sed -nr 's,^([A-Z0-9]+-[0-9]+)($|-.+),\1,p')
+      fi
+      # Pattern 3: Any TICKET-123 anywhere in branch name (fallback)
+      if [[ -z "$jira_ticket" ]]; then
+        jira_ticket=$(echo "$branch" | sed -nr 's,.*([A-Z0-9]+-[0-9]+).*,\1,p')
       fi
       
       if [[ -n "$jira_ticket" ]]; then
         echo "🎫 Found ticket: $jira_ticket"
-        echo "🤖 Generating commit message..."
+        
+        # Quick pre-check
+        if ! curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+          echo "❌ Ollama not running"
+          echo "💡 Start with: launchctl start org.nixos.ollama"
+          exit 1
+        fi
         
         # Generate message and add Jira prefix
-        if msg=$(opencommit --dry-run 2>/dev/null); then
-          full_msg="$jira_ticket: $msg"
+        echo "🤖 Generating commit message..."
+        
+        # Let opencommit run normally and commit, then amend with Jira prefix
+        echo "Running opencommit (will commit, then we'll amend with Jira prefix)..."
+        
+        if timeout 60s opencommit; then
+          # Get the commit message that was just created
+          last_msg=$(git log -1 --pretty=format:"%s")
+          
+          # Create new message with Jira prefix
+          full_msg="$jira_ticket: $last_msg"
+          
           echo ""
-          echo "📝 Commit message:"
-          echo "   $full_msg"
+          echo "📝 Original message: $last_msg"
+          echo "📝 New message: $full_msg"
           echo ""
-          read -p "🚀 Commit? (y/N): " -n 1 -r
+          read -p "🚀 Amend commit with Jira prefix? (y/N): " -n 1 -r
           echo
           
           if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git commit -m "$full_msg"
-            echo "✅ Committed!"
+            git commit --amend -m "$full_msg"
+            echo "✅ Amended commit with Jira prefix!"
           else
-            echo "❌ Cancelled"
+            echo "ℹ️  Commit kept as-is without Jira prefix"
           fi
         else
-          echo "❌ Failed to generate message"
-          echo "💡 Check: oco-check"
+          exit_code=$?
+          echo ""
+          if [ $exit_code -eq 124 ]; then
+            echo "❌ Timeout: OpenCommit took too long (>60s)"
+            echo "💡 Try a faster model: oco-model fast"
+          else
+            echo "❌ Failed to generate message (exit code: $exit_code)"
+            echo "💡 Check: oco-check"
+          fi
         fi
       else
         echo "❌ No Jira ticket in branch: $branch"
         echo ""
         echo "💡 Supported formats:"
+        echo "   • task/ABC-1234"
         echo "   • feature/PROJ-123-description"
         echo "   • PROJ-123-description"
         echo "   • bugfix/TEAM-456-fix"
+        echo "   • any-branch-with-TICKET-123-anywhere"
         echo ""
         echo "💡 Or use regular commit: oco"
       fi
