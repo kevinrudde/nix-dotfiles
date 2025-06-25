@@ -401,6 +401,27 @@ hyperfine --runs 10 'your-command'
 
 ## 📊 System Monitoring
 
+### Determinate Systems Nix Management
+```bash
+# Check daemon status and version
+sudo determinate-nixd status          # Overall daemon status
+determinate-nixd version              # Check installed version
+
+# Upgrades and maintenance
+sudo determinate-nixd upgrade         # Upgrade to latest version
+sudo determinate-nixd upgrade --version v3.6.2  # Upgrade to specific version
+
+# Authentication and configuration
+determinate-nixd login                # Login to FlakeHub
+determinate-nixd auth logout          # Logout from FlakeHub
+
+# Service management
+sudo launchctl kickstart -k system/org.nixos.nix-daemon  # Restart daemon
+
+# Bug reporting
+determinate-nixd bug "Issue title" "Description"  # File bug report
+```
+
 ### Bottom - Modern System Monitor
 ```bash
 # Start bottom (better than htop)

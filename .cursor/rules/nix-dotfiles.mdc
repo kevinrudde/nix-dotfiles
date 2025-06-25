@@ -5,13 +5,44 @@ alwaysApply: true
 ---
 # Nix-Dotfiles Configuration Rules
 
+**⚠️ CRITICAL: This configuration uses Determinate Systems Nix - Always use Determinate commands for system management!**
+
 This repository contains a cross-platform Nix configuration using nix-darwin, Home Manager, and SOPS for secret management. Follow these rules when making changes.
+
+## 🚨 Determinate Systems Requirements
+
+**ALWAYS use these commands - NOT traditional nix commands:**
+
+```bash
+# ✅ CORRECT: Check daemon status
+sudo determinate-nixd status
+
+# ✅ CORRECT: Apply configuration changes (traditional command still works)
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+
+# ✅ CORRECT: Upgrade Determinate Nix system (separate from config)
+sudo determinate-nixd upgrade
+
+# ❌ WRONG: Do not use traditional nix-daemon commands
+# sudo nix-daemon --daemon  # DON'T USE THIS
+
+# ❌ WRONG: Do not modify managed config files
+# vim /etc/nix/nix.conf  # DON'T EDIT THIS - it's managed by Determinate
+```
+
+**Configuration Files Hierarchy:**
+- `/etc/nix/nix.conf` - **READ ONLY** (managed by Determinate Systems)
+- `/etc/nix/nix.custom.conf` - Your custom settings (if needed)
+- `hosts/shared/determinate.nix` - Your dotfiles configuration
 
 ## Architecture Overview
 
 ```
 ├── flake.nix                    # Main flake configuration
 ├── hosts/                      # System-specific configurations
+│   ├── shared/                 # Shared host modules
+│   │   ├── determinate.nix     # Determinate Systems Nix configuration
+│   │   └── fonts.nix           # Font configuration
 │   └── zoidberg/               # macOS system configuration
 ├── modules/                    # Reusable system modules
 └── home/                       # User-level configuration
@@ -192,22 +223,56 @@ sops.secrets."your-secret" = {
 
 ## Testing and Validation
 
-### Before Committing
+### Pre-Flight Checks (REQUIRED)
 ```bash
-# Validate configuration
+# 1. ALWAYS check Determinate Systems daemon status first
+sudo determinate-nixd status
+
+# 2. Validate configuration syntax
 nix flake check
 
-# Test build without applying
-nix build .#darwinConfigurations.zoidberg.system --dry-run
+# 3. Test build without applying (ONLY if making significant changes)
+nix build .#darwinConfigurations.zoidberg.system --dry-run    # macOS
+nix build .#nixosConfigurations.example-linux.config.system.build.toplevel --dry-run    # Linux
 
-# Apply changes
-sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/
+# Note: --dry-run is redundant if you just ran 'nix flake check' successfully
+# Only use --dry-run for major changes or when troubleshooting
 ```
 
-### Common Issues
+### Applying Changes (Determinate Systems Workflow)
+```bash
+# ✅ CORRECT: Apply configuration changes (macOS)
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+
+# ✅ CORRECT: Apply changes (Linux)
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
+
+# ✅ CORRECT: Post-apply health check
+sudo determinate-nixd status
+```
+
+### Post-Apply Validation
+```bash
+# Check that Determinate Systems daemon is healthy
+sudo determinate-nixd status
+
+# Verify current generation
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+
+# Test new functionality
+# ... test your new packages/configurations
+```
+
+### Common Issues (Determinate Systems Context)
 - **Infinite recursion**: Check for `pkgs.stdenv.isDarwin` in imports
 - **Missing packages**: Ensure proper categorization in packages.nix
 - **Import errors**: Verify `default.nix` exists for all folders
+- **Build failures**: Use `--show-trace` for detailed error messages
+- **Platform detection**: Verify `pkgs.stdenv.isDarwin` logic
+- **Daemon issues**: ALWAYS check `sudo determinate-nixd status` first
+- **Permission errors**: Restart daemon: `sudo launchctl kickstart -k system/org.nixos.nix-daemon`
+- **Configuration conflicts**: Never modify `/etc/nix/nix.conf` (managed by Determinate)
+- **Update issues**: Use `sudo determinate-nixd upgrade` not traditional nix updates
 
 ## Home Manager Patterns
 
@@ -247,13 +312,193 @@ home.sessionVariables = {
 
 ## Emergency Recovery
 
-If configuration breaks:
-```bash
-# Rollback to previous generation
-sudo darwin-rebuild --rollback
+🛡️ **Safety First: Nix Cannot Break Your System**
 
-# Check available generations
+Nix is designed to be extremely safe - you cannot break your macOS system with these configurations:
+
+### ✅ What CANNOT Be Broken:
+- **Core macOS system** - Nix doesn't touch `/System/`, `/usr/`, etc.
+- **Boot process** - Your Mac will always boot normally
+- **Existing applications** - Non-Nix apps remain untouched
+- **User data** - Documents, photos, etc. are completely safe
+- **System recovery** - macOS recovery mode always works
+
+### 🔄 Rollback Mechanisms
+
+#### System (nix-darwin) Rollback
+```bash
+# List available system generations
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+
+# Rollback to previous generation
+sudo nix-env --rollback --profile /nix/var/nix/profiles/system
+
+# Switch to specific generation (replace 42 with desired number)
+sudo nix-env --switch-generation 42 --profile /nix/var/nix/profiles/system
+```
+
+#### Home Manager Rollback
+```bash
+# List Home Manager generations
+home-manager generations
+
+# Rollback to previous generation (copy the path from generations output)
+/nix/store/[hash]-home-manager-generation/activate
+```
+
+#### Emergency Fallback
+```bash
+# Use original shell if new shell doesn't work
+/bin/bash
+
+# Check system status
+launchctl list | grep nix-daemon
+
+# Check Determinate Systems daemon status
+sudo determinate-nixd status
+
+# Restart Determinate Systems daemon
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
+```
+
+### 🚨 Step-by-Step Recovery
+
+#### 1. Configuration Won't Build
+```bash
+# Check for syntax errors
+nix flake check --show-trace
+
+# Try building without applying
+nix build .#darwinConfigurations.zoidberg.system --show-trace
+
+# If successful, apply normally
+sudo darwin-rebuild switch --flake . --show-trace
+```
+
+#### 2. System Feels Broken After Apply
+```bash
+# Check current generation
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+
+# Rollback to previous (second-to-last) generation
+sudo nix-env --rollback --profile /nix/var/nix/profiles/system
+
+# Reboot if necessary (usually not required)
+sudo reboot
+```
+
+#### 3. Terminal/Shell Issues
+```bash
+# Use safe shell
+/bin/bash
+
+# Check what shell is set
+echo $SHELL
+
+# Reset to bash temporarily
+chsh -s /bin/bash
+
+# After fixing config, switch back
+chsh -s /run/current-system/sw/bin/fish
+```
+
+#### 4. Home Manager Issues
+```bash
+# Check Home Manager status
+home-manager generations
+
+# Rollback Home Manager only
+/nix/store/[previous-generation-hash]/activate
+
+# Or rebuild Home Manager separately
+home-manager switch --flake .
+```
+
+### 🔧 Diagnostic Commands
+
+#### Check System Health
+```bash
+# Verify nix-daemon is running
+sudo launchctl list | grep nix-daemon
+
+# Check Determinate Systems daemon status
+sudo determinate-nixd status
+
+# Check current version
+determinate-nixd version
+
+# Check nix store integrity
+nix store verify --all
+
+# Test flake evaluation
+nix eval .#darwinConfigurations.zoidberg.system.config.system.stateVersion
+```
+
+#### Debug Configuration
+```bash
+# Validate flake syntax
+nix flake check --show-trace
+
+# Show detailed build information
+nix build .#darwinConfigurations.zoidberg.system --print-build-logs
+
+# Check Home Manager configuration
+home-manager build --flake .
+
+# Check Determinate configuration files
+cat /etc/nix/nix.conf                    # Managed by Determinate (read-only)
+cat /etc/nix/nix.custom.conf             # Your custom settings (if any)
+cat hosts/shared/determinate.nix         # Your dotfiles config
+```
+
+### Determinate Systems Nix Configuration
+The configuration now uses Determinate Systems Nix with custom settings in `hosts/shared/determinate.nix`:
+
+```nix
+# Configuration is automatically applied via hosts/shared/determinate.nix
+# Key features:
+# - lazy-trees = true (performance optimization)
+# - Custom trusted users and substituters
+# - Uses nix.enable = false in host configuration
+
+# To modify Determinate Systems settings:
+vim hosts/shared/determinate.nix
+```
+
+### Determinate Systems Daemon Management
+```bash
+# Check daemon status and configuration
+sudo determinate-nixd status
+
+# Upgrade to latest Determinate Nix version
+sudo determinate-nixd upgrade
+
+# Check current version
+determinate-nixd version
+
+# Custom configuration goes in /etc/nix/nix.custom.conf
+# DO NOT modify /etc/nix/nix.conf (managed by Determinate Systems)
+
+# Restart daemon if needed
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
+
+# Authentication management (for FlakeHub)
+determinate-nixd login                    # Login to FlakeHub
+determinate-nixd auth logout              # Logout from FlakeHub
+sudo determinate-nixd auth reset          # Reset authentication
+```
+
+#### Determinate Systems Troubleshooting
+```bash
+# Complete health check
+echo "=== Determinate Systems Status ===" && \
+sudo determinate-nixd status && \
+echo -e "\n=== Configuration Files ===" && \
+echo "Managed config: /etc/nix/nix.conf" && \
+echo "Custom config: /etc/nix/nix.custom.conf" && \
+echo "Dotfiles config: hosts/shared/determinate.nix" && \
+echo -e "\n=== Current Generation ===" && \
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 ```
 
 ## File Modification Guidelines
@@ -264,6 +509,7 @@ sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 - **linux/packages.nix**: Add new Linux applications (when using Linux)
 - **features/default.nix**: Add imports for new feature modules
 - **hosts/zoidberg/**: Modify system-level macOS settings
+- **hosts/shared/determinate.nix**: Configure Determinate Systems Nix settings
 
 Remember: This is a living configuration. Always test changes and maintain the clean architecture that makes it cross-platform and maintainable.
 
@@ -274,8 +520,17 @@ Remember: This is a living configuration. Always test changes and maintain the c
 ## 📋 Prerequisites & Initial Setup
 
 ### 1. Install Nix (Required First Step)
+**Using Determinate Systems Nix Installer (Recommended)**:
+You need to install Nix, but we are not using their official installer. Instead, we are using the Determinate Systems Nix Installer. You can download it [here](mdc:https:/install.determinate.systems/determinate-pkg/stable/Universal)!
+
+To update your Nix version to the latest recommended release, use the following command
 ```bash
-# Install Nix using the Determinate Systems installer (recommended)
+sudo determinate-nixd upgrade
+```
+
+**Alternative Command Line Installation**:
+```bash
+# Install Nix using the Determinate Systems installer (command line)
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 
 # Restart your shell or source the Nix profile
@@ -312,16 +567,16 @@ cd ~/.config/nix-dotfiles
 #### macOS (nix-darwin)
 ```bash
 # First-time setup
-nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles#zoidberg
+nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles
 
 # After first setup, use darwin-rebuild directly
-sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
 ```
 
 #### Linux (NixOS)
 ```bash
 # For NixOS systems
-sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles#linux-example --show-trace
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
 
 # For standalone Home Manager
 nix run home-manager -- switch --flake ~/.config/nix-dotfiles#C.Hessel
@@ -335,8 +590,11 @@ nix run home-manager -- switch --flake ~/.config/nix-dotfiles#C.Hessel
 nix flake update
 
 # Apply updates (choose your platform)
-darwin-rebuild switch --flake ~/.config/nix-dotfiles#zoidberg --show-trace    # macOS
-sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles                      # Linux
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace    # macOS
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/             # Linux
+
+# Update Determinate Systems Nix itself
+sudo determinate-nixd upgrade
 ```
 
 ### Safe Update Workflow
@@ -350,7 +608,7 @@ nix flake lock --update-input home-manager    # Update just home-manager
 
 # 3. Test build without applying changes
 nix build .#darwinConfigurations.zoidberg.system --dry-run    # macOS
-nix build .#nixosConfigurations.your-host.config.system.build.toplevel --dry-run    # Linux
+nix build .#nixosConfigurations.example-linux.config.system.build.toplevel --dry-run    # Linux
 
 # 4. Apply changes with detailed output
 sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
@@ -358,11 +616,8 @@ sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
 
 ### Rolling Back Changes
 ```bash
-# Rollback to previous generation (macOS)
-sudo darwin-rebuild --rollback
-
-# Rollback to previous generation (Linux)
-sudo nixos-rebuild --rollback
+# Rollback to previous generation (macOS/Linux)
+sudo nix-env --rollback --profile /nix/var/nix/profiles/system
 
 # List available generations
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
@@ -448,12 +703,62 @@ touch home/features/your-feature/keybindings.nix
 ### System-Level Configuration (macOS)
 ```bash
 # Edit system settings
-vim hosts/zoidberg/darwin-configuration.nix
+vim hosts/zoidberg/default.nix
 
 # Common system settings:
 # system.defaults.dock.autohide = true;
 # system.defaults.finder.AppleShowAllExtensions = true;
 # system.defaults.trackpad.Clicking = true;
+```
+
+### Determinate Systems Nix Configuration
+The configuration now uses Determinate Systems Nix with custom settings in `hosts/shared/determinate.nix`:
+
+```nix
+# Configuration is automatically applied via hosts/shared/determinate.nix
+# Key features:
+# - lazy-trees = true (performance optimization)
+# - Custom trusted users and substituters
+# - Uses nix.enable = false in host configuration
+
+# To modify Determinate Systems settings:
+vim hosts/shared/determinate.nix
+```
+
+### Determinate Systems Daemon Management
+```bash
+# Check daemon status and configuration
+sudo determinate-nixd status
+
+# Upgrade to latest Determinate Nix version
+sudo determinate-nixd upgrade
+
+# Check current version
+determinate-nixd version
+
+# Custom configuration goes in /etc/nix/nix.custom.conf
+# DO NOT modify /etc/nix/nix.conf (managed by Determinate Systems)
+
+# Restart daemon if needed
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
+
+# Authentication management (for FlakeHub)
+determinate-nixd login                    # Login to FlakeHub
+determinate-nixd auth logout              # Logout from FlakeHub
+sudo determinate-nixd auth reset          # Reset authentication
+```
+
+#### Determinate Systems Troubleshooting
+```bash
+# Complete health check
+echo "=== Determinate Systems Status ===" && \
+sudo determinate-nixd status && \
+echo -e "\n=== Configuration Files ===" && \
+echo "Managed config: /etc/nix/nix.conf" && \
+echo "Custom config: /etc/nix/nix.custom.conf" && \
+echo "Dotfiles config: hosts/shared/determinate.nix" && \
+echo -e "\n=== Current Generation ===" && \
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 ```
 
 ## 🔐 Secrets Management (SOPS)
@@ -504,6 +809,9 @@ nix-collect-garbage --delete-older-than 7d
 
 # Clean up user profile generations
 nix-collect-garbage -d
+
+# Update Determinate Systems Nix
+sudo determinate-nixd upgrade
 ```
 
 ### Troubleshooting
@@ -519,75 +827,20 @@ nix search nixpkgs your-package-name
 
 # Issue: Build failures
 # Solution: Check build logs with verbose output
-darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
 
 # Issue: Configuration won't apply
 # Solution: Validate syntax first
-nix flake check
-```
+nix flake check --show-trace
 
-#### Emergency Recovery
-```bash
-# Boot into recovery mode and rollback
-sudo darwin-rebuild --rollback
+# Issue: Determinate Systems Nix issues
+# Solution: Check daemon status and upgrade
+sudo determinate-nixd status
+sudo determinate-nixd upgrade
 
-# Or manually switch to working generation
-sudo nix-env --profile /nix/var/nix/profiles/system --switch-generation WORKING_GENERATION_NUMBER
-
-# Check what changed between generations
-nix store diff-closures /nix/var/nix/profiles/system-OLD-link /nix/var/nix/profiles/system-NEW-link
-```
-
-## 📊 Monitoring & Validation
-
-### Pre-Deployment Checks
-```bash
-# Validate flake syntax and dependencies
-nix flake check
-
-# Check for potential issues
-nix build .#darwinConfigurations.zoidberg.system --dry-run
-
-# Preview what will change
-darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --dry-run
-```
-
-### Post-Deployment Validation
-```bash
-# Check system status
-darwin-rebuild list-generations
-
-# Verify services are running
-launchctl list | grep nix
-
-# Test new packages/programs
-which your-new-program
-your-new-program --version
-```
-
-## 🔄 Development Workflow
-
-### Making Configuration Changes
-1. **Make changes** to appropriate `.nix` files
-2. **Validate syntax**: `nix flake check`
-3. **Test build**: `nix build .#darwinConfigurations.zoidberg.system --dry-run`
-4. **Apply changes**: `darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace`
-5. **Test functionality**: Verify new packages/settings work
-6. **Commit changes**: `git add . && git commit -m "description"`
-
-### Contributing to Dotfiles
-```bash
-# Create feature branch
-git checkout -b add-new-feature
-
-# Make changes following architecture guidelines
-# Test thoroughly
-./install.sh --dry-run
-
-# Commit and push
-git add .
-git commit -m "feat: add new development tool"
-git push origin add-new-feature
+# Issue: Permission errors
+# Solution: Restart daemon
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
 ```
 
 ## 🎯 Quick Reference Commands
@@ -595,7 +848,7 @@ git push origin add-new-feature
 ### Essential Commands
 ```bash
 # Apply configuration changes
-darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
 
 # Update all flake inputs
 nix flake update
@@ -603,8 +856,14 @@ nix flake update
 # Check configuration validity
 nix flake check
 
+# Check Determinate Systems status
+sudo determinate-nixd status
+
+# Upgrade Determinate Nix system (separate from config)
+sudo determinate-nixd upgrade
+
 # Rollback to previous generation
-sudo darwin-rebuild --rollback
+sudo nix-env --rollback --profile /nix/var/nix/profiles/system
 
 # Clean up old generations
 nix-collect-garbage --delete-older-than 7d
@@ -612,20 +871,32 @@ nix-collect-garbage --delete-older-than 7d
 # Search for packages
 nix search nixpkgs package-name
 
-# View build logs
-darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace --verbose
-
 # List system generations
-darwin-rebuild list-generations
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 ```
 
 ### File Locations Reference
 - **Main flake**: `flake.nix`
 - **macOS system config**: `hosts/zoidberg/`
+- **Shared host modules**: `hosts/shared/` (includes `determinate.nix`)
 - **User packages**: `home/features/packages.nix`
 - **macOS GUI apps**: `home/features/darwin/packages.nix`
 - **Feature modules**: `home/features/`
 - **Secrets**: `home/features/secrets/`
 - **SOPS age keys**: `~/.config/sops/age/keys.txt`
 
-Remember: Always test changes with `--dry-run` first, and keep your configuration clean and well-organized following the established architecture patterns. 
+Remember: Always test changes with `--dry-run` first, and keep your configuration clean and well-organized following the established architecture patterns.
+
+---
+
+**🚀 Determinate Systems Migration Complete**
+
+This configuration has been migrated from traditional Nix to Determinate Systems Nix for improved performance and reliability. Key changes:
+
+- **Installation**: Use GUI installer from https://install.determinate.systems/determinate-pkg/stable/Universal
+- **Updates**: Use `sudo determinate-nixd upgrade` for daemon updates
+- **Configuration**: Settings in `hosts/shared/determinate.nix` and `/etc/nix/nix.custom.conf`
+- **Management**: Use `sudo determinate-nixd status` for health checks
+- **Build Commands**: Traditional `darwin-rebuild` commands remain unchanged
+
+The configuration leverages Determinate Systems' optimizations while maintaining full compatibility with existing Nix tooling. 

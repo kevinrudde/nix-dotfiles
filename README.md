@@ -17,9 +17,20 @@ A cross-platform Nix configuration for macOS (nix-darwin) and Linux (NixOS) with
 ## 📋 Requirements
 
 ### Nix Installation
-Install Nix using the Determinate Systems installer (recommended):
+You need to install Nix, but we are not using their official installer. Instead, we are using the Determinate Systems Nix Installer. You can download it [here](https://install.determinate.systems/determinate-pkg/stable/Universal)!
+
+**Important**: Determinate Systems provides two separate operations:
+- **Configuration Application**: Use `sudo darwin-rebuild switch` to apply your dotfiles changes
+- **System Upgrades**: Use `sudo determinate-nixd upgrade` to upgrade the Determinate Nix system itself
+
+To update your Determinate Nix system to the latest release:
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+sudo determinate-nixd upgrade
+```
+
+To apply your configuration changes:
+```bash
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
 ```
 
 ### Platform-Specific Requirements
@@ -175,7 +186,11 @@ sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
 
 #### macOS
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+# Apply configuration changes
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+
+# Upgrade Determinate Systems Nix (separate operation)
+sudo determinate-nixd upgrade
 ```
 
 #### Linux
@@ -453,7 +468,8 @@ launchctl list | grep nix-daemon
 | **Shell Issues** | Terminal doesn't start properly | Use `/bin/bash`, then rollback |
 | **Missing Secrets** | SOPS decryption errors | Check age key location and permissions |
 | **Platform Detection** | Wrong packages installed | Verify `pkgs.stdenv.isDarwin` logic |
-| **Permission Errors** | `/nix/store` access denied | Restart nix-daemon: `sudo launchctl kickstart -k system/org.nixos.nix-daemon` |
+| **Determinate Daemon Issues** | Service not responding | Check with `sudo determinate-nixd status` |
+| **Permission Errors** | `/nix/store` access denied | Restart daemon: `sudo launchctl kickstart -k system/org.nixos.nix-daemon` |
 | **Generation Not Found** | Rollback fails | List generations first, use valid number |
 
 ### 🚨 Step-by-Step Recovery
@@ -467,7 +483,7 @@ nix flake check --show-trace
 nix build .#darwinConfigurations.zoidberg.system --show-trace
 
 # If successful, apply normally
-darwin-rebuild switch --flake . --show-trace
+sudo darwin-rebuild switch --flake . --show-trace
 ```
 
 #### 2. System Feels Broken After Apply
@@ -509,65 +525,99 @@ home-manager generations
 home-manager switch --flake .
 ```
 
-### 🔧 Diagnostic Commands
+### 🔧 Determinate Systems Troubleshooting
 
-#### Check System Health
+#### Daemon Management
 ```bash
-# Verify nix-daemon is running
-sudo launchctl list | grep nix-daemon
+# Check daemon status and configuration
+sudo determinate-nixd status
+
+# Check current version
+determinate-nixd version
+
+# Upgrade to latest version
+sudo determinate-nixd upgrade
+
+# Restart daemon if needed
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
+```
+
+#### Configuration Issues
+```bash
+# Check Determinate Systems configuration
+cat /etc/nix/nix.conf                    # Managed by Determinate (read-only)
+cat /etc/nix/nix.custom.conf             # Your custom settings (if any)
+
+# View your dotfiles Determinate config
+cat hosts/shared/determinate.nix
+
+# Test configuration validity
+nix eval .#darwinConfigurations.zoidberg.system.config.system.stateVersion
+```
+
+#### Service Diagnostics
+```bash
+# Check if daemon is running
+launchctl list | grep nix-daemon
 
 # Check nix store integrity
 nix store verify --all
 
-# Test flake evaluation
-nix eval .#darwinConfigurations.zoidberg.system.config.system.stateVersion
+# View daemon logs (if available)
+sudo launchctl print system/org.nixos.nix-daemon
 ```
 
-#### Debug Configuration
+### 🆘 Recovery Options
+
+#### Safe Recovery (Recommended)
 ```bash
-# Validate flake syntax
-nix flake check --show-trace
+# 1. Rollback system generation
+sudo nix-env --rollback --profile /nix/var/nix/profiles/system
 
-# Show detailed build information
-nix build .#darwinConfigurations.zoidberg.system --print-build-logs
+# 2. If daemon issues, restart Determinate service
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
 
-# Check Home Manager configuration
-home-manager build --flake .
+# 3. Check daemon status
+sudo determinate-nixd status
 ```
 
-### 🆘 Last Resort Options
-
-If everything fails (extremely unlikely):
-
-#### 1. Nuclear Option - Remove nix-darwin
+#### Advanced Recovery (If needed)
 ```bash
-# Stop nix-daemon
-sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+# Reset Determinate authentication (if auth issues)
+sudo determinate-nixd auth reset
 
-# Remove nix-darwin (system remains intact)
-sudo rm -rf /etc/nix/nix.conf
-sudo rm -rf /run/current-system
-```
-
-#### 2. Fresh Start
-```bash
-# Reinstall Nix (if needed)
+# Reinstall Determinate Nix (preserves configurations)
+# Download latest from: https://install.determinate.systems/determinate-pkg/stable/Universal
+# Or use command line:
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+```
 
-# Re-clone and apply configuration
-git clone <repo> ~/.config/nix-dotfiles
-cd ~/.config/nix-dotfiles
-./install.sh
+### 📊 Health Check Commands
+
+```bash
+# Complete system health check
+echo "=== Determinate Systems Status ===" && \
+sudo determinate-nixd status && \
+echo -e "\n=== Nix Store Health ===" && \
+nix store verify --all && \
+echo -e "\n=== Configuration Validity ===" && \
+nix flake check --show-trace && \
+echo -e "\n=== Current Generation ===" && \
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 ```
 
 ### 📞 Getting Help
 
 - **Configuration Errors**: Use `--show-trace` for detailed error messages
 - **Architecture Questions**: Review [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Module Issues**: Test individual modules by importing them separately
-- **Platform Problems**: Check `uname -a` and verify platform detection logic
+- **Determinate Issues**: Check daemon status with `sudo determinate-nixd status`
+- **Platform Problems**: Verify platform detection logic with `uname -a`
 
-Remember: **Nix is designed for safe experimentation**. Don't hesitate to try changes - you can always roll back!
+**Remember**: 
+- **Determinate Systems manages** `/etc/nix/nix.conf` - never modify it manually
+- **Use** `/etc/nix/nix.custom.conf` for custom Nix configuration
+- **Your dotfiles config** is in `hosts/shared/determinate.nix`
+- **Nix is designed for safe experimentation** - you can always roll back!
 
 ## 📚 Resources
 

@@ -15,6 +15,8 @@ nix-dotfiles/
 │   ├── zoidberg/          # Primary macOS system (nix-darwin)
 │   ├── example-linux/     # Example Linux configuration (NixOS)
 │   └── shared/            # Shared system configurations
+│       ├── determinate.nix # Determinate Systems Nix configuration
+│       └── fonts.nix      # Font configuration
 │
 ├── home/                  # Home Manager configurations
 │   ├── default.nix        # Base user configuration (imports ./features)
@@ -107,6 +109,8 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 - **`flake.nix`**: Defines inputs, outputs, and system configurations
 - **`home/default.nix`**: Base Home Manager configuration (imports `./features`)
 - **`home/zoidberg.nix`**: User-specific configuration with platform-specific imports
+- **`hosts/shared/determinate.nix`**: Determinate Systems Nix configuration (replaces traditional nix settings)
+- **`hosts/shared/fonts.nix`**: Font configuration shared across systems
 
 ### Entry Points (All follow two-layer import rule)
 - **`home/features/default.nix`**: Imports all feature modules
@@ -163,6 +167,20 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 1. Create `modules/darwin/new-module.nix` or `modules/nixos/new-module.nix`
 2. Import in appropriate host configuration (`hosts/*/default.nix`)
 
+### Applying Changes
+After making configuration changes, apply them using:
+
+```bash
+# macOS (nix-darwin)
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+
+# Linux (NixOS)
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
+
+# Upgrade Determinate Systems Nix (separate from configuration)
+sudo determinate-nixd upgrade
+```
+
 ## 🛠️ Utility Scripts
 
 The `scripts/` directory contains development and maintenance tools:
@@ -207,10 +225,25 @@ nix flake check
 nix build .#darwinConfigurations.zoidberg.system --dry-run
 ```
 
-### Apply Changes
+### Determinate Systems Management
 ```bash
-sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+# Check daemon status
+sudo determinate-nixd status
+
+# Upgrade Nix version
+sudo determinate-nixd upgrade
+
+# Check current version
+determinate-nixd version
+
+# Restart daemon if needed
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
 ```
+
+### Configuration Files
+- **Determinate config**: `hosts/shared/determinate.nix` (your dotfiles)
+- **System config**: `/etc/nix/nix.conf` (managed by Determinate, read-only)
+- **Custom config**: `/etc/nix/nix.custom.conf` (for additional settings)
 
 ---
 
