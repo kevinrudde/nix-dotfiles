@@ -24,6 +24,12 @@ local workspaceState = {
     currentFocusedWorkspace = nil       -- Currently focused workspace
 }
 
+-- Layout State Tracking
+local layoutState = {
+    appliedLayouts = {},                -- Workspace -> Layout mapping (what we last applied)
+    monitorConfiguration = nil          -- Current monitor setup signature
+}
+
 -- Runtime State
 local screenWatcher = nil
 local lastScreenCount = 0
@@ -50,6 +56,46 @@ local function isVerticalWorkspace(workspace)
         end
     end
     return false
+end
+
+-- Generate monitor configuration signature for change detection
+local function getMonitorSignature()
+    local screens = hs.screen.allScreens()
+    local signature = {}
+    
+    for i, screen in ipairs(screens) do
+        table.insert(signature, screen:name() or ("unknown-" .. i))
+    end
+    
+    table.sort(signature) -- Ensure consistent ordering
+    return table.concat(signature, "|")
+end
+
+-- Check if monitor configuration has changed
+local function hasMonitorConfigChanged()
+    local currentSignature = getMonitorSignature()
+    if layoutState.monitorConfiguration ~= currentSignature then
+        layoutState.monitorConfiguration = currentSignature
+        return true
+    end
+    return false
+end
+
+-- Check if workspace needs layout change
+local function needsLayoutChange(workspace, desiredLayout)
+    -- Check if we have a record of this workspace's layout
+    local appliedLayout = layoutState.appliedLayouts[workspace]
+    if not appliedLayout then
+        return true -- No record, needs layout application
+    end
+    
+    -- Compare desired vs applied layout
+    return appliedLayout ~= desiredLayout
+end
+
+-- Record that a layout was applied to a workspace
+local function recordLayoutApplied(workspace, layout)
+    layoutState.appliedLayouts[workspace] = layout
 end
 
 -- ============================================================================
@@ -261,16 +307,49 @@ end
 -- LAYOUT MANAGEMENT
 -- ============================================================================
 
--- Apply layout to all workspaces with state preservation
+-- Apply layout to all workspaces with state preservation and smart optimization
 local function applyLayouts(skipStateCapture)
     local lgConnected = isLGConnected()
     local workspaces = generateWorkspaceArray()
     
+    -- Check if monitor configuration changed - if so, clear layout state
+    if hasMonitorConfigChanged() then
+        layoutState.appliedLayouts = {} -- Clear all stored layouts
+        print("Monitor configuration changed - refreshing all workspace layouts")
+    end
+    
+    -- Filter workspaces that actually need layout changes
+    local workspacesToProcess = {}
+    local skippedCount = 0
+    
+    for _, ws in ipairs(workspaces) do
+        local desiredLayout = getDesiredLayout(ws, lgConnected)
+        if needsLayoutChange(ws, desiredLayout) then
+            table.insert(workspacesToProcess, {workspace = ws, layout = desiredLayout})
+        else
+            skippedCount = skippedCount + 1
+        end
+    end
+    
+    print(string.format("Layout optimization: %d workspaces need changes, %d skipped", 
+          #workspacesToProcess, skippedCount))
+    
     -- Capture current state before applying layouts (unless skipped)
     local function proceedWithLayouts()
+        -- If no workspaces need changes, just restore state and finish
+        if #workspacesToProcess == 0 then
+            print("All workspaces already have correct layouts")
+            hs.timer.doAfter(0.1, function()
+                restoreWorkspaceState(function()
+                    saveWorkspaceStateToDisk()
+                end)
+            end)
+            return
+        end
+        
         -- Apply layouts sequentially with longer delays
         local function applyNext(index)
-            if index > #workspaces then
+            if index > #workspacesToProcess then
                 -- After all layouts applied, restore workspace state
                 hs.timer.doAfter(0.5, function()
                     restoreWorkspaceState(function()
@@ -280,8 +359,11 @@ local function applyLayouts(skipStateCapture)
                 return
             end
             
-            local ws = workspaces[index]
-            local layout = getDesiredLayout(ws, lgConnected)
+            local wsInfo = workspacesToProcess[index]
+            local ws = wsInfo.workspace
+            local layout = wsInfo.layout
+            
+            print(string.format("Applying %s layout to workspace %d", layout, ws))
             
             -- Focus workspace first
             hs.task.new(AEROSPACE, function()
@@ -289,6 +371,9 @@ local function applyLayouts(skipStateCapture)
                 hs.timer.doAfter(0.5, function()
                     -- Apply layout to the now-focused workspace
                     hs.task.new(AEROSPACE, function()
+                        -- Record that this layout was applied
+                        recordLayoutApplied(ws, layout)
+                        
                         -- Wait longer for layout to fully apply before next workspace
                         hs.timer.doAfter(0.4, function()
                             applyNext(index + 1)
@@ -436,6 +521,17 @@ function MonitorManager.clearState()
     print("Workspace state cleared")
 end
 
+function MonitorManager.clearLayoutState()
+    layoutState.appliedLayouts = {}
+    layoutState.monitorConfiguration = nil
+    print("Layout state cleared - next layout application will refresh all workspaces")
+end
+
+function MonitorManager.forceLayoutRefresh()
+    MonitorManager.clearLayoutState()
+    MonitorManager.fix()
+end
+
 -- Debug and diagnostic information
 function MonitorManager.debug()
     local lgConnected = isLGConnected()
@@ -469,6 +565,31 @@ function MonitorManager.debug()
     else
         print("No workspace state saved")
     end
+    
+    print("\n=== Layout State ===")
+    print(string.format("Monitor signature: %s", layoutState.monitorConfiguration or "not set"))
+    if next(layoutState.appliedLayouts) then
+        print("Applied layouts:")
+        for workspace, layout in pairs(layoutState.appliedLayouts) do
+            print(string.format("  Workspace %d: %s", workspace, layout))
+        end
+    else
+        print("No layout state recorded")
+    end
+    
+    -- Show optimization preview
+    print("\n=== Optimization Preview ===")
+    local needsChanges = 0
+    for i = 1, TOTAL_WORKSPACES do
+        local desiredLayout = getDesiredLayout(i, lgConnected)
+        local needs = needsLayoutChange(i, desiredLayout)
+        if needs then
+            needsChanges = needsChanges + 1
+            print(string.format("  Workspace %d: needs %s (currently %s)", 
+                  i, desiredLayout, layoutState.appliedLayouts[i] or "unknown"))
+        end
+    end
+    print(string.format("Workspaces needing changes: %d/%d", needsChanges, TOTAL_WORKSPACES))
     
     -- Check disk state
     local stateFile = os.getenv("HOME") .. "/.cache/hammerspoon/workspace-state.json"
