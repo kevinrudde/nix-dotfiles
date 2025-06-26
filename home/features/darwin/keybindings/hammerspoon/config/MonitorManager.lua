@@ -24,10 +24,10 @@ end
 local function getDesiredLayout(workspace, lgConnected)
     if lgConnected then
         -- Home-Office setup with LG monitor
-        if workspace >= 6 and workspace <= 8 then
+        if workspace >= 6 and workspace <= 7 then
             return "tiles vertical"  -- stacking on LG portrait
         else
-            return "tiles horizontal"  -- side-by-side (workspaces 1-5, 9-0)
+            return "tiles horizontal"  -- side-by-side (workspaces 1-5, 8-9)
         end
     else
         -- Office setup without LG monitor
@@ -38,7 +38,7 @@ end
 -- Apply layout to all workspaces
 local function applyLayouts()
     local lgConnected = isLGConnected()
-    local workspaces = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+    local workspaces = {1, 2, 3, 4, 5, 6, 7, 8, 9}
     
     -- Get current workspace to restore focus later
     hs.task.new(AEROSPACE, function(exitCode, stdout, stderr)
@@ -100,7 +100,7 @@ local function onScreenChange()
             if not isApplying then
                 isApplying = true
                 applyLayouts()
-                -- Reset flag after layouts are done (estimate: 10 workspaces * 0.9s each)
+                -- Reset flag after layouts are done (estimate: 9 workspaces * 0.9s each)
                 hs.timer.doAfter(10, function()
                     isApplying = false
                 end)
@@ -121,7 +121,7 @@ function MonitorManager.start()
     hs.timer.doAfter(2, function()
         isApplying = true
         applyLayouts()
-        hs.timer.doAfter(10, function()
+        hs.timer.doAfter(9, function()
             isApplying = false
         end)
     end)
@@ -142,7 +142,7 @@ function MonitorManager.fix()
     end
     isApplying = true
     applyLayouts()
-    hs.timer.doAfter(10, function()
+    hs.timer.doAfter(9, function()
         isApplying = false
     end)
 end

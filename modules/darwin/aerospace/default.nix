@@ -35,8 +35,8 @@
       # - Office setup (no LG monitor): All workspaces use side-by-side tiling
       # - Home-Office setup (with LG HDR 4K):
       #   * Workspaces 1-5: side-by-side on main monitor
-      #   * Workspaces 6-8: stacking layout on LG portrait monitor  
-      #   * Workspaces 9-0: side-by-side on built-in monitor
+      #   * Workspaces 6-7: stacking layout on LG portrait monitor  
+      #   * Workspaces 8-9: side-by-side on built-in monitor
       workspace-to-monitor-force-assignment = {
         "1" = "main";
         "2" = "main";
@@ -45,9 +45,8 @@
         "5" = "main";
         "6" = ["LG HDR 4K" "main"];
         "7" = ["LG HDR 4K" "main"];
-        "8" = ["LG HDR 4K" "main"];
+        "8" = ["built-in" "main"];
         "9" = ["built-in" "main"];
-        "0" = ["built-in" "main"];
       };
 
       key-mapping.preset = "qwerty";
@@ -60,8 +59,7 @@
         alt-f1 = "workspace 6";
         alt-f2 = "workspace 7";
         alt-f3 = "workspace 8";
-        alt-6 = "workspace 9";
-        alt-f4 = "workspace 0";
+        alt-f4 = "workspace 9";
 
         alt-shift-p = "workspace --wrap-around prev";
         alt-shift-n = "workspace --wrap-around next";
@@ -75,8 +73,7 @@
         alt-shift-f1 = ["move-node-to-workspace 6" "workspace 6"];
         alt-shift-f2 = ["move-node-to-workspace 7" "workspace 7"];
         alt-shift-f3 = ["move-node-to-workspace 8" "workspace 8"];
-        alt-shift-6 = ["move-node-to-workspace 9" "workspace 9"];
-        alt-shift-f4 = ["move-node-to-workspace 0" "workspace 0"];
+        alt-shift-f4 = ["move-node-to-workspace 9" "workspace 9"];
 
         # Window focus navigation
         alt-left = "focus --boundaries-action wrap-around-the-workspace left";
@@ -232,13 +229,13 @@
           "if" = {
             "app-id" = "com.microsoft.teams2";
           };
-          "run" = "move-node-to-workspace 0";
+          "run" = "move-node-to-workspace 9";
         }
         {
           "if" = {
             "app-id" = "com.microsoft.Teams";
           };
-          "run" = "move-node-to-workspace 0";
+          "run" = "move-node-to-workspace 9";
         }
         
         # UTILITIES
