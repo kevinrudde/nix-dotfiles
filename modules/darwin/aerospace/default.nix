@@ -30,6 +30,13 @@
         inner.vertical = 3;
       };
 
+      # WORKSPACE TO MONITOR ASSIGNMENT
+      # Layout Logic (managed by MonitorManager.lua):
+      # - Office setup (no LG monitor): All workspaces use side-by-side tiling
+      # - Home-Office setup (with LG HDR 4K):
+      #   * Workspaces 1-5: side-by-side on main monitor
+      #   * Workspaces 6-8: stacking layout on LG portrait monitor  
+      #   * Workspaces 9-0: side-by-side on built-in monitor
       workspace-to-monitor-force-assignment = {
         "1" = "main";
         "2" = "main";
@@ -95,7 +102,10 @@
         alt-shift-space = "layout floating tiling";
         alt-f = "layout floating tiling";
 
-        # Monitor layout management
+        # Manual layout switching shortcuts
+        alt-t = "exec-and-forget /run/current-system/sw/bin/aerospace layout tiles horizontal vertical";    # Force layout switch
+
+        # MonitorManager integration - applies all workspace layouts based on monitor setup
         alt-m = "exec-and-forget /opt/homebrew/bin/hs -c 'MonitorManager.fix()'";
 
         # Development-focused app launches
