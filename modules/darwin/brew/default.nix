@@ -35,6 +35,7 @@
       "orbstack"            # Container management (better than Nix version)
       "hammerspoon"         # macOS automation (requires system access)
       "gitify"              # GitHub notifications (GUI app)
+      "sourcetree"          # Git GUI client (not available in nixpkgs)
     ];
   };
 }
