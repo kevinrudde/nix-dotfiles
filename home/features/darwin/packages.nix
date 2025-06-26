@@ -16,6 +16,7 @@ lib.mkIf pkgs.stdenv.isDarwin {
     # ═══════════════════════════════════════════════════════════════════════════
     jetbrains.phpstorm
     code-cursor
+    hoppscotch
     
     # ═══════════════════════════════════════════════════════════════════════════
     # 🎨 DESIGN & CREATIVE TOOLS
