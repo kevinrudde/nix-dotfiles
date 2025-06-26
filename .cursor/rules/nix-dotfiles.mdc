@@ -45,6 +45,8 @@ sudo determinate-nixd upgrade
 │   │   └── fonts.nix           # Font configuration
 │   └── zoidberg/               # macOS system configuration
 ├── modules/                    # Reusable system modules
+│   └── darwin/                 # macOS-specific system modules
+│       └── brew/               # Homebrew configuration (fallback packages)
 └── home/                       # User-level configuration
     ├── default.nix             # Main entry point (imports ./features)
     ├── zoidberg.nix             # User-specific config
@@ -111,6 +113,48 @@ firefox
 chromium
 your-new-browser
 ```
+
+### 🍺 Homebrew Fallback Strategy (macOS Only)
+
+**⚠️ PRIORITY ORDER: Always try Nix packages first, use Homebrew as fallback only!**
+
+#### When to Use Homebrew:
+1. **Package not available in nixpkgs for Darwin**
+2. **Package exists but doesn't work properly** (GUI integrations, system permissions)
+3. **System integration requirements** (macOS automation, privileged access)
+4. **Proprietary software** not redistributable through Nix
+
+#### Homebrew Implementation:
+Add to `modules/darwin/brew/default.nix`:
+
+```nix
+# CLI tools not available or problematic in Nix
+brews = [
+  "your-cli-tool"         # Brief reason why not in Nix
+];
+
+# GUI applications and system integrations  
+casks = [
+  "your-gui-app"          # Brief reason why not in Nix
+];
+```
+
+#### Research Process:
+```bash
+# 1. Always check Nix first
+nix search nixpkgs your-package-name
+
+# 2. Try Nix installation
+# Add to appropriate packages.nix, test functionality
+
+# 3. Only use Homebrew if Nix version fails or doesn't exist
+# Document the reason in a comment
+```
+
+#### Documentation Requirements:
+- **Always include comments** explaining why Homebrew is used
+- **Review regularly** - check if packages are now available in Nix
+- **Keep clean** - don't duplicate packages between Nix and Homebrew
 
 ### Creating New Feature Modules
 
