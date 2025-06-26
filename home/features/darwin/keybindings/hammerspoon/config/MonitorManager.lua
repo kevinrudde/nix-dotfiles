@@ -3,6 +3,11 @@
 
 local MonitorManager = {}
 
+-- Configuration constants
+-- Adjust these values to change workspace behavior
+local TOTAL_WORKSPACES = 9                          -- Total number of workspaces (1 to N)
+local HOME_OFFICE_VERTICAL_WORKSPACES = {6, 7}      -- Workspaces to use vertical layout on LG monitor
+
 -- AeroSpace binary path
 local AEROSPACE = "/run/current-system/sw/bin/aerospace"
 
@@ -20,14 +25,24 @@ local function isLGConnected()
     return false
 end
 
+-- Check if workspace should use vertical layout (home office setup)
+local function isVerticalWorkspace(workspace)
+    for _, ws in ipairs(HOME_OFFICE_VERTICAL_WORKSPACES) do
+        if ws == workspace then
+            return true
+        end
+    end
+    return false
+end
+
 -- Get desired layout for workspace based on monitor setup
 local function getDesiredLayout(workspace, lgConnected)
     if lgConnected then
         -- Home-Office setup with LG monitor
-        if workspace >= 6 and workspace <= 7 then
+        if isVerticalWorkspace(workspace) then
             return "tiles vertical"  -- stacking on LG portrait
         else
-            return "tiles horizontal"  -- side-by-side (workspaces 1-5, 8-9)
+            return "tiles horizontal"  -- side-by-side (other workspaces)
         end
     else
         -- Office setup without LG monitor
@@ -35,10 +50,19 @@ local function getDesiredLayout(workspace, lgConnected)
     end
 end
 
+-- Generate workspace array based on total workspaces
+local function generateWorkspaceArray()
+    local workspaces = {}
+    for i = 1, TOTAL_WORKSPACES do
+        table.insert(workspaces, i)
+    end
+    return workspaces
+end
+
 -- Apply layout to all workspaces
 local function applyLayouts()
     local lgConnected = isLGConnected()
-    local workspaces = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    local workspaces = generateWorkspaceArray()
     
     -- Get current workspace to restore focus later
     hs.task.new(AEROSPACE, function(exitCode, stdout, stderr)
@@ -100,8 +124,8 @@ local function onScreenChange()
             if not isApplying then
                 isApplying = true
                 applyLayouts()
-                -- Reset flag after layouts are done (estimate: 9 workspaces * 0.9s each)
-                hs.timer.doAfter(10, function()
+                -- Reset flag after layouts are done (estimate: workspaces * 0.9s each + buffer)
+                hs.timer.doAfter(TOTAL_WORKSPACES + 1, function()
                     isApplying = false
                 end)
             end
@@ -121,7 +145,7 @@ function MonitorManager.start()
     hs.timer.doAfter(2, function()
         isApplying = true
         applyLayouts()
-        hs.timer.doAfter(9, function()
+        hs.timer.doAfter(TOTAL_WORKSPACES, function()
             isApplying = false
         end)
     end)
@@ -142,18 +166,29 @@ function MonitorManager.fix()
     end
     isApplying = true
     applyLayouts()
-    hs.timer.doAfter(9, function()
+    hs.timer.doAfter(TOTAL_WORKSPACES, function()
         isApplying = false
     end)
 end
 
 function MonitorManager.debug()
     local lgConnected = isLGConnected()
+    
+    print("=== MonitorManager Configuration ===")
+    print(string.format("Total Workspaces: %d", TOTAL_WORKSPACES))
+    print(string.format("Vertical Workspaces: %s", table.concat(HOME_OFFICE_VERTICAL_WORKSPACES, ", ")))
     print(string.format("Screens: %d, LG Connected: %s, Applying: %s", 
         #hs.screen.allScreens(), tostring(lgConnected), tostring(isApplying)))
     
+    print("\n=== Available Screens ===")
     for i, screen in pairs(hs.screen.allScreens()) do
         print(string.format("Screen %d: %s", i, screen:name() or "Unknown"))
+    end
+    
+    print("\n=== Workspace Layout Preview ===")
+    for i = 1, TOTAL_WORKSPACES do
+        local layout = getDesiredLayout(i, lgConnected)
+        print(string.format("Workspace %d: %s", i, layout))
     end
 end
 
