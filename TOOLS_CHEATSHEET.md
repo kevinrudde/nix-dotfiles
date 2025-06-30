@@ -402,24 +402,97 @@ hyperfine --runs 10 'your-command'
 ## 📊 System Monitoring
 
 ### Determinate Systems Nix Management
+
+#### Complete System Update Workflow
 ```bash
-# Check daemon status and version
-sudo determinate-nixd status          # Overall daemon status
+# Recommended: Use the comprehensive update script
+./scripts/update-system.sh           # Full system update with proper workflow
+
+# Or follow manual steps:
+sudo determinate-nixd status         # 1. Check daemon health
+sudo determinate-nixd upgrade        # 2. Upgrade Determinate Nix
+nix flake update                     # 3. Update configuration inputs
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace  # 4. Apply changes
+sudo determinate-nixd status         # 5. Verify system health
+```
+
+#### Determinate Systems Management
+```bash
+# Health checks and status
+sudo determinate-nixd status          # Overall daemon status and configuration
 determinate-nixd version              # Check installed version
+sudo determinate-nixd status --verbose  # Detailed status information
 
 # Upgrades and maintenance
 sudo determinate-nixd upgrade         # Upgrade to latest version
-sudo determinate-nixd upgrade --version v3.6.2  # Upgrade to specific version
+sudo determinate-nixd upgrade --version v3.6.8  # Upgrade to specific version
+sudo determinate-nixd upgrade --check  # Check if upgrade is available
 
-# Authentication and configuration
+# Daemon management
+sudo launchctl kickstart -k system/org.nixos.nix-daemon  # Restart daemon
+sudo determinate-nixd restart        # Restart Determinate daemon
+
+# Authentication (FlakeHub integration)
 determinate-nixd login                # Login to FlakeHub
 determinate-nixd auth logout          # Logout from FlakeHub
+sudo determinate-nixd auth reset      # Reset authentication
 
-# Service management
-sudo launchctl kickstart -k system/org.nixos.nix-daemon  # Restart daemon
+# Configuration and troubleshooting
+cat /etc/nix/nix.conf                # View managed config (read-only)
+cat /etc/nix/nix.custom.conf         # View custom config (if exists)
+cat hosts/shared/determinate.nix     # View dotfiles Determinate config
 
-# Bug reporting
+# Support and diagnostics
+determinate-nixd help                 # Show available commands
 determinate-nixd bug "Issue title" "Description"  # File bug report
+```
+
+#### Update System Script
+
+**Primary Update Tool:**
+```bash
+# Complete system update (recommended)
+./scripts/update-system.sh
+
+# Show available options
+./scripts/update-system.sh --help
+
+# Preview operations without executing
+./scripts/update-system.sh --dry-run
+```
+
+**Script Features:**
+- ✅ Automated health checks (before/after)
+- ✅ Proper Determinate Systems upgrade sequence
+- ✅ Interactive prompts with confirmation
+- ✅ Colored output and progress indicators
+- ✅ Error handling with rollback instructions
+- ✅ Optional cleanup of old generations
+- ✅ Platform detection (macOS/Linux)
+
+#### Update Workflows by Scenario
+
+**Daily/Weekly Updates:**
+```bash
+./scripts/update-system.sh           # Complete system update
+```
+
+**Configuration-Only Changes:**
+```bash
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+```
+
+**Determinate-Only Upgrade:**
+```bash
+sudo determinate-nixd upgrade
+sudo determinate-nixd status
+```
+
+**Emergency Health Check:**
+```bash
+sudo determinate-nixd status
+nix flake check
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 ```
 
 ### Bottom - Modern System Monitor

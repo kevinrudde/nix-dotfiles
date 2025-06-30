@@ -182,20 +182,70 @@ nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles
 sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
 ```
 
-### 3. Apply Future Changes
+### 3. System Updates
 
-#### macOS
+Use the comprehensive update workflow to keep your system current:
+
+#### Complete System Update (Recommended)
 ```bash
-# Apply configuration changes
-sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+# Run the complete update workflow
+./scripts/update-system.sh
 
-# Upgrade Determinate Systems Nix (separate operation)
-sudo determinate-nixd upgrade
+# Or follow the manual steps below:
 ```
 
-#### Linux
+#### Manual Update Workflow
+
+**Step 1: Check System Health**
 ```bash
-sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
+# Check Determinate Systems daemon status
+sudo determinate-nixd status
+
+# Verify current configuration is valid
+nix flake check
+```
+
+**Step 2: Update Determinate Systems (if needed)**
+```bash
+# Upgrade Determinate Nix to latest version
+sudo determinate-nixd upgrade
+
+# Verify upgrade completed successfully
+sudo determinate-nixd status
+```
+
+**Step 3: Update Configuration**
+```bash
+# Update flake inputs to latest versions
+nix flake update
+
+# Validate updated configuration
+nix flake check
+```
+
+**Step 4: Apply Changes**
+```bash
+# macOS: Apply configuration changes
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+
+# Linux: Apply configuration changes  
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+```
+
+**Step 5: Verify System Health**
+```bash
+# Confirm Determinate Systems is healthy
+sudo determinate-nixd status
+
+# Test new functionality
+# ... test your applications and tools
+```
+
+#### Quick Updates (Configuration Only)
+```bash
+# When you only need to apply configuration changes:
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace  # macOS
+sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace   # Linux
 ```
 
 ## 🤖 AI Tools Quick Start

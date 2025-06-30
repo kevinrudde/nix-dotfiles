@@ -9,6 +9,7 @@ nix-dotfiles/
 ├── flake.nix              # Main flake configuration with outputs
 ├── install.sh             # Cross-platform installation script
 ├── scripts/               # Utility scripts and tools
+│   ├── update-system.sh   # Comprehensive system update script
 │   └── hot-benchmark.sh   # AI model performance benchmarking tool
 ├── 
 ├── hosts/                 # System configurations per machine
@@ -167,27 +168,39 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 1. Create `modules/darwin/new-module.nix` or `modules/nixos/new-module.nix`
 2. Import in appropriate host configuration (`hosts/*/default.nix`)
 
-### Applying Changes
-After making configuration changes, apply them using:
+### System Update Architecture
 
-```bash
-# macOS (nix-darwin)
-sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+This configuration uses a **two-tier update model** with Determinate Systems Nix:
 
-# Linux (NixOS)
-sudo nixos-rebuild switch --flake ~/.config/nix-dotfiles/
+#### Update Components
+1. **Determinate Systems Nix**: The underlying Nix installation and daemon
+2. **Flake Configuration**: Your dotfiles and package definitions
+3. **System Configuration**: Applied via nix-darwin (macOS) or NixOS (Linux)
 
-# Upgrade Determinate Systems Nix (separate from configuration)
-sudo determinate-nixd upgrade
+#### Update Flow
 ```
+Determinate Systems → Flake Inputs → Configuration Validation → System Application → Health Verification
+```
+
+#### Operational Procedures
+- **Complete procedures**: See [System Updates](../README.md#3-system-updates) in README.md
+- **Automated script**: `./scripts/update-system.sh` handles the full workflow
+- **Manual steps**: Available in README.md for troubleshooting scenarios
+
+#### Architecture Benefits
+- **Safe Updates**: Health checks before and after operations
+- **Rollback Capability**: Nix generations allow instant rollbacks
+- **Separation of Concerns**: System updates vs. configuration changes are distinct
+- **Platform Agnostic**: Same workflow applies to macOS and Linux
 
 ## 🛠️ Utility Scripts
 
 The `scripts/` directory contains development and maintenance tools:
-- **`hot-benchmark.sh`**: AI model performance benchmarking tool for comparing ollama models with OpenCommit
-- Future utility scripts for configuration management, testing, and automation
 
-These scripts are not part of the Nix configuration but provide helpful tools for managing and testing the dotfiles setup.
+- **`update-system.sh`**: Implements the comprehensive system update workflow (see [System Updates](../README.md#3-system-updates) in README.md)
+- **`hot-benchmark.sh`**: AI model performance benchmarking tool for comparing ollama models with OpenCommit
+
+These scripts are not part of the Nix configuration but provide helpful automation for managing and testing the dotfiles setup. For detailed usage instructions, see the README.md.
 
 ## 🔒 Secrets Management
 
