@@ -186,8 +186,8 @@ verify_system_health() {
 cleanup_generations() {
     log_step "Cleanup: Removing Old Generations"
     
-    log_info "Cleaning up old generations (keeping last 7 days)..."
-    if nix-collect-garbage --delete-older-than 7d; then
+    log_info "Cleaning up old generations (keeping last 90 days)..."
+    if nix-collect-garbage --delete-older-than 90d; then
         log_success "Old generations cleaned up"
     else
         log_warning "Generation cleanup failed (non-critical)"
