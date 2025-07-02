@@ -13,7 +13,7 @@ This repository contains a cross-platform Nix configuration using nix-darwin, Ho
 
 **ALWAYS use these commands - NOT traditional nix commands:**
 
-```bash
+```fish
 # ✅ CORRECT: Check daemon status
 sudo determinate-nixd status
 
@@ -34,6 +34,90 @@ sudo determinate-nixd upgrade
 - `/etc/nix/nix.conf` - **READ ONLY** (managed by Determinate Systems)
 - `/etc/nix/nix.custom.conf` - Your custom settings (if needed)
 - `hosts/shared/determinate.nix` - Your dotfiles configuration
+
+## 🐟 Shell Compatibility & Environment
+
+**⚠️ CRITICAL: This system uses Fish shell - All commands must be Fish-compatible!**
+
+### Shell Detection & Management
+```fish
+# Check your current shell
+echo $SHELL
+
+# If not Fish, switch to Fish (permanently)
+chsh -s /run/current-system/sw/bin/fish
+
+# ⚠️ IMPORTANT: Never use `exec $SHELL` in remote/SSH sessions!
+# This WILL lose your connection. Instead, source config files:
+source ~/.config/fish/config.fish
+
+# For temporary shell switching (safe)
+fish  # Start new Fish session
+exit  # Return to previous shell
+```
+
+### Fish-Specific Command Examples
+All shell commands in this documentation are Fish-compatible. Key differences:
+
+```fish
+# Environment variables (Fish syntax)
+set -gx YOUR_VAR "value"           # Instead of: export YOUR_VAR="value"
+
+# Command substitution 
+set result (command)               # Instead of: result=$(command)
+
+# Conditionals
+if test -f file.txt               # Instead of: if [ -f file.txt ]
+    echo "File exists"
+end
+```
+
+## 🔧 Git Integration & Workflow
+
+**⚠️ CRITICAL: Nix is Git-aware - New files MUST be added before applying configuration!**
+
+### Git-Aware Configuration Management
+```fish
+# ALWAYS add new files to git before applying Nix config
+git add .                                    # Add all new files
+git add home/features/your-new-feature.nix   # Or add specific files
+
+# Then apply configuration
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+
+# ⚠️ Nix will IGNORE untracked files - they won't be included in the build!
+```
+
+### Lazygit Integration
+**This system uses Lazygit for git operations. For interactive git commands:**
+
+```fish
+# ✅ CORRECT: Interactive git operations with lazygit
+set -gx GIT_EDITOR true
+git rebase -i HEAD~3           # Interactive rebase
+git commit --amend             # Amend commit
+git add -p                     # Interactive add
+
+# ✅ CORRECT: Use lazygit for complex operations
+lazygit                        # Launch lazygit TUI
+
+# ⚠️ Without GIT_EDITOR=true, interactive git commands may fail
+```
+
+### Pre-Apply Git Workflow
+```fish
+# 1. Check git status first
+git status
+
+# 2. Add any new files (REQUIRED)
+git add .
+
+# 3. Validate configuration
+nix flake check
+
+# 4. Apply changes
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+```
 
 ## Architecture Overview
 
@@ -268,7 +352,11 @@ sops.secrets."your-secret" = {
 ## Testing and Validation
 
 ### Pre-Flight Checks (REQUIRED)
-```bash
+```fish
+# 0. ALWAYS check that new files are tracked by git
+git status                       # Look for untracked files
+git add .                        # Add any new files to git
+
 # 1. ALWAYS check Determinate Systems daemon status first
 sudo determinate-nixd status
 
@@ -284,7 +372,7 @@ nix build .#nixosConfigurations.example-linux.config.system.build.toplevel --dry
 ```
 
 ### Applying Changes (Determinate Systems Workflow)
-```bash
+```fish
 # ✅ CORRECT: Apply configuration changes (macOS)
 sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
 
@@ -296,7 +384,7 @@ sudo determinate-nixd status
 ```
 
 ### Post-Apply Validation
-```bash
+```fish
 # Check that Determinate Systems daemon is healthy
 sudo determinate-nixd status
 
@@ -308,6 +396,10 @@ sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 ```
 
 ### Common Issues (Determinate Systems Context)
+- **Git untracked files**: New files not added to git are IGNORED by Nix
+- **Shell compatibility**: Ensure all commands work in Fish shell
+- **Connection loss**: Never use `exec $SHELL` in remote sessions - source config instead
+- **Interactive git failures**: Use `GIT_EDITOR=true` for interactive git operations
 - **Infinite recursion**: Check for `pkgs.stdenv.isDarwin` in imports
 - **Missing packages**: Ensure proper categorization in packages.nix
 - **Import errors**: Verify `default.nix` exists for all folders
@@ -370,7 +462,7 @@ Nix is designed to be extremely safe - you cannot break your macOS system with t
 ### 🔄 Rollback Mechanisms
 
 #### System (nix-darwin) Rollback
-```bash
+```fish
 # List available system generations
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 
@@ -382,7 +474,7 @@ sudo nix-env --switch-generation 42 --profile /nix/var/nix/profiles/system
 ```
 
 #### Home Manager Rollback
-```bash
+```fish
 # List Home Manager generations
 home-manager generations
 
@@ -391,7 +483,7 @@ home-manager generations
 ```
 
 #### Emergency Fallback
-```bash
+```fish
 # Use original shell if new shell doesn't work
 /bin/bash
 
@@ -407,8 +499,24 @@ sudo launchctl kickstart -k system/org.nixos.nix-daemon
 
 ### 🚨 Step-by-Step Recovery
 
+#### 0. Check Git Status First
+```fish
+# Always check if files are tracked
+git status
+
+# Add untracked files if needed
+git add .
+
+# Check shell environment
+echo $SHELL                      # Should show Fish
+```
+
 #### 1. Configuration Won't Build
-```bash
+```fish
+# Check git status first
+git status
+git add .                        # Add any untracked files
+
 # Check for syntax errors
 nix flake check --show-trace
 
@@ -420,7 +528,7 @@ sudo darwin-rebuild switch --flake . --show-trace
 ```
 
 #### 2. System Feels Broken After Apply
-```bash
+```fish
 # Check current generation
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 
@@ -432,36 +540,64 @@ sudo reboot
 ```
 
 #### 3. Terminal/Shell Issues
-```bash
-# Use safe shell
+```fish
+# Use safe shell if Fish is broken
 /bin/bash
 
 # Check what shell is set
 echo $SHELL
 
-# Reset to bash temporarily
+# Reset to bash temporarily (from bash)
 chsh -s /bin/bash
 
-# After fixing config, switch back
+# ⚠️ NEVER use `exec $SHELL` in remote sessions - it WILL disconnect you!
+# Instead, source configuration files:
+source ~/.config/fish/config.fish    # Reload Fish config
+# OR
+fish                                 # Start new Fish session (safe)
+
+# After fixing config, switch back to Fish
 chsh -s /run/current-system/sw/bin/fish
 ```
 
 #### 4. Home Manager Issues
-```bash
+```fish
 # Check Home Manager status
 home-manager generations
 
-# Rollback Home Manager only
+# Rollback Home Manager only (copy path from generations output)
 /nix/store/[previous-generation-hash]/activate
 
 # Or rebuild Home Manager separately
 home-manager switch --flake .
 ```
 
+#### 5. Git/Lazygit Issues
+```fish
+# Set GIT_EDITOR for interactive operations
+set -gx GIT_EDITOR true
+
+# Test git operations
+git status
+git log --oneline -n 5
+
+# Use lazygit for complex operations
+lazygit
+
+# Reset git editor if needed
+set -e GIT_EDITOR                   # Unset in Fish
+```
+
 ### 🔧 Diagnostic Commands
 
 #### Check System Health
-```bash
+```fish
+# Check shell first
+echo $SHELL                      # Should be Fish
+
+# Check git status
+git status                       # Look for untracked files
+
 # Verify nix-daemon is running
 sudo launchctl list | grep nix-daemon
 
@@ -479,7 +615,11 @@ nix eval .#darwinConfigurations.zoidberg.system.config.system.stateVersion
 ```
 
 #### Debug Configuration
-```bash
+```fish
+# Ensure all files are tracked
+git add .
+git status
+
 # Validate flake syntax
 nix flake check --show-trace
 
@@ -510,7 +650,7 @@ vim hosts/shared/determinate.nix
 ```
 
 ### Determinate Systems Daemon Management
-```bash
+```fish
 # Check daemon status and configuration
 sudo determinate-nixd status
 
@@ -533,15 +673,22 @@ sudo determinate-nixd auth reset          # Reset authentication
 ```
 
 #### Determinate Systems Troubleshooting
-```bash
-# Complete health check
-echo "=== Determinate Systems Status ===" && \
-sudo determinate-nixd status && \
-echo -e "\n=== Configuration Files ===" && \
-echo "Managed config: /etc/nix/nix.conf" && \
-echo "Custom config: /etc/nix/nix.custom.conf" && \
-echo "Dotfiles config: hosts/shared/determinate.nix" && \
-echo -e "\n=== Current Generation ===" && \
+```fish
+# Complete health check with shell and git verification
+echo "=== Environment Check ==="
+echo "Shell: $SHELL"
+echo "Git status:"
+git status --porcelain
+
+echo -e "\n=== Determinate Systems Status ==="
+sudo determinate-nixd status
+
+echo -e "\n=== Configuration Files ==="
+echo "Managed config: /etc/nix/nix.conf"
+echo "Custom config: /etc/nix/nix.custom.conf"
+echo "Dotfiles config: hosts/shared/determinate.nix"
+
+echo -e "\n=== Current Generation ==="
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 ```
 
