@@ -338,6 +338,50 @@ scripts/hot-benchmark.sh
 scripts/hot-benchmark.sh -m qwen2.5-coder:3b,llama3.2:3b
 ```
 
+## 🔧 Git Integration & Workflow
+
+**⚠️ CRITICAL: Nix is Git-aware - New files MUST be added before applying configuration!**
+
+Nix flakes ignore untracked files, so any new configuration files won't be included in your build until they're added to git. This is a safety feature but can be confusing for new users.
+
+### Pre-Apply Git Workflow
+
+Always follow this sequence before applying configuration changes:
+
+```bash
+# 1. Check git status first
+git status
+
+# 2. Add any new files (REQUIRED)
+git add .
+
+# 3. Validate configuration
+nix flake check
+
+# 4. Apply changes
+sudo darwin-rebuild switch --flake ~/.config/nix-dotfiles --show-trace
+```
+
+### Common Git-Related Issues
+
+- **New files ignored**: If you created new `.nix` files but they're not taking effect, check `git status` and add them
+- **Partial builds**: Configuration seems incomplete or missing features → likely untracked files
+- **"File not found" errors**: Nix references files that exist but aren't tracked by git
+
+### Git Status Check
+
+Make it a habit to check git status before every configuration change:
+
+```bash
+# Quick status check
+git status --porcelain
+
+# If you see untracked files, add them:
+git add .
+```
+
+**Remember**: Nix can only see what git can see. When in doubt, check `git status` first!
+
 ## 🏗️ Architecture
 
 This configuration is organized using a modular, cross-platform architecture:
