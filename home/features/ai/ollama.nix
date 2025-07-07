@@ -13,7 +13,7 @@
     environmentVariables = {
       # Maximize performance for local development
       OLLAMA_NUM_PARALLEL = "4";          # Allow multiple parallel requests
-      OLLAMA_MAX_LOADED_MODELS = "2";     # Allow 2 models in memory
+      OLLAMA_MAX_LOADED_MODELS = "3";     # Allow 3 models in memory (increased for new models)
       OLLAMA_FLASH_ATTENTION = "1";       # Enable flash attention for speed
       
       # CPU optimization
@@ -43,11 +43,12 @@
     "ollama-list" = "ollama list";
     "ollama-rm" = "ollama rm";
     
-    # Quick model pulls for development
-    "ollama-setup-minimal" = "ollama pull qwen2.5-coder:3b";  # Just one model for everything
-    "ollama-setup-coding" = "ollama pull qwen2.5-coder:7b";   # Advanced coding model
-    "ollama-setup-both" = "ollama pull qwen2.5-coder:3b && ollama pull qwen2.5-coder:7b";  # Both models
-    "ollama-setup-opencommit" = "ollama pull qwen2.5-coder:3b";  # Code-specialized for commits
+    # Quick model pulls for development - Updated to Qwen3
+    "ollama-setup-minimal" = "ollama pull qwen3:8b";              # Primary model (5.2GB)
+    "ollama-setup-advanced" = "ollama pull qwen3:14b";            # Advanced model (9.3GB)
+    "ollama-setup-large" = "ollama pull qwen3:32b-q4_K_M";        # Large quantized model (20GB)
+    "ollama-setup-all" = "ollama pull qwen3:8b && ollama pull qwen3:14b && ollama pull qwen3:32b-q4_K_M";  # All three models
+    "ollama-setup-opencommit" = "ollama pull qwen3:8b";           # Best balance for commit messages
     
     # Service management
     "ollama-status" = "ollama ps";
@@ -112,7 +113,7 @@
     (writeShellScriptBin "ollama-setup" ''
       #!/usr/bin/env bash
       
-      echo "🚀 Setting up ollama for development use..."
+      echo "🚀 Setting up ollama with Qwen3 models for development use..."
       
       # Wait for service to be ready
       echo "⏳ Waiting for ollama service to start..."
@@ -129,16 +130,39 @@
       
       echo "✅ Ollama service is ready"
       
-      # Pull recommended models for development
-      echo "📦 Pulling recommended models for coding and commit messages..."
+      # Pull recommended Qwen3 models for development
+      echo "📦 Pulling Qwen3 models for coding and commit messages..."
       echo "   This may take a while for the first time..."
       
-             # Pull primary model for commit messages
-       if ollama pull qwen2.5-coder:3b; then
-         echo "✅ Successfully pulled qwen2.5-coder:3b (code-specialized, best for commits)"
-       else
-         echo "⚠️  Failed to pull qwen2.5-coder:3b - you may need to pull it manually later"
-       fi
+      # Pull primary model for general use and commit messages
+      if ollama pull qwen3:8b; then
+        echo "✅ Successfully pulled qwen3:8b (5.2GB - primary model)"
+      else
+        echo "⚠️  Failed to pull qwen3:8b - you may need to pull it manually later"
+      fi
+      
+      # Ask user if they want to pull additional models
+      echo ""
+      read -p "📥 Pull qwen3:14b (9.3GB) for advanced tasks? [y/N]: " -n 1 -r
+      echo
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if ollama pull qwen3:14b; then
+          echo "✅ Successfully pulled qwen3:14b (9.3GB - advanced model)"
+        else
+          echo "⚠️  Failed to pull qwen3:14b"
+        fi
+      fi
+      
+      echo ""
+      read -p "📥 Pull qwen3:32b-q4_K_M (20GB) for complex tasks? [y/N]: " -n 1 -r
+      echo
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if ollama pull qwen3:32b-q4_K_M; then
+          echo "✅ Successfully pulled qwen3:32b-q4_K_M (20GB - large quantized model)"
+        else
+          echo "⚠️  Failed to pull qwen3:32b-q4_K_M"
+        fi
+      fi
       
       echo ""
       echo "🎉 Setup complete! Available commands:"
@@ -147,6 +171,12 @@
       echo "   • ollama-health     - Check service status"
       echo "   • ollama list       - List downloaded models"
       echo "   • ollama pull <model> - Download additional models"
+      echo ""
+      echo "🤖 Quick Model Setup:"
+      echo "   • ollama-setup-minimal   - Pull qwen3:8b (5.2GB)"
+      echo "   • ollama-setup-advanced  - Pull qwen3:14b (9.3GB)"
+      echo "   • ollama-setup-large     - Pull qwen3:32b-q4_K_M (20GB)"
+      echo "   • ollama-setup-all       - Pull all three models"
       echo ""
       echo "🤖 OpenCommit:"
       echo "   • oco               - Generate commit messages"
@@ -176,7 +206,7 @@
       # Export optimized environment variables for this session
       export OLLAMA_NUM_THREADS=0              # Use all CPU cores
       export OLLAMA_NUM_PARALLEL=4             # Allow 4 parallel requests
-      export OLLAMA_MAX_LOADED_MODELS=2        # Keep 2 models in memory
+      export OLLAMA_MAX_LOADED_MODELS=3        # Keep 3 models in memory (increased for Qwen3)
       export OLLAMA_KEEP_ALIVE=10m             # Keep models loaded longer
       export OLLAMA_FLASH_ATTENTION=1          # Enable flash attention
       export OLLAMA_MAX_VRAM=0                 # Don't limit VRAM

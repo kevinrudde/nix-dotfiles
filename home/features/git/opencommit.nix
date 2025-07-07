@@ -16,13 +16,13 @@
     
     # Only set default model if not already configured
     if ! ${pkgs.opencommit}/bin/opencommit config get OCO_MODEL >/dev/null 2>&1; then
-      $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_MODEL=qwen2.5-coder:3b
+      $DRY_RUN_CMD ${pkgs.opencommit}/bin/opencommit config set OCO_MODEL=qwen3:8b
     fi
   '';
   
   # Environment variables for dynamic model switching
   home.sessionVariables = {
-    OCO_DEFAULT_MODEL = "qwen2.5-coder:3b";
+    OCO_DEFAULT_MODEL = "qwen3:8b";
   };
   
   # Simple aliases for opencommit usage
@@ -61,7 +61,7 @@
         echo "✅ Ollama: Running"
         
         # Check model
-        model=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "qwen2.5-coder:3b")
+        model=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "qwen3:8b")
         if curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
           echo "✅ Model: $model available"
         else
@@ -86,21 +86,22 @@
       fi
     '')
     
-    # Enhanced model switcher with persistence
+    # Enhanced model switcher with persistence - Updated for Qwen3
     (writeShellScriptBin "oco-model" ''
       #!/usr/bin/env bash
       
       declare -A models=(
-        ["fast"]="qwen2.5-coder:1.5b"
-        ["default"]="qwen2.5-coder:3b"
-        ["detailed"]="qwen2.5-coder:7b"
+        ["fast"]="qwen3:8b"
+        ["default"]="qwen3:8b"
+        ["detailed"]="qwen3:14b"
+        ["advanced"]="qwen3:32b-q4_K_M"
         ["creative"]="llama3.2:3b"
       )
       
       if [ $# -eq 0 ]; then
         current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "''${OCO_DEFAULT_MODEL:-not set}")
         echo "🤖 Current model: $current"
-        echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
+        echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen3:8b}"
         echo ""
         echo "Available presets:"
         for preset in "''${!models[@]}"; do
@@ -116,7 +117,7 @@
       
       case "$1" in
         "reset")
-          default_model="''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
+          default_model="''${OCO_DEFAULT_MODEL:-qwen3:8b}"
           echo "🔄 Resetting to default model: $default_model"
           opencommit config set OCO_MODEL="$default_model"
           echo "✅ Reset to default model"
@@ -124,7 +125,7 @@
         "status")
           current=$(opencommit config get OCO_MODEL 2>/dev/null | grep "OCO_MODEL=" | cut -d'=' -f2 || echo "not set")
           echo "🤖 Current model: $current"
-          echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen2.5-coder:3b}"
+          echo "🏠 Default model: ''${OCO_DEFAULT_MODEL:-qwen3:8b}"
           
           # Check if model is available
           if curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$current$"; then
@@ -165,34 +166,16 @@
     (writeShellScriptBin "oco-jira-commit" ''
       #!/usr/bin/env bash
       
-      # Check git repo
-      if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "❌ Not in a git repository"
-        exit 1
-      fi
+      echo "🎫 OpenCommit with Jira Integration"
+      echo ""
       
-      # Check staged changes
-      if git diff --cached --quiet; then
-        echo "❌ No staged changes"
-        echo "💡 Run: git add <files>"
-        exit 1
-      fi
-      
-      # Extract Jira ticket from branch
+      # Get current branch
       branch=$(git rev-parse --abbrev-ref HEAD)
-      jira_ticket=""
+      echo "📋 Current branch: $branch"
       
-      # Try multiple patterns (most specific to least specific)
-      # Pattern 1: prefix/TICKET-123-description or prefix/TICKET-123
-      jira_ticket=$(echo "$branch" | sed -nr 's,^[a-z]+/([A-Z0-9]+-[0-9]+)($|-.+),\1,p')
-      # Pattern 2: TICKET-123-description or TICKET-123 (at start)
-      if [[ -z "$jira_ticket" ]]; then
-        jira_ticket=$(echo "$branch" | sed -nr 's,^([A-Z0-9]+-[0-9]+)($|-.+),\1,p')
-      fi
-      # Pattern 3: Any TICKET-123 anywhere in branch name (fallback)
-      if [[ -z "$jira_ticket" ]]; then
-        jira_ticket=$(echo "$branch" | sed -nr 's,.*([A-Z0-9]+-[0-9]+).*,\1,p')
-      fi
+      # Extract Jira ticket from branch name (flexible patterns)
+      # Supports: task/ABC-1234, feature/PROJ-123-description, PROJ-123-description, etc.
+      jira_ticket=$(echo "$branch" | grep -oE '[A-Z]+-[0-9]+' | head -1)
       
       if [[ -n "$jira_ticket" ]]; then
         echo "🎫 Found ticket: $jira_ticket"
@@ -270,7 +253,7 @@
       fi
       
       # Check/pull model
-      model="qwen2.5-coder:3b"
+      model="qwen3:8b"
       if ! curl -s http://127.0.0.1:11434/api/tags | ${jq}/bin/jq -r '.models[]?.name' | grep -q "^$model$"; then
         echo "📦 Pulling model: $model"
         ollama pull "$model" || exit 1
