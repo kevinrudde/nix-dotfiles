@@ -226,7 +226,6 @@
 
   home.shellAliases = {
     "cat" = "bat -pp";
-    "tailscale" = "/Applications/Tailscale.localized/Tailscale.app/Contents/MacOS/Tailscale";
     "k" = "kubectl";
     "ll" = "eza --icons --group --group-directories-first -l";
     # New CLI tool shortcuts

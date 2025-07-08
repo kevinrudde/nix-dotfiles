@@ -39,7 +39,10 @@
     bandwhich
     dogdns                   # Modern dig replacement for DNS queries
     httpie                   # User-friendly HTTP client (modern curl)
+  ] ++ (if pkgs.stdenv.isDarwin then [] else [
+    # Linux-only: Use Nix Tailscale CLI (macOS uses Homebrew version to avoid conflicts)
     tailscale
+  ]) ++ [
     
     # ═══════════════════════════════════════════════════════════════════════════
     # ☁️ CLOUD & INFRASTRUCTURE TOOLS
