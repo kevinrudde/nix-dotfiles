@@ -30,8 +30,8 @@
   };
 
   environment.systemPackages = with pkgs; [
-    raycast
-    obsidian
+    # System-level packages only (CLI tools, system utilities)
+    # GUI applications should be in home/features/darwin/packages.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
