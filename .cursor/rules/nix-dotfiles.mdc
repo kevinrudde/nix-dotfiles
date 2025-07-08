@@ -322,6 +322,27 @@ Create modules in `modules/` and import them in `hosts/zoidberg/default.nix`:
 }
 ```
 
+### System vs User Package Placement
+**⚠️ CRITICAL: GUI applications should NEVER be in `environment.systemPackages`**
+
+- **System Level** (`hosts/zoidberg/default.nix`): Only system utilities, daemons, and core CLI tools
+- **User Level** (`home/features/darwin/packages.nix`): All GUI applications, user-facing tools
+- **Rationale**: Home Manager provides better user-specific configuration and isolation
+
+```nix
+# ❌ WRONG: GUI apps in system packages
+environment.systemPackages = with pkgs; [
+  raycast     # GUI app - should be in Home Manager
+  obsidian    # GUI app - should be in Home Manager
+];
+
+# ✅ CORRECT: System packages only
+environment.systemPackages = with pkgs; [
+  # System-level packages only (CLI tools, system utilities)
+  # GUI applications should be in home/features/darwin/packages.nix
+];
+```
+
 ### macOS System Preferences
 Configure in `hosts/zoidberg/darwin-configuration.nix`:
 
@@ -696,11 +717,16 @@ sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -3
 
 - **flake.nix**: Only modify for new inputs or system additions
 - **packages.nix**: Add new cross-platform CLI tools
-- **darwin/packages.nix**: Add new macOS GUI applications
+- **darwin/packages.nix**: Add new macOS GUI applications (NOT in hosts/zoidberg/default.nix)
 - **linux/packages.nix**: Add new Linux applications (when using Linux)
 - **features/default.nix**: Add imports for new feature modules
-- **hosts/zoidberg/**: Modify system-level macOS settings
+- **hosts/zoidberg/**: Modify system-level macOS settings (avoid environment.systemPackages for GUI apps)
 - **hosts/shared/determinate.nix**: Configure Determinate Systems Nix settings
+
+**⚠️ Package Placement Priority:**
+1. **GUI Applications**: Always add to `home/features/darwin/packages.nix` or `home/features/linux/packages.nix`
+2. **Cross-platform CLI**: Add to `home/features/packages.nix`
+3. **System Tools**: Only use `hosts/*/default.nix` for system daemons and core utilities
 
 Remember: This is a living configuration. Always test changes and maintain the clean architecture that makes it cross-platform and maintainable.
 

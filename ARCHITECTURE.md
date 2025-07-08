@@ -83,6 +83,7 @@ nix-dotfiles/
 
 ### 3. **Clear Separation of Concerns**
 - **System vs User**: Clear distinction between system-level (`modules/`, `hosts/`) and user-level (`home/`) configurations
+- **Package Placement**: GUI applications in Home Manager (`home/features/`), system tools in `environment.systemPackages`
 - **Host-Specific**: Machine-specific customizations are isolated in `hosts/` and user-specific files
 - **Feature Isolation**: Each feature (editor, shell, etc.) is self-contained
 - **Platform Separation**: OS-specific packages and features clearly separated
@@ -163,6 +164,11 @@ hosts/zoidberg/default.nix → home/zoidberg.nix → home/default.nix → home/f
 2. **macOS-specific**: Add to appropriate category in `home/features/darwin/packages.nix`
 3. **Linux-specific**: Add to appropriate category in `home/features/linux/packages.nix`
 4. **New categories**: Follow the established pattern with emoji headers and comment blocks
+
+**⚠️ Package Placement Rules:**
+- **GUI Applications**: Always use Home Manager (`home/features/*/packages.nix`)
+- **System Tools**: Only use `environment.systemPackages` for system daemons, core CLI tools
+- **User Tools**: Prefer Home Manager for better user-specific configuration
 
 ### Adding System-Level Modules
 1. Create `modules/darwin/new-module.nix` or `modules/nixos/new-module.nix`
