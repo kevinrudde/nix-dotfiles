@@ -23,6 +23,7 @@
     shell = "${pkgs.fish}/bin/fish";
   };
 
+  home-manager.backupFileExtension = "backup";
   home-manager.users."C.Hessel" = {
     imports = [
       ../../home/zoidberg.nix
