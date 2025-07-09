@@ -298,8 +298,8 @@ ollama pull qwen2.5-coder:7b  # Download coding model
 Latest benchmark results for OpenCommit AI models (updated automatically):
 
 <!-- BENCHMARK_RESULTS_START -->
-**Last Updated:** 2025-06-23 23:47:32  
-**Models Tested:** 5  
+**Last Updated:** 2025-07-09 16:18:27  
+**Models Tested:** 3  
 **Test Environment:** Darwin arm64
 
 ### 🏆 Top Performers
@@ -307,25 +307,23 @@ Latest benchmark results for OpenCommit AI models (updated automatically):
 #### Simple Files (Fastest)
 | Rank | Model | Time | Performance |
 |------|-------|------|-------------|
-| 1 | `llama3.2:3b` | 1.86s | ⚡ Excellent |
-| 2 | `qwen2.5-coder:1.5b` | 4.15s | ✅ Average |
-| 3 | `llama3.2:1b` | 4.39s | ✅ Average |
+| 1 | `qwen3:8b` | 1.73s | ⚡ Excellent |
+| 2 | `qwen3:14b` | 2.93s | 🚀 Good |
+| 3 | `qwen3:32b-q4_K_M` | 13.36s | ✅ Average |
 
 #### Complex Files (Fastest)
 | Rank | Model | Time | Performance |
 |------|-------|------|-------------|
-| 1 | `llama3.2:3b` | 3.66s | 🚀 Good |
-| 2 | `qwen2.5-coder:1.5b` | 4.86s | 🚀 Good |
-| 3 | `llama3.2:1b` | 5.03s | 🚀 Good |
+| 1 | `qwen3:8b` | 2.66s | 🚀 Good |
+| 2 | `qwen3:14b` | 4.23s | ✅ Average |
+| 3 | `qwen3:32b-q4_K_M` | 14.79s | ✅ Average |
 
 ### 📈 All Models Summary
-| Model | Simple (s) | Complex (s) | Hot (s) | Avg (s) |
-|-------|------------|-------------|---------|---------|
-| `llama3.2:1b` | 4.39 | 5.03 | 4.46 | 4.63 |
-| `llama3.2:3b` | 1.86 | 3.66 | 1.73 | 2.42 |
-| `qwen2.5-coder:1.5b` | 4.15 | 4.86 | 4.11 | 4.37 |
-| `qwen2.5-coder:3b` | 4.98 | 5.62 | 4.95 | 5.18 |
-| `qwen2.5-coder:7b` | 11.25 | 10.89 | 8.49 | 10.21 |
+| Model | Simple (s) | Complex (s) | Avg (s) |
+|-------|------------|-------------|---------|
+| `qwen3:8b` | 1.73 | 2.66 | 2.19 |
+| `qwen3:14b` | 2.93 | 4.23 | 3.58 |
+| `qwen3:32b-q4_K_M` | 13.36 | 14.79 | 14.07 |
 
 **📋 For detailed analysis and recommendations, see:** `results/benchmark-results-all.md`
 <!-- BENCHMARK_RESULTS_END -->
