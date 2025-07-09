@@ -4,8 +4,12 @@ local MonitorManager = require('MonitorManager')
 ipc = require("hs.ipc")
 ipc.cliInstall()
 
--- Start MonitorManager for automatic layout switching
+-- Start MonitorManager for workspace state persistence
 MonitorManager.start()
 
--- Make MonitorManager globally accessible for AeroSpace shortcuts
+-- Make MonitorManager globally accessible for debugging
 _G.MonitorManager = MonitorManager
+
+-- Layout switching is handled by AeroSpace's built-in toggle:
+-- Alt+T -> "layout tiles horizontal vertical" (configured in aerospace/default.nix)
+-- MonitorManager handles workspace state persistence across monitor changes and sleep/resume
