@@ -36,7 +36,6 @@
       "hammerspoon"         # macOS automation (requires system access)
       "gitify"              # GitHub notifications (GUI app)
       "sourcetree"          # Git GUI client (not available in nixpkgs)
-      "tailscale-app"       # Tailscale GUI+CLI (official macOS app, prevents conflicts with Nix version)
     ];
   };
 }

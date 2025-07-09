@@ -26,10 +26,7 @@ lib.mkIf pkgs.stdenv.isLinux {
     # ═══════════════════════════════════════════════════════════════════════════
     # 🛠️ SYSTEM UTILITIES (Linux)
     # ═══════════════════════════════════════════════════════════════════════════
-    # VPN & Network Management
-    ktailctl                 # Full-featured GUI for Tailscale on Linux desktop
-    trayscale               # Alternative GUI wrapper for Tailscale with system tray
-    # tailscale-systray      # Simple system tray icon (older, use ktailctl instead)
+    # VPN & Network Management tools would go here
     
     # ═══════════════════════════════════════════════════════════════════════════
     # 🎨 DESIGN & CREATIVE TOOLS
