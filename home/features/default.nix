@@ -3,6 +3,7 @@
     ./packages.nix
     ./shell
     ./git
+    ./ssh
     ./editors
     ./secrets
     ./terminals
