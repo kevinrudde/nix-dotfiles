@@ -55,12 +55,13 @@ SOPS (Secrets OPerationS) encrypts secrets using age keys for secure storage in 
 
 2. **Generate age key pair**:
    ```bash
-   # Generate a new age key
-   age-keygen -o ~/.config/sops/age/keys.txt
-   
-   # On macOS, use the appropriate path:
+   # macOS (follows Apple's Application Support directory convention)
    mkdir -p "~/Library/Application Support/sops/age"
    age-keygen -o "~/Library/Application Support/sops/age/keys.txt"
+   
+   # Linux (follows XDG Base Directory specification)
+   mkdir -p ~/.config/sops/age
+   age-keygen -o ~/.config/sops/age/keys.txt
    ```
 
 3. **Note your public key**:
