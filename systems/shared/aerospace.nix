@@ -30,8 +30,13 @@
         inner.vertical = 10;
       };
 
+      workspace-to-monitor-force-assignment = {
+        "0" = "built-in";
+      };
+
       key-mapping.preset = "qwerty";
       mode.main.binding = {
+        alt-0 = "workspace 0";
         alt-1 = "workspace 1";
         alt-2 = "workspace 2";
         alt-3 = "workspace 3";
@@ -42,6 +47,7 @@
         alt-shift-p = "workspace --wrap-around prev";
         alt-shift-n = "workspace --wrap-around next";
 
+        alt-shift-0 = ["move-node-to-workspace 0" "workspace 0"];
         alt-shift-1 = ["move-node-to-workspace 1" "workspace 1"];
         alt-shift-2 = ["move-node-to-workspace 2" "workspace 2"];
         alt-shift-3 = ["move-node-to-workspace 3" "workspace 3"];
