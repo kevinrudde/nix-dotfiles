@@ -12,6 +12,7 @@
 
     taps = [
       "aws/tap"
+      "TheBoredTeam/boring-notch"
     ];
 
     brews = [
@@ -26,6 +27,7 @@
       "orbstack"
       "hammerspoon"
       "gitify"
+      "boring-notch"
     ];
   };
 }
