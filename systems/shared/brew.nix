@@ -28,6 +28,7 @@
       "hammerspoon"
       "gitify"
       "boring-notch"
+      "calibre"
     ];
   };
 }
