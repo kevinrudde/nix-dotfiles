@@ -4,6 +4,9 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
+    # https://github.com/DeterminateSystems/determinate/releases
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.10.1";
+
     nix-darwin.url = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -12,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    devenv.url = "github:cachix/devenv/v1.8.1";
+    devenv.url = "github:cachix/devenv/v1.8.2";
 
     sops-nix.url = "github:Mic92/sops-nix";
 
@@ -22,6 +25,7 @@
   outputs =
     { self
     , nixpkgs
+    , determinate
     , nix-darwin
     , home-manager
     , devenv
@@ -54,6 +58,15 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = extraArgs;
+            }
+            determinate.darwinModules.default
+            {
+              determinate-nix.customSettings = {
+                lazy-trees = true;
+                trusted-users = "root kevin";
+                trusted-substituters = "https://cachix.cachix.org https://nixpkgs.cachix.org";
+                trusted-public-keys = "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+              };
             }
           ];
         };

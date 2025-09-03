@@ -6,7 +6,6 @@
 , ...
 }: {
   imports = [
-    ../shared/determinate.nix
     ../shared/aerospace.nix
     ../shared/brew.nix
     ../shared/system.nix
