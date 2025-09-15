@@ -21,6 +21,7 @@
       "eks-node-viewer"
       "mysql-client"
       "television"
+      "aqua"
     ];
 
     casks = [
