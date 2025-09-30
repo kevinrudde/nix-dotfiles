@@ -50,6 +50,7 @@
 
     plugins = [
       { name = "fzf"; src = pkgs.fishPlugins.fzf-fish.src; }
+      { name = "async-prompt"; src = pkgs.fishPlugins.async-prompt; }
     ];
 
     functions = {
