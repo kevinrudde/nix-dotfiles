@@ -25,7 +25,6 @@
     stern
     uv
     cargo
-    claude-code
 
     terraform
 

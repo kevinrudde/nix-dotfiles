@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # https://github.com/DeterminateSystems/determinate/releases
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.11.1";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.11.3";
 
     nix-darwin.url = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -15,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    devenv.url = "github:cachix/devenv/v1.9.2";
+    devenv.url = "github:cachix/devenv/v1.10";
 
     sops-nix.url = "github:Mic92/sops-nix";
 
