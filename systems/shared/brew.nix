@@ -22,6 +22,7 @@
       "mysql-client"
       "television"
       "aqua"
+      "mise"
     ];
 
     casks = [
