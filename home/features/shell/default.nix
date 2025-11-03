@@ -31,10 +31,6 @@
       ! set -q MANPATH; and set MANPATH \'\'; set -gx MANPATH "/opt/homebrew/share/man" $MANPATH;
       ! set -q INFOPATH; and set INFOPATH \'\'; set -gx INFOPATH "/opt/homebrew/share/info" $INFOPATH;
 
-      # Volta
-      set -gx VOLTA_HOME $HOME/.volta
-      fish_add_path $VOLTA_HOME/bin
-
       # Krew
       fish_add_path $HOME/.krew/bin
 
@@ -46,6 +42,9 @@
 
       # Cargo
       fish_add_path $HOME/.cargo/bin
+
+      # Mise
+      mise activate fish | source
     '';
 
     plugins = [
