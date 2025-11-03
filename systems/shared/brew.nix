@@ -31,6 +31,7 @@
       "gitify"
       "boring-notch"
       "calibre"
+      "codex"
     ];
   };
 }
