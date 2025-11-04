@@ -108,6 +108,6 @@
 
   services.jankyborders = {
     enable = true;
-    inactive_color = "0xff494d64";
+    inactive_color = "0x00000000";
   };
 }
