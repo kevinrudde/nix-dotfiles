@@ -32,6 +32,7 @@
       "boring-notch"
       "calibre"
       "codex"
+      "beekeeper-studio"
     ];
   };
 }
