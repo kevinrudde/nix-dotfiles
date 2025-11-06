@@ -27,6 +27,7 @@
       fetch.prune = true;
 
       gpg.format = "ssh";
+      url."git@github.com:".insteadOf = "https://github.com";
     };
   };
 
