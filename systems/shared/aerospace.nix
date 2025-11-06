@@ -55,15 +55,15 @@
         alt-shift-5 = ["move-node-to-workspace 5" "workspace 5"];
         alt-shift-6 = ["move-node-to-workspace 6" "workspace 6"];
 
-        alt-left = "focus --boundaries-action wrap-around-the-workspace left";
-        alt-right = "focus --boundaries-action wrap-around-the-workspace right";
-        alt-up = "focus --boundaries-action wrap-around-the-workspace up";
-        alt-down = "focus --boundaries-action wrap-around-the-workspace down";
+        # alt-left = "focus --boundaries-action wrap-around-the-workspace left";
+        # alt-right = "focus --boundaries-action wrap-around-the-workspace right";
+        # alt-up = "focus --boundaries-action wrap-around-the-workspace up";
+        # alt-down = "focus --boundaries-action wrap-around-the-workspace down";
 
-        alt-shift-left = "move left";
-        alt-shift-right = "move right";
-        alt-shift-up = "move up";
-        alt-shift-down = "move down";
+        # alt-shift-left = "move left";
+        # alt-shift-right = "move right";
+        # alt-shift-up = "move up";
+        # alt-shift-down = "move down";
 
         alt-shift-cmd-right = "move-node-to-monitor right";
         alt-shift-cmd-left = "move-node-to-monitor left";
@@ -74,7 +74,7 @@
         alt-enter = "exec-and-forget open -na WezTerm";
         alt-b = "exec-and-forget open -na /Applications/Zen\\ Browser.app/Contents/MacOS/zen --args --new-window";
 
-        alt-l = "exec-and-forget pmset displaysleepnow";
+        # alt-l = "exec-and-forget pmset displaysleepnow";
 
         alt-shift-q = "close --quit-if-last-window";
 

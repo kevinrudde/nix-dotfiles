@@ -1,0 +1,27 @@
+{ pkgs
+, lib
+, inputs
+, config
+, ...
+}: {
+  services.skhd = {
+    enable = true;
+    package = pkgs.skhd;
+    skhdConfig = ''
+      lalt - h : aerospace focus --boundaries-action wrap-around-the-workspace left
+      lalt - l : aerospace focus --boundaries-action wrap-around-the-workspace right
+      lalt - k : aerospace focus --boundaries-action wrap-around-the-workspace up
+      lalt - j : aerospace focus --boundaries-action wrap-around-the-workspace down
+
+      lalt + shift - h : aerospace move left
+      lalt + shift - l : aerospace move right
+      lalt + shift - k : aerospace move up
+      lalt + shift - j : aerospace move down
+      
+      ralt - l : pmset displaysleepnow
+    '';
+  };
+
+  # Override launchd environment to set SHELL to dash to improve performance
+  launchd.user.agents.skhd.environment.SHELL = "${pkgs.dash}/bin/dash";
+}
