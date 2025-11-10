@@ -42,7 +42,7 @@
   documentation.enable = false;
   documentation.man.enable = false;
 
-  time.timeZone = "Europe/Lisbon";
+  time.timeZone = "Europe/Berlin";
 
   nix.enable = false;
 }
