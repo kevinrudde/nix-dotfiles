@@ -23,6 +23,7 @@
       "television"
       "aqua"
       "mise"
+      "nss"
     ];
 
     casks = [
