@@ -24,6 +24,7 @@
       "aqua"
       "mise"
       "nss"
+      "opencode"
     ];
 
     casks = [
