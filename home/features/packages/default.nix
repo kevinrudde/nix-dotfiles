@@ -11,6 +11,7 @@
     jq
     gnused
     ripgrep
+    ast-grep
     unixtools.watch
     nmap
     htop
