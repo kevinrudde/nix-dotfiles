@@ -65,7 +65,7 @@
       },
       "original": {
         "type": "tarball",
-        "url": "https://flakehub.com/f/DeterminateSystems/determinate/3.11.3"
+        "url": "https://flakehub.com/f/DeterminateSystems/determinate/3.13.2"
       }
     },
     "determinate-nixd-aarch64-darwin": {
