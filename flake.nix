@@ -86,6 +86,13 @@
           pkgs = import nixpkgs { system = "x86_64-linux"; };
           extraSpecialArgs = extraArgs;
         };
+
+        # Cachy
+        "kevin@cachy" = home-manager.lib.homeManagerConfiguration {
+          modules = [ ./home/cachy.nix ];
+          pkgs = import nixpkgs { system = "x86_64-linux"; };
+          extraSpecialArgs = extraArgs;
+        };
       };
     };
 }
