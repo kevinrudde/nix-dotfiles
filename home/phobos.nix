@@ -10,6 +10,7 @@
     ./default.nix
     ./features/darwin
     ./features/hammerspoon
+    ./features/skhd
   ];
 
   home.username = "kevin";

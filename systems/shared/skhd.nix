@@ -5,7 +5,7 @@
 , ...
 }: {
   services.skhd = {
-    enable = true;
+    enable = false;
     package = pkgs.skhd;
     skhdConfig = ''
       lalt - h : aerospace focus --boundaries-action wrap-around-the-workspace left

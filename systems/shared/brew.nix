@@ -13,6 +13,7 @@
     taps = [
       "aws/tap"
       "TheBoredTeam/boring-notch"
+      "jackielii/tap"
     ];
 
     brews = [
@@ -25,6 +26,7 @@
       "mise"
       "nss"
       "opencode"
+      "skhd-zig"
     ];
 
     casks = [
