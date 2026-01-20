@@ -60,6 +60,22 @@
       t = ''
         tmux attach -t "$(tmux ls -F '#{session_name}:#{window_name}' | fzf)"
       '';
+      day = ''
+        set -l vault "/Users/kevin/Library/Mobile Documents/iCloud~md~obsidian/Documents/Kevins Brain"
+        set -l daily "$vault/Daily Notes"
+        set -l year (env LC_TIME=C date "+%Y")
+        set -l month (env LC_TIME=C date "+%b")
+        set -l filename (env LC_TIME=C date "+%d.%m.%Y - %A").md
+        set -l dir "$daily/$year/$month"
+        set -l path "$dir/$filename"
+
+        mkdir -p "$dir"
+        if not test -f "$path"
+            command cp "$vault/Extras/Templates/Daily Note - Template.md" "$path"
+        end
+
+        nvim "$path"
+      '';
       awsx = ''
         if test -z $AWSX_PROFILES
             set -gx AWS_PROFILES (aws configure list-profiles | string split0)
