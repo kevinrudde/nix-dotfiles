@@ -27,6 +27,7 @@
       "nss"
       "opencode"
       "skhd-zig"
+      "llama.cpp"
     ];
 
     casks = [
