@@ -26,6 +26,7 @@
     stern
     uv
     cargo
+    btop
 
     terraform
 
