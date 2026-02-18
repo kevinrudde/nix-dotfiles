@@ -5,6 +5,7 @@
 
   imports = [
     flake.inputs.sops-nix.homeManagerModule
+    flake.inputs.catppuccin.homeModules.catppuccin
     ./features/shell
     ./features/packages
     ./features/git
@@ -14,6 +15,7 @@
     ./features/wezterm
     ./features/go
     ./features/php
+    ./features/k9s
   ];
 
   # This value determines the Home Manager release that your configuration is

@@ -40,7 +40,6 @@
     docker-buildx
     dive
     bun
-    k9s
     gh
     k6
     awscli2
