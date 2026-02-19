@@ -6,7 +6,7 @@ Swipe = hs.loadSpoon("Swipe")
 local config = {
 	fingers = 4,
 	-- 0.1 = swipe distance > 10% of trackpad
-	threshold = 0.01,
+	threshold = 0.005,
 	showAlert = false,
 	alertDuration = 0.3,
 }
@@ -14,9 +14,7 @@ local config = {
 local AEROSPACE = "/run/current-system/sw/bin/aerospace"
 function aerospaceExec(cmd)
 	local command = string.format(
-		"%s list-workspaces --monitor mouse --visible | xargs %s workspace && %s workspace --no-stdin %s",
-		AEROSPACE,
-		AEROSPACE,
+		"%s workspace --no-stdin --wrap-around %s",
 		AEROSPACE,
 		cmd
 	)
