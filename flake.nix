@@ -65,6 +65,7 @@
             {
               determinateNix.enable = true;
               determinateNix.customSettings = {
+                auto-optimise-store = true;
                 lazy-trees = true;
                 trusted-users = ["root kevin"];
                 trusted-substituters = "https://cachix.cachix.org https://nixpkgs.cachix.org";
