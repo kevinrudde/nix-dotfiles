@@ -3,7 +3,6 @@
 {
   imports = [
     ./default.nix
-    ./features/anyrun
   ];
 
   home.username = "kevin";

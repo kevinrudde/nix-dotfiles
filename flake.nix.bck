@@ -26,10 +26,7 @@
     hyprland.url = "github:hyprwm/hyprland";
     hyprnix.url = "github:hyprwm/hyprnix";
 
-    nixGL = {
-      url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixGL.url = "github:nix-community/nixGL";
   };
 
   outputs =
@@ -51,6 +48,14 @@
       extraArgs = {
         inherit sops-nix hyprnix hyprland;
         flake = self;
+      };
+      pkgs = import nixpkgs {
+        inherit system;
+	overlays = [ nixGL.overlay ];
+      };
+      hm = import home-manager {
+        inherit pkgs;
+	extraSpecialArgs = { inherit nixpkgs; };
       };
     in
     {
@@ -107,9 +112,9 @@
         };
 
         # Fedora with Hyprland
-        "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
+        "kevin@deimos" = hm.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = import nixpkgs { system = "aarch64-linux"; overlays = [ nixGL.overlay ]; };
+          pkgs = import nixpkgs { system = "aarch64-linux"; };
           extraSpecialArgs = extraArgs;
         };
       };

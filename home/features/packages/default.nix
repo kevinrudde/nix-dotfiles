@@ -29,8 +29,6 @@
     cargo
     btop
 
-    terraform
-
     nodejs_22
 
     act
