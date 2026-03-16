@@ -28,6 +28,7 @@
       "opencode"
       "skhd-zig"
       "llama.cpp"
+      "luarocks"
     ];
 
     casks = [
@@ -38,6 +39,7 @@
       "calibre"
       "codex"
       "beekeeper-studio"
+      "stats"
     ];
   };
 }
