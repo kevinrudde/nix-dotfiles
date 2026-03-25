@@ -2,7 +2,7 @@
 
   programs.go = {
     enable = true;
-    package = pkgs.go_1_24;
+    package = pkgs.go_1_26;
     env.GOPATH = "${
     if pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/kevin/.go"

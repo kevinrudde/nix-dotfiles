@@ -7,8 +7,8 @@
   ];
 
   programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
+    enable = false;
+    nix-direnv.enable = false;
   };
 
   programs.fish = {
