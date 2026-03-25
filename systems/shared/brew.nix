@@ -40,6 +40,7 @@
       "codex"
       "beekeeper-studio"
       "stats"
+      "dbeaver-community"
     ];
   };
 }
