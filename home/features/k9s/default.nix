@@ -21,6 +21,35 @@
           ''
         ];
       };
+      ssm-node = {
+        shortCut = "s";
+        confirm = false;
+        description = "Start an AWS SSM session to the node";
+        scopes = [ "node" ];
+        background = false;
+        command = "bash";
+        args = [
+          "-c"
+          ''
+            set -euo pipefail
+
+            AWS_PROFILE_VALUE="$(kubectl config view --context "$CONTEXT" --minify -o json | jq -r '.users[0].user.exec.env[]? | select(.name == "AWS_PROFILE") | .value')"
+            AWS_REGION_VALUE="$(kubectl config view --context "$CONTEXT" --minify -o json | jq -r '(.users[0].user.exec.args // []) as $args | [range(0; $args | length) | select($args[.] == "--region") | $args[. + 1]][0] // empty')"
+            PROVIDER_ID="$(kubectl get node "$NAME" --context "$CONTEXT" -o jsonpath='{.spec.providerID}')"
+            INSTANCE_ID="''${PROVIDER_ID##*/}"
+
+            if [ -n "$AWS_PROFILE_VALUE" ]; then
+              export AWS_PROFILE="$AWS_PROFILE_VALUE"
+            fi
+
+            if [ -n "$AWS_REGION_VALUE" ]; then
+              export AWS_REGION="$AWS_REGION_VALUE"
+            fi
+
+            aws ssm start-session --target "$INSTANCE_ID"
+          ''
+        ];
+      };
       refresh-external-secrets = {
         shortCut = "Shift-R";
         confirm = false;
