@@ -41,6 +41,7 @@
       "beekeeper-studio"
       "stats"
       "dbeaver-community"
+      "t3-code"
     ];
   };
 }
