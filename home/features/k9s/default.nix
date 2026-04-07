@@ -74,6 +74,20 @@
           "kubectl annotate pushsecrets.external-secrets.io --context $CONTEXT -n $NAMESPACE $NAME force-sync=$(date +%s) --overwrite"
         ];
       };
+      nodeclaim-to-node = {
+        shortCut = "Ctrl-O";
+        confirm = false;
+        description = "Nodeclaim to node";
+        scopes = [ "nodeclaims" ];
+        background = false;
+        command = "k9s";
+        args = [
+          "--context"
+          "$CONTEXT"
+          "--command"
+          "node /$COL-NODE"
+        ];
+      };
       stern = {
         shortCut = "Ctrl-Y";
         confirm = false;
