@@ -7,7 +7,6 @@
 }: {
   imports = [
     ../shared/aerospace.nix
-    ../shared/skhd.nix
     ../shared/brew.nix
     ../shared/system.nix
     ../shared/fonts.nix
