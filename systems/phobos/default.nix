@@ -36,7 +36,6 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  programs.fish.enable = true;
   environment.shells = [ "${pkgs.fish}/bin/fish" ];
 
   documentation.enable = false;
