@@ -21,7 +21,6 @@
       fzf_configure_bindings
     '';
 
-    # workaround for fixing the path order: https://github.com/LnL7/nix-darwin/issues/122
     shellInit = ''
       # Homebrew config
       set -gx HOMEBREW_PREFIX "/opt/homebrew";
@@ -49,7 +48,6 @@
 
     plugins = [
       { name = "fzf"; src = pkgs.fishPlugins.fzf-fish.src; }
-      { name = "async-prompt"; src = pkgs.fishPlugins.async-prompt; }
     ];
 
     functions = {
@@ -122,8 +120,10 @@
 
   home.shellAliases = {
     "cat" = "bat -pp";
-    "tailscale" = "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
+    "find" = "fd";
+    "grep" = "rg";
     "k" = "kubectl";
     "ll" = "eza --icons --group --group-directories-first -l";
+    "fish" = "/etc/profiles/per-user/kevin/bin/fish";
   };
 }
