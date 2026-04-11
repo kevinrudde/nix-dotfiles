@@ -1,7 +1,12 @@
-{ pkgs, flake, ... }: {
+{ pkgs, inputs, ... }:
+
+let
+  system = pkgs.stdenv.hostPlatform.system;
+in
+{
 
   home.packages = with pkgs; [
-    flake.inputs.devenv.packages.${system}.devenv
+    inputs.devenv.packages.${system}.devenv
     cachix
 
     nixpkgs-fmt
@@ -46,4 +51,3 @@
     kind
   ];
 }
-

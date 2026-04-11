@@ -1,6 +1,5 @@
 { pkgs
 , home-manager
-, flake
 , lib
 , config
 , ...

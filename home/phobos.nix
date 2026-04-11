@@ -1,12 +1,12 @@
 { config
 , pkgs
 , lib
-, flake
+, inputs
 , ... }:
 
 {
   imports = [
-    flake.inputs.mac-app-util.homeManagerModules.default
+    inputs.mac-app-util.homeManagerModules.default
     ./default.nix
     ./features/darwin
     ./features/hammerspoon

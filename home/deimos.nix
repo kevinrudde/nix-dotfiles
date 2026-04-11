@@ -1,4 +1,4 @@
-{ config, pkgs, lib, flake, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -12,11 +12,11 @@
 
   targets.genericLinux.enable = true;
 
-  # home.packages = [ flake.inputs.nixGL.packages.aarch64-linux.nixGLDefault ];
+  # home.packages = [ inputs.nixGL.packages.aarch64-linux.nixGLDefault ];
 
   wayland.windowManager.hyprland = {
-    package = flake.inputs.hyprland.packages.aarch64-linux.hyprland;
-    portalPackage = flake.inputs.hyprland.packages.aarch64-linux.xdg-desktop-portal-hyprland;
+    package = inputs.hyprland.packages.aarch64-linux.hyprland;
+    portalPackage = inputs.hyprland.packages.aarch64-linux.xdg-desktop-portal-hyprland;
     enable = false;
     settings = {
       monitor = ",preferred,auto,auto";

@@ -40,6 +40,8 @@
     , home-manager
     , devenv
     , sops-nix
+    , catppuccin
+    , mac-app-util
     , hyprnix
     , hyprland
     , nixGL
@@ -49,8 +51,9 @@
       supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
-        inherit sops-nix hyprnix hyprland;
-        flake = self;
+        inputs = {
+          inherit sops-nix catppuccin mac-app-util devenv hyprnix hyprland nixGL;
+        };
       };
     in
     {

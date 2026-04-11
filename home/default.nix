@@ -1,11 +1,11 @@
 { pkgs
-, flake
+, inputs
 , ...
 }: {
 
   imports = [
-    flake.inputs.sops-nix.homeManagerModule
-    flake.inputs.catppuccin.homeModules.catppuccin
+    inputs.sops-nix.homeManagerModule
+    inputs.catppuccin.homeModules.catppuccin
     ./features/shell
     ./features/packages
     ./features/git
