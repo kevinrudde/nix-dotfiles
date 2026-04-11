@@ -22,6 +22,12 @@
     '';
 
     shellInit = ''
+      # Nix profile paths
+      fish_add_path $HOME/.nix-profile/bin
+      fish_add_path /etc/profiles/per-user/$USER/bin
+      fish_add_path /run/current-system/sw/bin
+      fish_add_path /nix/var/nix/profiles/default/bin
+
       # Homebrew config
       set -gx HOMEBREW_PREFIX "/opt/homebrew";
       set -gx HOMEBREW_CELLAR "/opt/homebrew/Cellar";
