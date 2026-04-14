@@ -9,4 +9,6 @@
   home.homeDirectory = "/home/kevin";
 
   targets.genericLinux.enable = true;
+
+  services.ssh-agent.enable = true;
 }
