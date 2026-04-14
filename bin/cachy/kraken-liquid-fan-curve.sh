@@ -27,18 +27,18 @@ APPLY_PUMP_CURVE="${APPLY_PUMP_CURVE:-1}"
 
 PUMP_CURVE_POINTS=(
   "20:70"
-  "36:70"
-  "40:85"
+  "36:80"
+  "40:90"
   "43:100"
 )
 
 # Temperature:duty points in Celsius and percent.
 # The script linearly interpolates between points.
 CURVE_POINTS=(
-  "30:0"
-  "34:0"
-  "36:20"
-  "38:35"
+  "30:20"
+  "34:30"
+  "36:40"
+  "38:50"
   "40:60"
   "42:85"
   "45:100"
