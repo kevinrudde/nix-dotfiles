@@ -34,6 +34,27 @@ git clone git@github.com:kevinrudde/nix-dotfiles.git ~/.config/nix-dotfiles
 rebuild-system
 ```
 
+## Directory Structure
+
+The repository is organized by responsibility:
+
+```text
+.
+├── home/                  # Home Manager entrypoints and reusable user features
+├── systems/
+│   ├── <hostname>/        # Host-specific system files, native packages, migrations
+│   └── shared/            # Shared system modules
+├── scripts/               # Rebuild, migration, and sync entrypoints
+├── migrations/.templates/ # Templates for generating new host migrations
+└── bin/                   # Checked-in helper scripts used by hosts or migrations
+```
+
+Common host-owned files live under `systems/<hostname>/`:
+
+- `packages.txt`: native packages installed through `paru`
+- `migrations/`: timestamped host migration scripts
+- `default.nix`: optional system module for hosts that have one
+
 ## Host Migrations
 
 This repository includes a host migration system for Linux and macOS machines. The goal is to keep one-off setup steps separate from declarative state, while still making them repeatable and easy to audit.
