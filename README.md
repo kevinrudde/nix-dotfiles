@@ -72,7 +72,7 @@ The script version also works before your shell aliases are loaded:
 
 On Linux it runs host migrations and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
 
-To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/templates/host-migration.sh.template` into the appropriate host directory and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
+To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.templates/host-migration.sh.template` into the appropriate host directory and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
  
 ## MacOS Settings
 
