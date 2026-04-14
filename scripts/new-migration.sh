@@ -80,7 +80,7 @@ if [[ -z "$slug" ]]; then
 fi
 
 timestamp="$(date '+%Y-%m-%d-%H%M%S')"
-target_dir="$repo_root/migrations/system/$host"
+target_dir="$repo_root/systems/$host/migrations"
 target_path="$target_dir/$timestamp-$slug.sh"
 
 if [[ ! -f "$template_path" ]]; then

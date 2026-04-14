@@ -48,6 +48,8 @@ case "$(uname -s)" in
   Linux)
     "$repo_root/scripts/migrate.sh" --host "$host"
     echo ""
+    "$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
+    echo ""
     NIXPKGS_ALLOW_UNFREE=1 nix run home-manager -- switch --flake "$repo_root#$user_name@$host" --impure
     ;;
   Darwin)

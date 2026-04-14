@@ -40,7 +40,7 @@ This repository includes a host migration system for Linux and macOS machines. T
 
 Migration files live in:
 ```bash
-migrations/system/<hostname>/
+systems/<hostname>/migrations/
 ```
 
 They are simple timestamped shell scripts such as `2026-04-14-init.sh`. The runner executes them in filename order and records applied migrations under:
@@ -58,7 +58,7 @@ To create a new migration from the template, run:
 ./scripts/new-migration.sh
 ```
 
-It will ask for a hostname and a short description, then create an executable file in `migrations/system/<hostname>/` with a timestamped filename.
+It will ask for a hostname and a short description, then create an executable file in `systems/<hostname>/migrations/` with a timestamped filename.
 
 The standard rebuild entrypoint is:
 ```bash
@@ -72,7 +72,23 @@ The script version also works before your shell aliases are loaded:
 
 On Linux it runs host migrations and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
 
-To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.templates/host-migration.sh.template` into the appropriate host directory and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
+To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.templates/host-migration.sh.template` into `systems/<hostname>/migrations/` and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
+
+## Host Native Packages
+
+Linux hosts can define native packages managed through `paru` in:
+```bash
+systems/<hostname>/packages.txt
+```
+
+Put one package name per line. Empty lines and `#` comments are ignored.
+
+During `rebuild-system`, Linux hosts run:
+```bash
+./scripts/paru-sync.sh --host <hostname>
+```
+
+If there is no package file for a host, the sync step is skipped.
  
 ## MacOS Settings
 

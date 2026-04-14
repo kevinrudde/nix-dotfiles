@@ -1,0 +1,10 @@
+# One package name per line.
+# Official repo packages and AUR packages can both be installed through paru.
+
+xpadneo-dkms
+blueman
+appimagelauncher
+1password
+1password-cli
+spotify
+vicinae-bin

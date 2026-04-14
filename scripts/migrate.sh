@@ -50,17 +50,23 @@ while (($# > 0)); do
 done
 
 if [[ -z "$migrations_dir" ]]; then
-  host_migrations_dir="$repo_root/migrations/system/$host"
+  host_migrations_dir="$repo_root/systems/$host/migrations"
+  legacy_host_migrations_dir="$repo_root/migrations/system/$host"
 
   if [[ -d "$host_migrations_dir" ]]; then
     migrations_dir="$host_migrations_dir"
-  else
-    migrations_dir="$repo_root/migrations/system"
+  elif [[ -d "$legacy_host_migrations_dir" ]]; then
+    migrations_dir="$legacy_host_migrations_dir"
   fi
 fi
 
 if [[ -z "$state_dir" ]]; then
   state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/nix-dotfiles/migrations/system/$host"
+fi
+
+if [[ -z "$migrations_dir" ]]; then
+  echo "No host migrations found for $host"
+  exit 0
 fi
 
 if [[ ! -d "$migrations_dir" ]]; then
