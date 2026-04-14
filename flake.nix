@@ -22,14 +22,6 @@
     catppuccin.url = "github:catppuccin/nix";
 
     mac-app-util.url = "github:hraban/mac-app-util";
-
-    hyprland.url = "github:hyprwm/hyprland";
-    hyprnix.url = "github:hyprwm/hyprnix";
-
-    nixGL = {
-      url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -42,9 +34,6 @@
     , sops-nix
     , catppuccin
     , mac-app-util
-    , hyprnix
-    , hyprland
-    , nixGL
     , ...
     }:
     let
@@ -52,7 +41,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv hyprnix hyprland nixGL;
+          inherit sops-nix catppuccin mac-app-util devenv;
         };
       };
     in
@@ -88,19 +77,6 @@
       };
 
       homeConfigurations = {
-        # VM running Arch Linux
-        "kevin@archlinux-vm" = home-manager.lib.homeManagerConfiguration {
-          modules = [ ./home/archlinux-vm.nix ];
-          pkgs = import nixpkgs { system = "x86_64-linux"; };
-          extraSpecialArgs = extraArgs;
-        };
-
-        # WSL2 running Ubuntu
-        "kevin@KevinsPC" = home-manager.lib.homeManagerConfiguration {
-          modules = [ ./home/kevins-pc.nix ];
-          pkgs = import nixpkgs { system = "x86_64-linux"; };
-          extraSpecialArgs = extraArgs;
-        };
 
         # Cachy
         "kevin@cachy" = home-manager.lib.homeManagerConfiguration {
@@ -112,7 +88,7 @@
         # Fedora with Hyprland
         "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = import nixpkgs { system = "aarch64-linux"; overlays = [ nixGL.overlay ]; };
+          pkgs = import nixpkgs { system = "aarch64-linux"; };
           extraSpecialArgs = extraArgs;
         };
       };
