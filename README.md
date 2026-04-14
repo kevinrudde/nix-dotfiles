@@ -24,15 +24,55 @@ If you want to have your secrets decrypted lying in the repository, you need to 
 git clone git@github.com:kevinrudde/nix-dotfiles.git ~/.config/nix-dotfiles
 ```
 
-2. Initialize the Nix setup with
+2. Apply the configuration with
 ```bash
-nix run nix-darwin -- switch --flake ~/.config/nix-dotfiles
+~/.config/nix-dotfiles/scripts/rebuild-system.sh
 ```
 
-3. If you want to apply your changes in the future you need to run
+3. To apply future changes, run
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-dotfiles/ --show-trace
+rebuild-system
 ```
+
+## Deimos Migrations
+
+This repository includes a migration system for the Linux host `deimos`. The goal is to keep one-off setup steps separate from declarative Home Manager state, while still making them repeatable and easy to audit.
+
+Migration files live in:
+```bash
+migrations/system/<hostname>/
+```
+
+They are simple timestamped shell scripts such as `2026-04-14-init.sh`. The runner executes them in filename order and records applied migrations under:
+```bash
+~/.local/state/nix-dotfiles/migrations/system/<hostname>
+```
+
+There is a single host migration stream now. You can run it manually from the repo root with:
+```bash
+./scripts/migrate.sh --host deimos
+```
+
+To create a new migration from the template, run:
+```bash
+./scripts/new-migration.sh
+```
+
+It will ask for a hostname and a short description, then create an executable file in `migrations/system/<hostname>/` with a timestamped filename.
+
+The standard rebuild entrypoint is:
+```bash
+rebuild-system
+```
+
+The script version also works before your shell aliases are loaded:
+```bash
+~/.config/nix-dotfiles/scripts/rebuild-system.sh
+```
+
+On Linux it runs host migrations and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
+
+To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/templates/host-migration.sh.template` into the appropriate host directory and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
  
 ## MacOS Settings
 

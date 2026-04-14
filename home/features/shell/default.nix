@@ -130,6 +130,7 @@
     "grep" = "rg";
     "k" = "kubectl";
     "ll" = "eza --icons --group --group-directories-first -l";
+    "rebuild-system" = "~/.config/nix-dotfiles/scripts/rebuild-system.sh";
     "fish" = "/etc/profiles/per-user/kevin/bin/fish";
   };
 }
