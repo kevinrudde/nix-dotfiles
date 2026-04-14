@@ -34,9 +34,9 @@ git clone git@github.com:kevinrudde/nix-dotfiles.git ~/.config/nix-dotfiles
 rebuild-system
 ```
 
-## Deimos Migrations
+## Host Migrations
 
-This repository includes a migration system for the Linux host `deimos`. The goal is to keep one-off setup steps separate from declarative Home Manager state, while still making them repeatable and easy to audit.
+This repository includes a host migration system for Linux and macOS machines. The goal is to keep one-off setup steps separate from declarative state, while still making them repeatable and easy to audit.
 
 Migration files live in:
 ```bash
@@ -48,9 +48,9 @@ They are simple timestamped shell scripts such as `2026-04-14-init.sh`. The runn
 ~/.local/state/nix-dotfiles/migrations/system/<hostname>
 ```
 
-There is a single host migration stream now. You can run it manually from the repo root with:
+You can run migrations manually from the repo root with:
 ```bash
-./scripts/migrate.sh --host deimos
+./scripts/migrate.sh --host <hostname>
 ```
 
 To create a new migration from the template, run:

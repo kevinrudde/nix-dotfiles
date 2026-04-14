@@ -47,10 +47,12 @@ done
 case "$(uname -s)" in
   Linux)
     "$repo_root/scripts/migrate.sh" --host "$host"
+    echo ""
     NIXPKGS_ALLOW_UNFREE=1 nix run home-manager -- switch --flake "$repo_root#$user_name@$host" --impure
     ;;
   Darwin)
     "$repo_root/scripts/migrate.sh" --host "$host"
+    echo ""
 
     if command -v darwin-rebuild >/dev/null 2>&1; then
       sudo darwin-rebuild switch --flake "$repo_root#$host" --show-trace
