@@ -85,10 +85,10 @@
           extraSpecialArgs = extraArgs;
         };
 
-        # Fedora with Hyprland
+        # Arch-based Linux host
         "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = import nixpkgs { system = "aarch64-linux"; };
+          pkgs = import nixpkgs { system = "x86_64-linux"; };
           extraSpecialArgs = extraArgs;
         };
       };
