@@ -35,7 +35,7 @@ in
     cargo
     btop
 
-    nodejs_22
+    nodejs_24
 
     act
     ory
