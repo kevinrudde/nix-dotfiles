@@ -8,6 +8,7 @@ in
   home.packages = with pkgs; [
     inputs.devenv.packages.${system}.devenv
     cachix
+    nh
 
     nixpkgs-fmt
     sops

@@ -50,16 +50,21 @@ case "$(uname -s)" in
     echo ""
     "$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
     echo ""
-    NIXPKGS_ALLOW_UNFREE=1 nix run home-manager -- switch --flake "$repo_root#$user_name@$host" --impure
+
+    if command -v nh >/dev/null 2>&1; then
+      nh home switch "$repo_root"
+    else
+      NIXPKGS_ALLOW_UNFREE=1 nix run home-manager -- switch --flake "$repo_root#$user_name@$host" --impure
+    fi
     ;;
   Darwin)
     "$repo_root/scripts/migrate.sh" --host "$host"
     echo ""
 
-    if command -v darwin-rebuild >/dev/null 2>&1; then
-      sudo darwin-rebuild switch --flake "$repo_root#$host" --show-trace
+    if command -v nh >/dev/null 2>&1; then
+      nh darwin switch "$repo_root"
     else
-      sudo nix run nix-darwin -- switch --flake "$repo_root#$host" --show-trace
+      sudo NIXPKGS_ALLOW_UNFREE=1 nix run nix-darwin -- switch --flake "$repo_root#$host" --show-trace
     fi
     ;;
   *)
