@@ -7,6 +7,14 @@
 
   programs.k9s = {
     enable = true;
+    hotKeys = {
+      ctrl-o = {
+        shortCut = "Ctrl-O";
+        description = "Switch to node";
+        command = "node /$COL-NODE";
+        keepHistory = true;
+      };
+    };
     plugins = {
       eks-node-viewer = {
         shortCut = "Shift-X";
@@ -72,20 +80,6 @@
         args = [
           "-c"
           "kubectl annotate pushsecrets.external-secrets.io --context $CONTEXT -n $NAMESPACE $NAME force-sync=$(date +%s) --overwrite"
-        ];
-      };
-      nodeclaim-to-node = {
-        shortCut = "Ctrl-O";
-        confirm = false;
-        description = "Nodeclaim to node";
-        scopes = [ "nodeclaims" ];
-        background = false;
-        command = "k9s";
-        args = [
-          "--context"
-          "$CONTEXT"
-          "--command"
-          "node /$COL-NODE"
         ];
       };
       stern = {
