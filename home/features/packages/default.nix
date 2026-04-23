@@ -34,6 +34,8 @@ in
     uv
     cargo
     btop
+    ugrep
+    bfs
 
     nodejs_24
 
