@@ -57,5 +57,18 @@ if [[ "${#packages[@]}" -eq 0 ]]; then
   exit 0
 fi
 
-echo "Installing host packages for '$host' via paru"
-paru -S --needed --noconfirm "${packages[@]}"
+missing_packages=()
+
+for package in "${packages[@]}"; do
+  if ! pacman -Qq "$package" >/dev/null 2>&1; then
+    missing_packages+=("$package")
+  fi
+done
+
+if [[ "${#missing_packages[@]}" -eq 0 ]]; then
+  echo "Host packages for '$host' are already installed"
+  exit 0
+fi
+
+echo "Installing missing host packages for '$host' via paru"
+paru -S --needed --noconfirm "${missing_packages[@]}"
