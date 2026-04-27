@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Migration: __DESCRIPTION__
+# Host: __HOST__
+#
+# Keep migrations idempotent. The runner records successful executions, but the
+# script should still be safe to re-run after clearing migration state.
+
+repo_root="${DOTFILES_MIGRATION_REPO_ROOT:?missing repo root}"
+host="${DOTFILES_MIGRATION_HOST:?missing host}"
+
+if [[ "$host" != "__HOST__" ]]; then
+  echo "This migration is for __HOST__, but the active host is $host" >&2
+  exit 1
+fi
+
+echo "TODO: implement migration logic for __DESCRIPTION__ in $repo_root"

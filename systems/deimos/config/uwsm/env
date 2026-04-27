@@ -1,0 +1,15 @@
+DOTFILES_REPO_ROOT="${repo_root:-$HOME/.config/nix-dotfiles}"
+export DOTFILES_HOST_BIN="$DOTFILES_REPO_ROOT/systems/deimos/bin"
+
+if [ -d "$DOTFILES_HOST_BIN" ]; then
+  case ":$PATH:" in
+    *":$DOTFILES_HOST_BIN:"*) ;;
+    *) export PATH="$DOTFILES_HOST_BIN:$PATH" ;;
+  esac
+fi
+
+export MOZ_ENABLE_WAYLAND=1
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+export SDL_VIDEODRIVER=wayland
+export CLUTTER_BACKEND=wayland
+export GTK_USE_PORTAL=1

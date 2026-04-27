@@ -1,0 +1,24 @@
+# Hyprland / UWSM session
+hyprland
+uwsm
+
+# Core Wayland desktop tools
+foot
+fuzzel
+mako
+wireplumber
+wl-clipboard
+grim
+slurp
+brightnessctl
+playerctl
+
+# Hypr ecosystem
+hypridle
+hyprlock
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+
+# Qt Wayland support
+qt5-wayland
+qt6-wayland

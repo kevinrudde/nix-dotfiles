@@ -12,7 +12,7 @@ EOF
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
-template_path="$repo_root/migrations/.templates/host-migration.sh.template"
+template_path="$repo_root/systems/.templates/host-migration.sh.template"
 
 host=""
 description=""
