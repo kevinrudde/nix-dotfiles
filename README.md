@@ -110,6 +110,20 @@ During `rebuild-system`, Linux hosts run:
 ```
 
 If there is no package file for a host, the sync step is skipped.
+
+## Hostix
+
+Linux host state can also be evaluated through Hostix configurations exposed by
+the flake:
+
+```bash
+nix run .#hostix -- plan --flake .#deimos
+nix run .#hostix -- apply --flake .#deimos
+```
+
+The current Hostix configurations live in `systems/<hostname>/hostix.nix` and
+cover host packages, host-owned files and services, and the Home Manager switch.
+Existing migrations remain available for one-off setup steps.
  
 ## MacOS Settings
 

@@ -7,12 +7,11 @@ in
 
   home.packages = with pkgs; [
     inputs.devenv.packages.${system}.devenv
+    inputs.hostix.packages.${system}.hostix
     cachix
-    nh
 
     nixpkgs-fmt
     sops
-    nh
 
     _1password-cli
     jq

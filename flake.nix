@@ -22,6 +22,11 @@
     catppuccin.url = "github:catppuccin/nix";
 
     mac-app-util.url = "github:hraban/mac-app-util";
+
+    hostix = {
+      url = "path:/home/kevin/Projects/github/hostix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -34,22 +39,41 @@
     , sops-nix
     , catppuccin
     , mac-app-util
+    , hostix
     , ...
     }:
     let
+      lib = nixpkgs.lib;
       supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      forAllSystems = lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv;
+          inherit sops-nix catppuccin mac-app-util devenv hostix;
         };
       };
+      dotfilesRepoRoot = "/home/kevin/.config/nix-dotfiles";
       mkPkgs = system: import nixpkgs {
         inherit system;
         config.allowUnfree = true;
       };
+      mkLinuxHostixConfiguration = module: hostix.lib.mkConfiguration {
+        system = "x86_64-linux";
+        specialArgs = extraArgs // {
+          inherit dotfilesRepoRoot;
+        };
+        modules = [ module ];
+      };
     in
     {
+      packages = forAllSystems (system: {
+        hostix = hostix.packages.${system}.default;
+      });
+
+      hostixConfigurations = {
+        cachy = mkLinuxHostixConfiguration ./systems/cachy/hostix.nix;
+        deimos = mkLinuxHostixConfiguration ./systems/deimos/hostix.nix;
+      };
+
 
       darwinConfigurations = {
         phobos = nix-darwin.lib.darwinSystem {
