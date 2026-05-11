@@ -13,6 +13,7 @@
     ./features/secrets
     ./features/tmux
     ./features/wezterm
+    ./features/ghostty
     ./features/go
     ./features/php
     ./features/k9s
