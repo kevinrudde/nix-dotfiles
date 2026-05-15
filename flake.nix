@@ -63,7 +63,7 @@
           pkgs = mkPkgs "aarch64-linux";
           specialArgs = extraArgs;
           modules = [
-            ./systems/deimos
+            ./systems/hosts/deimos
           ];
         };
       };
@@ -75,7 +75,7 @@
           };
           system = "aarch64-darwin";
           modules = [
-            ./systems/phobos
+            ./systems/hosts/phobos
             home-manager.darwinModules.default
             {
               home-manager.useGlobalPkgs = true;

@@ -1,0 +1,5 @@
+hl.on("hyprland.start", function()
+    hl.exec_cmd("uwsm finalize WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XCURSOR_SIZE XCURSOR_THEME")
+    hl.exec_cmd("uwsm app -- /usr/bin/ashell --config-path /home/kevin/.config/ashell/config.toml")
+    hl.exec_cmd("uwsm app -- mako")
+end)

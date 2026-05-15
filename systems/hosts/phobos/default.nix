@@ -5,10 +5,10 @@
 , ...
 }: {
   imports = [
-    ../shared/aerospace.nix
-    ../shared/brew.nix
-    ../shared/system.nix
-    ../shared/fonts.nix
+    ../../shared/aerospace.nix
+    ../../shared/brew.nix
+    ../../shared/system.nix
+    ../../shared/fonts.nix
   ];
 
   system.stateVersion = 5;
@@ -23,7 +23,7 @@
 
   home-manager.users.kevin = {
     imports = [
-      ../../home/phobos.nix
+      ../../../home/phobos.nix
     ];
   };
 

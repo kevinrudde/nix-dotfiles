@@ -1,10 +1,12 @@
+{ ... }:
+
 {
   dnf.packages = [
     "sddm"
     "sddm-wayland-generic"
   ];
 
-  environment.etc."sddm.conf.d/10-deimos.conf".text = ''
+  environment.etc."sddm.conf.d/10-system.conf".text = ''
     [General]
     DisplayServer=wayland
 
