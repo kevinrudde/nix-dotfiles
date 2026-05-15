@@ -17,6 +17,11 @@
 
     devenv.url = "github:cachix/devenv/v2.1";
 
+    nix-system = {
+      url = "path:/home/kevin/Projects/nix-system";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix.url = "github:Mic92/sops-nix";
 
     catppuccin.url = "github:catppuccin/nix";
@@ -31,6 +36,7 @@
     , nix-darwin
     , home-manager
     , devenv
+    , nix-system
     , sops-nix
     , catppuccin
     , mac-app-util
@@ -41,7 +47,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv;
+          inherit sops-nix catppuccin mac-app-util devenv nix-system;
         };
       };
       mkPkgs = system: import nixpkgs {
@@ -50,6 +56,17 @@
       };
     in
     {
+      nixSystemConfigurations = {
+        deimos = nix-system.lib.nixSystem {
+          system = "aarch64-linux";
+          backend = "fedora";
+          pkgs = mkPkgs "aarch64-linux";
+          specialArgs = extraArgs;
+          modules = [
+            ./systems/deimos
+          ];
+        };
+      };
 
       darwinConfigurations = {
         phobos = nix-darwin.lib.darwinSystem {
@@ -89,10 +106,10 @@
           extraSpecialArgs = extraArgs;
         };
 
-        # Arch-based Linux host
+        # Fedora-based Linux host (Asahi Fedora Remix)
         "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = mkPkgs "x86_64-linux";
+          pkgs = mkPkgs "aarch64-linux";
           extraSpecialArgs = extraArgs;
         };
       };

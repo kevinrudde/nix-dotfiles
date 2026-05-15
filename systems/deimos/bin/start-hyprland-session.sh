@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd -- "$script_dir/../../.." && pwd)"
+if [[ -n "${DOTFILES_REPO_ROOT:-}" ]]; then
+  repo_root="$DOTFILES_REPO_ROOT"
+else
+  script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+  repo_root="$(cd -- "$script_dir/../../.." && pwd)"
+fi
 
 runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 generated_conf="$runtime_dir/hyprland-deimos.conf"
@@ -22,4 +26,4 @@ set -a
 . "${repo_root}/systems/deimos/config/uwsm/env-hyprland"
 set +a
 
-exec uwsm start -- hyprland --config "$generated_conf"
+exec uwsm start -e -D Hyprland -- start-hyprland -- --config "$generated_conf"

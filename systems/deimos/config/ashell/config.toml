@@ -1,0 +1,32 @@
+log_level = "warn"
+outputs = "All"
+position = "Top"
+layer = "Top"
+
+[modules]
+left = [["Workspaces"]]
+center = ["WindowTitle"]
+right = [["Tray", "Tempo", "Privacy", "Settings"]]
+
+[workspaces]
+visibility_mode = "All"
+group_by_monitor = false
+enable_workspace_filling = true
+
+[window_title]
+mode = "Title"
+truncate_title_after_length = 100
+
+[tempo]
+clock_format = "%a %d %b %R"
+
+[settings]
+lock_cmd = "uwsm app -- hyprlock"
+logout_cmd = "uwsm stop"
+remove_airplane_btn = true
+indicators = ["Audio", "Microphone", "Network", "Battery", "Brightness"]
+battery_format = "IconAndPercentage"
+audio_indicator_format = "Icon"
+microphone_indicator_format = "Icon"
+network_indicator_format = "Icon"
+brightness_indicator_format = "Icon"

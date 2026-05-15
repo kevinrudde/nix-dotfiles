@@ -46,10 +46,10 @@ done
 
 case "$(uname -s)" in
   Linux)
-    "$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
-    echo ""
-    "$repo_root/scripts/migrate.sh" --host "$host"
-    echo ""
+    #"$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
+    #echo ""
+    #"$repo_root/scripts/migrate.sh" --host "$host"
+    #echo ""
 
     if command -v nh >/dev/null 2>&1; then
       nh home switch "$repo_root"

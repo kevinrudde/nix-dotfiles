@@ -899,6 +899,22 @@
         "type": "github"
       }
     },
+    "nix-system": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "narHash": "sha256-bfeB/po29pjnlbMELU9BZ6HxkjsaHyOLD0jcrnLrSL8=",
+        "path": "/home/kevin/Projects/nix-system",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/kevin/Projects/nix-system",
+        "type": "path"
+      }
+    },
     "nix-test-runner": {
       "flake": false,
       "locked": {
@@ -1357,6 +1373,7 @@
         "home-manager": "home-manager_2",
         "mac-app-util": "mac-app-util",
         "nix-darwin": "nix-darwin",
+        "nix-system": "nix-system",
         "nixpkgs": "nixpkgs_14",
         "sops-nix": "sops-nix"
       }
