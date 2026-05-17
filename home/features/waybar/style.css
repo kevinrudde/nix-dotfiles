@@ -1,0 +1,143 @@
+@define-color primary #96d8ff;
+@define-color background rgba(21, 18, 27, 0.82);
+@define-color background-strong rgba(10, 10, 16, 0.92);
+@define-color foreground #d9e4ff;
+@define-color muted #6f7285;
+@define-color success #a8ff96;
+@define-color warning #ffd166;
+@define-color danger #ff5874;
+
+* {
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  font-family: "JetBrains Mono", "Symbols Nerd Font", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+window#waybar {
+  background: transparent;
+  color: @primary;
+}
+
+tooltip {
+  background: @background-strong;
+  color: @foreground;
+  border: 1px solid @primary;
+  border-radius: 8px;
+}
+
+tooltip label {
+  padding: 6px 8px;
+}
+
+#custom-launcher,
+#workspaces,
+#submap,
+#window,
+#tray,
+#idle_inhibitor,
+#pulseaudio,
+#backlight,
+#cpu,
+#memory,
+#custom-power-usage,
+#battery,
+#network,
+#clock,
+#custom-power {
+  background: @background;
+  border: 1px solid @primary;
+  border-radius: 8px;
+  margin-top: 4px;
+  margin-bottom: 0;
+  padding: 0 10px;
+}
+
+#custom-launcher,
+#custom-power,
+#idle_inhibitor {
+  min-width: 18px;
+  padding: 0 9px;
+}
+
+#custom-launcher {
+  color: @primary;
+  font-size: 18px;
+}
+
+#custom-power {
+  color: @danger;
+}
+
+#workspaces {
+  padding: 0 4px;
+}
+
+#workspaces button {
+  min-width: 28px;
+  margin: 0;
+  padding: 0 7px;
+  color: @muted;
+  background: transparent;
+  border-radius: 7px;
+}
+
+#workspaces button.active {
+  color: @primary;
+  background: rgba(150, 216, 255, 0.14);
+}
+
+#workspaces button.urgent {
+  color: @background-strong;
+  background: @warning;
+}
+
+#workspaces button:hover {
+  color: @foreground;
+  background: rgba(150, 216, 255, 0.2);
+}
+
+#submap {
+  color: @success;
+  background: @background-strong;
+}
+
+#window {
+  color: @foreground;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+#tray {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+#battery {
+  color: @success;
+}
+
+#battery.warning {
+  color: @warning;
+}
+
+#battery.critical {
+  color: @danger;
+}
+
+#custom-power-usage {
+  color: @foreground;
+}
+
+#network.disconnected,
+#pulseaudio.muted {
+  color: @muted;
+}
+
+#clock {
+  padding-left: 12px;
+  padding-right: 12px;
+}

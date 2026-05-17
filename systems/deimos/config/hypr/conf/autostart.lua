@@ -1,0 +1,10 @@
+hl.on("hyprland.start", function()
+  hl.exec_cmd("uwsm finalize WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XCURSOR_SIZE XCURSOR_THEME SSH_AUTH_SOCK")
+  hl.exec_cmd("uwsm app -- mako")
+  hl.exec_cmd("uwsm app -- waybar")
+  hl.exec_cmd("uwsm app -- hypridle")
+  hl.exec_cmd("uwsm app -- vicinae server")
+  hl.exec_cmd("uwsm app -- tailscale systray")
+  hl.exec_cmd("sleep 10 && uwsm app -- librepods --start-minimized)")
+end)
+

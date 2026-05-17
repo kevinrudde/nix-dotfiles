@@ -1,0 +1,49 @@
+font=JetBrains Mono 11
+width=420
+height=180
+outer-margin=12
+margin=8
+padding=12
+border-size=1
+border-radius=8
+icons=1
+max-icon-size=48
+icon-border-radius=6
+markup=1
+actions=1
+history=1
+max-history=10
+max-visible=4
+sort=-time
+layer=top
+anchor=top-right
+
+background-color=#15121BDD
+text-color=#D9E4FFFF
+border-color=#96D8FFFF
+progress-color=over #96D8FF66
+
+format=<b>%s</b>\n%b
+
+default-timeout=6000
+ignore-timeout=1
+
+on-button-left=invoke-default-action
+on-button-middle=dismiss --no-history
+on-button-right=dismiss
+on-touch=dismiss
+
+[urgency=low]
+default-timeout=4000
+border-color=#6F7285FF
+
+[urgency=critical]
+default-timeout=10000
+border-color=#FF5874FF
+progress-color=over #FF587466
+
+[grouped]
+format=(%g) <b>%s</b>\n%b
+
+[hidden]
+format=<b>%h more notifications</b>

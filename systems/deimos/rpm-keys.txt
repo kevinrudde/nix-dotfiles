@@ -1,0 +1,4 @@
+# One RPM signing key URL or file path per line.
+# Empty lines and comments are ignored.
+
+https://downloads.1password.com/linux/keys/1password.asc

@@ -51,7 +51,10 @@ The repository is organized by responsibility:
 
 Common host-owned files live under `systems/<hostname>/`:
 
-- `packages.txt`: native packages installed through `paru`
+- `packages.txt`: native packages installed by the host package sync script
+- `copr-repos.txt`: optional Fedora COPR repositories enabled before package install
+- `dnf-release-rpms.txt`: optional Fedora repository release RPMs installed before package install
+- `dnf-enabled-repos.txt`: optional Fedora repository IDs enabled before package install
 - `migrations/`: timestamped host migration scripts
 - `default.nix`: optional system module for hosts that have one
 
@@ -97,19 +100,54 @@ To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.te
 
 ## Host Native Packages
 
-Linux hosts can define native packages managed through `paru` in:
+Linux hosts can define native packages in:
 ```bash
 systems/<hostname>/packages.txt
 ```
 
 Put one package name per line. Empty lines and `#` comments are ignored.
 
-During `rebuild-system`, Linux hosts run:
+During `rebuild-system`, Linux hosts choose a native package sync backend from the current distro:
+
+- Arch/Cachy-based hosts use `./scripts/paru-sync.sh`
+- Fedora hosts use `./scripts/fedora-packages-sync.sh`
+
+Fedora hosts can also define COPR repositories in:
 ```bash
-./scripts/paru-sync.sh --host <hostname>
+systems/<hostname>/copr-repos.txt
 ```
 
-If there is no package file for a host, the sync step is skipped.
+Put one COPR repository per line, such as `owner/project` or `@group/project`. The Fedora sync enables these repositories before installing packages with `dnf`. Empty lines and `#` comments are ignored.
+
+Fedora hosts can install repository release RPMs before package installation with:
+```bash
+systems/<hostname>/dnf-release-rpms.txt
+```
+
+Put one release RPM per line as `<installed-package-name> <rpm-url>`. The placeholder `{fedora}` is expanded with `rpm -E %fedora`.
+
+Fedora hosts can enable existing DNF repository IDs before package installation with:
+```bash
+systems/<hostname>/dnf-enabled-repos.txt
+```
+
+Put one repository ID per line, such as `fedora-cisco-openh264`.
+
+Fedora hosts can define signed vendor RPM repositories with:
+```bash
+systems/<hostname>/rpm-keys.txt
+systems/<hostname>/dnf-repos/*.repo
+```
+
+Put one RPM signing key URL or file path per line in `rpm-keys.txt`. Repository files are installed into `/etc/yum.repos.d/` before installing packages.
+
+You can run the sync scripts manually:
+```bash
+./scripts/paru-sync.sh --host <hostname>
+./scripts/fedora-packages-sync.sh --host <hostname>
+```
+
+If there are no native package, Fedora COPR, RPM key, or DNF repository definitions for a host, the sync step is skipped.
  
 ## MacOS Settings
 

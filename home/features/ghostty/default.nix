@@ -2,20 +2,26 @@
 
   programs.ghostty = {
     enable = true;
-    # On macOS, install ghostty as a native app outside of nix
-    package = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+    package =
+      if pkgs.stdenv.hostPlatform.isDarwin
+      then pkgs.ghostty-bin
+      else null;
+
+    systemd.enable = false;
 
     enableFishIntegration = true;
 
     settings = {
-      font-family = "JetBrainsMono Nerd Font Mono";
-      font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 11;
+      font-family = "JetBrains Mono";
+      font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 13;
       theme = "Kanagawa Wave";
 
       window-decoration = true;
       macos-titlebar-style = "hidden";
       focus-follows-mouse = true;
       confirm-close-surface = false;
+      window-inherit-working-directory = false;
+      working-directory = "home";
 
       keybind = [
         # Remap super to ctrl so macOS shortcuts work in the terminal
@@ -26,6 +32,7 @@
         "super+c=text:\\x03"
         # super+shift+c for actual copy (since super+c is remapped to ctrl+c above)
         "super+shift+c=copy_to_clipboard"
+        "ctrl+v=paste_from_clipboard"
         # Option+arrows for word navigation
         "alt+left=text:\\x1bb"
         "alt+right=text:\\x1bf"

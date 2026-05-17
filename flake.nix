@@ -89,10 +89,10 @@
           extraSpecialArgs = extraArgs;
         };
 
-        # Arch-based Linux host
+        # Fedora-based Linux host (Asahi)
         "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = mkPkgs "x86_64-linux";
+          pkgs = mkPkgs "aarch64-linux";
           extraSpecialArgs = extraArgs;
         };
       };

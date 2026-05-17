@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Migration: Install Hyprland UWSM session entry
+# Migration: Repair SDDM Hyprland session entry
 # Host: deimos
 #
-# Installs a system-wide Wayland session entry that starts Hyprland through the
-# checked-in launcher script in this repository.
+# Replaces the earlier session entry that pointed TryExec at the dotfiles
+# checkout. The SDDM greeter user cannot traverse /home/kevin when it is 0700,
+# so the desktop entry must validate against a public launcher path.
 
 repo_root="${DOTFILES_MIGRATION_REPO_ROOT:?missing repo root}"
+host="${DOTFILES_MIGRATION_HOST:?missing host}"
+
+if [[ "$host" != "deimos" ]]; then
+  echo "This migration is for deimos, but the active host is $host" >&2
+  exit 1
+fi
+
 launcher="${repo_root}/systems/deimos/bin/start-hyprland-session.sh"
 public_launcher="/usr/local/bin/start-hyprland-deimos-session"
 session_entry="/usr/local/share/wayland-sessions/hyprland-deimos-uwsm.desktop"
@@ -41,6 +49,6 @@ EOF
 
 sudo install -D -m 0755 "$tmp_launcher" "$public_launcher"
 sudo install -D -m 0644 "$tmp_session_entry" "$session_entry"
+
 echo "Installed $public_launcher"
-echo "Installed $session_entry"
-echo "Select 'Hyprland (UWSM, deimos)' in your display manager."
+echo "Repaired $session_entry"

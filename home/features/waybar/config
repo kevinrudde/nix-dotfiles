@@ -1,0 +1,153 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 36,
+  "spacing": 8,
+  "margin-top": 6,
+  "margin-left": 10,
+  "margin-right": 10,
+  "modules-left": [
+    "custom/launcher",
+    "hyprland/workspaces",
+    "hyprland/submap"
+  ],
+  "modules-center": [
+    "hyprland/window"
+  ],
+  "modules-right": [
+    "tray",
+    "idle_inhibitor",
+    "pulseaudio",
+    "backlight",
+    "cpu",
+    "memory",
+    "custom/power-usage",
+    "battery",
+    "network",
+    "clock",
+    "custom/power"
+  ],
+  "custom/launcher": {
+    "format": "",
+    "tooltip": "Open launcher",
+    "on-click": "uwsm app -- fuzzel"
+  },
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "sort-by": "name",
+    "on-click": "activate"
+  },
+  "hyprland/submap": {
+    "format": "<span style=\"italic\">{}</span>",
+    "max-length": 18,
+    "tooltip": false
+  },
+  "hyprland/window": {
+    "format": "{}",
+    "separate-outputs": true,
+    "max-length": 72,
+    "rewrite": {
+      "": "Desktop"
+    }
+  },
+  "tray": {
+    "icon-size": 18,
+    "spacing": 6,
+    "show-passive-items": true
+  },
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "",
+      "deactivated": ""
+    },
+    "tooltip-format-activated": "Idle inhibitor active",
+    "tooltip-format-deactivated": "Idle inhibitor inactive"
+  },
+  "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-bluetooth": "{volume}% {icon}",
+    "format-muted": "muted ",
+    "format-source": "{volume}% ",
+    "format-source-muted": "",
+    "format-icons": {
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
+    "on-scroll-up": "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+  },
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ],
+    "on-scroll-up": "brightnessctl set 5%+",
+    "on-scroll-down": "brightnessctl set 5%-"
+  },
+  "cpu": {
+    "format": " {usage}%",
+    "interval": 3,
+    "tooltip": true
+  },
+  "memory": {
+    "format": " {}%",
+    "interval": 3
+  },
+  "custom/power-usage": {
+    "exec": "$HOME/.config/waybar/scripts/power-usage.sh",
+    "return-type": "json",
+    "interval": 5
+  },
+  "battery": {
+    "states": {
+      "good": 80,
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{capacity}% {icon}",
+    "format-full": "{capacity}% {icon}",
+    "format-charging": "{capacity}% ",
+    "format-plugged": "{capacity}% ",
+    "format-alt": "{time} {icon}",
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "network": {
+    "format-wifi": "{signalStrength}% ",
+    "format-ethernet": "󰈀",
+    "format-linked": "{ifname} ",
+    "format-disconnected": "",
+    "tooltip-format": "{ifname} via {gwaddr}",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+    "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
+    "tooltip-format-disconnected": "Disconnected"
+  },
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+  },
+  "custom/power": {
+    "format": "",
+    "tooltip": "Power menu",
+    "on-click": "$HOME/.config/waybar/scripts/power-menu.sh"
+  }
+}
