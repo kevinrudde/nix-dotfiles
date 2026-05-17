@@ -88,6 +88,7 @@ done
 sudo rm -rf "$install_dir"
 sudo install -d -m 0755 "$install_dir"
 sudo cp -a "${app_src}/." "$install_dir/"
+sudo chown -R root:root "$install_dir"
 sudo "$install_dir/after-install.sh"
 
 installed_version="$(1password --version 2>/dev/null || true)"

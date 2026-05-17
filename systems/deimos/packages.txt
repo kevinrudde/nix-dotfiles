@@ -57,6 +57,8 @@ mozilla-openh264
 zen-browser
 ghostty
 bluez
+gnome-keyring
+gnome-keyring-pam
 curl
 openssl
 logid
@@ -65,6 +67,7 @@ nvim
 btop
 helium-bin
 tailscale
+mysql8.0
 
 # Docker Engine (from docker-ce.repo)
 docker-ce
@@ -74,11 +77,15 @@ docker-buildx-plugin
 docker-compose-plugin
 
 # Build tools
+golang
 cargo
 patch
 openssl-devel
 openssl-devel-engine
 dbus-devel
+gobject-introspection-devel
+gtk3-devel
+gtk-layer-shell-devel
 libxkbcommon-devel
 pkgconf-pkg-config
 pulseaudio-libs-devel

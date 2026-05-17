@@ -4,7 +4,7 @@
 #
 # Empty lines and comments are ignored.
 lionheartp/Hyprland
-quadratech188/vicinae
+scottames/vicinae
 sneexy/zen-browser
 che/nerd-fonts
 scottames/ghostty

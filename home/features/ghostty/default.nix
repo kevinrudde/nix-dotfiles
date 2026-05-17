@@ -13,7 +13,7 @@
 
     settings = {
       font-family = "JetBrains Mono";
-      font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 13;
+      font-size = 13;
       theme = "Kanagawa Wave";
 
       window-decoration = true;
