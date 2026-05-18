@@ -60,11 +60,12 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("uwsm app -- wpctl set-mute @DEFAULT_AU
   locked = true,
   repeating = true,
 })
-hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%+"), {
+
+hl.bind("XF86Launch5", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%-"), {
   locked = true,
   repeating = true,
 })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%-"), {
+hl.bind("XF86Launch6", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%+"), {
   locked = true,
   repeating = true,
 })
