@@ -14,6 +14,7 @@ export XDG_DATA_DIRS="$nix_state_profile/share:$nix_profile/share:/nix/var/nix/p
 export XCURSOR_PATH="$HOME/.local/share/icons:$HOME/.icons:$nix_state_profile/share/icons:$nix_profile/share/icons:/nix/var/nix/profiles/default/share/icons:${XCURSOR_PATH:-/usr/share/icons}"
 
 export MOZ_ENABLE_WAYLAND=1
+export MOZ_USE_XINPUT2=1
 export ELECTRON_OZONE_PLATFORM_HINT=auto
 export SDL_VIDEODRIVER=wayland
 export CLUTTER_BACKEND=wayland
