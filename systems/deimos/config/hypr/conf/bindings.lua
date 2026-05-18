@@ -5,9 +5,9 @@ local workspaces = require("conf.workspaces")
 local terminal = "ghostty"
 local launcher = "fuzzel"
 local browser = "zen-browser"
-local lock_cmd = "pidof hyprlock >/dev/null 2>&1 || uwsm app -- hyprlock --immediate-render"
+local lock_cmd = "uwsm app -- hyprlock --immediate-render"
 
-hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 
 hl.bind(main_mod .. " + Return", hl.dsp.exec_cmd("uwsm app -- " .. terminal))
 hl.bind(main_mod .. " + D", hl.dsp.exec_cmd("uwsm app -- " .. launcher))
