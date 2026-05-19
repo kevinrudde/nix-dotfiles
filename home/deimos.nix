@@ -3,6 +3,19 @@
 let
   flavor = "mocha";
   accent = "sky";
+  slackOpenLinksExternalExtensionId = "mcldoopdpdabagcpdmagjdbkbekgjihf";
+  slackOpenLinksExternalHostName = "dev.kevin.slack_open_links_external";
+  slackOpenLinksExternalExtensionPath = "${config.xdg.configHome}/helium/extensions/slack-open-links-external";
+  slackOpenLinksExternalNativeHostPath = "${config.home.homeDirectory}/.local/bin/slack-open-link-external-native-host";
+  slackOpenLinksExternalNativeHostManifest = {
+    name = slackOpenLinksExternalHostName;
+    description = "Open links clicked in the Slack web app with the system default browser.";
+    path = slackOpenLinksExternalNativeHostPath;
+    type = "stdio";
+    allowed_origins = [
+      "chrome-extension://${slackOpenLinksExternalExtensionId}/"
+    ];
+  };
   gtkTheme = {
     name = "catppuccin-${flavor}-${accent}-standard";
     package = pkgs.catppuccin-gtk.override {
@@ -83,9 +96,20 @@ in
     qt6Packages.qt6ct
   ];
 
+  xdg.configFile."helium/extensions/slack-open-links-external".source =
+    ../systems/deimos/config/helium/slack-open-links-external;
+
+  xdg.configFile."net.imput.helium/NativeMessagingHosts/${slackOpenLinksExternalHostName}.json".text =
+    builtins.toJSON slackOpenLinksExternalNativeHostManifest + "\n";
+
+  home.file.".local/bin/slack-open-link-external-native-host" = {
+    source = ../systems/deimos/bin/slack-open-link-external-native-host;
+    executable = true;
+  };
+
   xdg.desktopEntries.slack = {
     name = "Slack";
-    exec = "uwsm-app -- helium --app=https://app.slack.com/client/";
+    exec = "uwsm-app -- helium --load-extension=${slackOpenLinksExternalExtensionPath} --app=https://app.slack.com/client/";
     icon = "slacky";
     terminal = false;
     type = "Application";

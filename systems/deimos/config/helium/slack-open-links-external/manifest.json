@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Slack Open Links External",
+  "version": "1.0.0",
+  "description": "Open links clicked in the Slack web app with the system default browser.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5fGGp9sja37g+jtOYzjXYD1Ikeew/FACmI+XZsDSvDdrFRJFr+jpqIQS61nC0IyHv0LCC8jv/fuOJdIClrl9V0mwRGupU//fbrX33E61k92LmOyj+bRpxrUfqIjzWQ5xwvWLepFP60qNk0XYvcRFdnEN8k3SbORttL9AvShDhecDbxW8y7J92kCgAy/vog7Cb0FkRnMtvha8S79y/jcRsGB282tO09D6ZTyGIw9vnb3aiZ0h8KqyUQi1qOUMW10tFryQVWbjTUHTqWgIWwpDk8Ht2Ib27S1LYhDM2wxOYyheo9ffoDnWjrR42Pl0t9yJLev5nw7dwkq6Qn52nexi3wIDAQAB",
+  "permissions": [
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://app.slack.com/*",
+    "https://*.slack.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://app.slack.com/*",
+        "https://*.slack.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://app.slack.com/*",
+        "https://*.slack.com/*"
+      ],
+      "js": [
+        "page.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}
