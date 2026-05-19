@@ -116,6 +116,15 @@ in
     categories = [ "Network" "InstantMessaging" ];
   };
 
+  xdg.desktopEntries.spotify = {
+    name = "Spotify";
+    exec = "uwsm-app -- helium --app=https://open.spotify.com/";
+    icon = "spotify";
+    terminal = false;
+    type = "Application";
+    categories = [ "Music" ];
+  };
+
   xdg.desktopEntries.teams = {
     name = "Teams";
     exec = "uwsm-app -- helium --app=https://teams.cloud.microsoft/";
