@@ -6,6 +6,7 @@ local terminal = "ghostty"
 local launcher = "fuzzel"
 local browser = "zen-browser"
 local lock_cmd = "uwsm app -- hyprlock --immediate-render"
+local resize_step = 50
 
 hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 
@@ -26,6 +27,23 @@ hl.bind(main_mod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
 hl.bind(main_mod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
 hl.bind(main_mod .. " + SHIFT + H", hl.dsp.window.move({ direction = "left" }))
 hl.bind(main_mod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))
+
+hl.bind(main_mod .. " + R", hl.dsp.submap("resize"))
+hl.define_submap("resize", function()
+  hl.bind("Left", hl.dsp.window.resize({ x = -resize_step, y = 0, relative = true }), {
+    ignore_mods = true,
+    repeating = true,
+  })
+  hl.bind("Right", hl.dsp.window.resize({ x = resize_step, y = 0, relative = true }), {
+    ignore_mods = true,
+    repeating = true,
+  })
+  hl.bind("R", hl.dsp.submap("reset"), {
+    ignore_mods = true,
+    release = true,
+  })
+  hl.bind("Escape", hl.dsp.submap("reset"))
+end)
 
 hl.bind(main_mod .. " + CTRL + J", hl.dsp.layout("preselect d"))
 hl.bind(main_mod .. " + CTRL + K", hl.dsp.layout("preselect u"))
