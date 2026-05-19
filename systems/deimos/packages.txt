@@ -51,10 +51,12 @@ gstreamer1-plugins-good
 gstreamer1-plugins-ugly
 gstreamer1-plugins-ugly-free
 mozilla-openh264
+widevine-installer
 
 # Misc
 1password-cli
 zen-browser
+opera-stable
 ghostty
 bluez
 gnome-keyring

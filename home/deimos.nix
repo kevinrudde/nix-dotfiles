@@ -34,6 +34,8 @@ in
 
   services.ssh-agent.enable = true;
 
+  programs.ghostty.settings.mouse-scroll-multiplier = "precision:0.1,discrete:1";
+
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -88,5 +90,28 @@ in
     terminal = false;
     type = "Application";
     categories = [ "Network" "InstantMessaging" ];
+  };
+
+  xdg.desktopEntries.teams = {
+    name = "Teams";
+    exec = "uwsm-app -- helium --app=https://teams.cloud.microsoft/";
+    icon = "teams";
+    terminal = false;
+    type = "Application";
+    categories = [ "Network" "InstantMessaging" ];
+  };
+
+  xdg.desktopEntries.steam = {
+    name = "Steam";
+    comment = "Play games";
+    exec = "/home/kevin/.config/nix-dotfiles/systems/deimos/bin/steam %U";
+    icon = "steam";
+    terminal = false;
+    type = "Application";
+    categories = [ "Game" ];
+    settings = {
+      TryExec = "/home/kevin/.config/nix-dotfiles/systems/deimos/bin/steam";
+      StartupWMClass = "steam";
+    };
   };
 }

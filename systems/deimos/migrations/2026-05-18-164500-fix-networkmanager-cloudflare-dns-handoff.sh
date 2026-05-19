@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Migration: Configure Cloudflare DNS globally through NetworkManager
+# Migration: Fix NetworkManager Cloudflare DNS handoff to systemd-resolved
 # Host: deimos
 #
-# Fedora manages DNS through NetworkManager and systemd-resolved. Keep DNS on
-# the NetworkManager profiles rather than [global-dns]; global-dns overrides
-# connection-specific DNS and does not reliably publish per-link DNS to
-# systemd-resolved on deimos.
+# The earlier Cloudflare DNS migration wrote a NetworkManager [global-dns]
+# section. NetworkManager documents that global DNS overrides per-connection
+# DNS, and on deimos that left systemd-resolved without the expected per-link
+# DNS after restart. Keep the DNS settings on the Ethernet/Wi-Fi profiles and
+# make NetworkManager publish those profile settings to resolved.
 
 host="${DOTFILES_MIGRATION_HOST:?missing host}"
 
@@ -21,12 +22,17 @@ if ! command -v nmcli >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v resolvectl >/dev/null 2>&1; then
+  echo "resolvectl is not installed. systemd-resolved is required for this migration." >&2
+  exit 1
+fi
+
 networkmanager_config="/etc/NetworkManager/conf.d/90-cloudflare-dns.conf"
 tmp_config="$(mktemp)"
 trap 'rm -f "$tmp_config"' EXIT
 
 cat > "$tmp_config" <<'EOF'
-# Managed by nix-dotfiles: deimos global DNS.
+# Managed by nix-dotfiles: deimos DNS.
 [main]
 dns=systemd-resolved
 EOF
@@ -72,6 +78,8 @@ for device in "${active_physical_devices[@]}"; do
     continue
   fi
 
+  sudo resolvectl revert "$device" || true
+
   if sudo nmcli device reapply "$device"; then
     echo "Reapplied active NetworkManager device $device"
   else
@@ -84,5 +92,5 @@ if [[ "$reapply_failed" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Installed $networkmanager_config"
+echo "Installed $networkmanager_config without NetworkManager global-dns override"
 echo "Configured DNS servers: 1.1.1.1, 1.0.0.1"
