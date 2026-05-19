@@ -44,6 +44,7 @@ tooltip label {
 #cpu,
 #memory,
 #custom-power-usage,
+#custom-notification,
 #battery,
 #network,
 #clock,
@@ -58,7 +59,8 @@ tooltip label {
 
 #custom-launcher,
 #custom-power,
-#idle_inhibitor {
+#idle_inhibitor,
+#custom-notification {
   min-width: 18px;
   padding: 0 9px;
 }
@@ -130,6 +132,11 @@ tooltip label {
 
 #custom-power-usage {
   color: @foreground;
+}
+
+#custom-notification {
+  color: @primary;
+  font-size: 18px;
 }
 
 #network.disconnected,

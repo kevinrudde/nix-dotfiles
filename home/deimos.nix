@@ -21,7 +21,7 @@ in
   imports = [
     ./default.nix
     ./features/hypr
-    ./features/mako
+    ./features/swaync
     ./features/waybar
   ];
 

@@ -20,7 +20,7 @@ nerd-fonts
 # Core Wayland desktop tools
 foot
 fuzzel
-mako
+SwayNotificationCenter
 wireplumber
 wl-clipboard
 grim

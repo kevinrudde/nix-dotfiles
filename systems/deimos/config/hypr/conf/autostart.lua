@@ -1,7 +1,7 @@
 hl.on("hyprland.start", function()
   hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
   hl.exec_cmd("uwsm finalize WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XCURSOR_SIZE XCURSOR_THEME SSH_AUTH_SOCK")
-  hl.exec_cmd("uwsm app -- mako")
+  hl.exec_cmd("uwsm app -- swaync")
   hl.exec_cmd("uwsm app -- waybar")
   hl.exec_cmd("uwsm app -- nwg-dock-hyprland -d -p bottom -a center -i 44 -mb 10 -ml 10 -mr 10 -hd 30 -c fuzzel -ico view-app-grid-symbolic")
   hl.exec_cmd("uwsm app -- hypridle")
