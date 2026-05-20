@@ -7,6 +7,8 @@ let
   slackOpenLinksExternalHostName = "dev.kevin.slack_open_links_external";
   slackOpenLinksExternalExtensionPath = "${config.xdg.configHome}/helium/extensions/slack-open-links-external";
   slackOpenLinksExternalNativeHostPath = "${config.home.homeDirectory}/.local/bin/slack-open-link-external-native-host";
+  widevinePath = "/var/lib/widevine/WidevineCdm";
+  spotifyChromiumProfilePath = "${config.xdg.configHome}/chromium-spotify";
   slackOpenLinksExternalNativeHostManifest = {
     name = slackOpenLinksExternalHostName;
     description = "Open links clicked in the Slack web app with the system default browser.";
@@ -102,6 +104,11 @@ in
   xdg.configFile."net.imput.helium/NativeMessagingHosts/${slackOpenLinksExternalHostName}.json".text =
     builtins.toJSON slackOpenLinksExternalNativeHostManifest + "\n";
 
+  xdg.configFile."chromium-spotify/WidevineCdm/latest-component-updated-widevine-cdm" = {
+    text = builtins.toJSON { Path = widevinePath; } + "\n";
+    force = true;
+  };
+
   home.file.".local/bin/slack-open-link-external-native-host" = {
     source = ./deimos/bin/slack-open-link-external-native-host;
     executable = true;
@@ -123,7 +130,7 @@ in
 
   xdg.desktopEntries.spotify = {
     name = "Spotify";
-    exec = "uwsm-app -- helium --app=https://open.spotify.com/";
+    exec = "uwsm-app -- chromium-browser --user-data-dir=${spotifyChromiumProfilePath} --app=https://open.spotify.com/";
     icon = "spotify";
     terminal = false;
     type = "Application";
