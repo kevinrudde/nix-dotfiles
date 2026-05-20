@@ -5,8 +5,8 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/rebuild-system.sh [--host HOST] [--user USER] [--repo DIR]
 
-Runs host-specific native package sync, migrations, and then applies the
-matching system/home config for the current platform.
+Runs host-specific native package sync, migrations, host config sync, and then
+applies the matching system/home config for the current platform.
 EOF
 }
 
@@ -90,6 +90,8 @@ case "$(uname -s)" in
     sync_linux_native_packages
     echo ""
     "$repo_root/scripts/migrate.sh" --host "$host"
+    echo ""
+    "$repo_root/scripts/sync-host-config.sh" --host "$host" --repo "$repo_root"
     echo ""
 
     if command -v nh >/dev/null 2>&1; then

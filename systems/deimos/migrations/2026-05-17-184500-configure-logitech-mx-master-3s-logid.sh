@@ -16,7 +16,7 @@ if [[ "$host" != "deimos" ]]; then
   exit 1
 fi
 
-logid_config="${repo_root}/systems/deimos/config/logid/logid.cfg"
+logid_config="${repo_root}/systems/deimos/rootfs/etc/logid.cfg"
 
 if ! command -v logid >/dev/null 2>&1; then
   echo "logid is not installed. Run scripts/rebuild-system.sh so native packages sync before migrations." >&2

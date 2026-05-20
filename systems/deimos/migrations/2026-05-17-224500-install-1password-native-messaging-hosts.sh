@@ -16,8 +16,8 @@ if [[ "$host" != "deimos" ]]; then
   exit 1
 fi
 
-firefox_native_host_src="$repo_root/systems/deimos/config/1password/firefox-native-messaging-host.json"
-chromium_native_host_src="$repo_root/systems/deimos/config/1password/chromium-native-messaging-host.json"
+firefox_native_host_src="$repo_root/systems/deimos/rootfs/usr/lib/mozilla/native-messaging-hosts/com.1password.1password.json"
+chromium_native_host_src="$repo_root/systems/deimos/rootfs/etc/chromium/native-messaging-hosts/com.1password.1password.json"
 native_host_name="com.1password.1password.json"
 
 for native_host_src in "$firefox_native_host_src" "$chromium_native_host_src"; do

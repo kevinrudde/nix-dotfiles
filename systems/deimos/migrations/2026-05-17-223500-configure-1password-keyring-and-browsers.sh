@@ -15,10 +15,10 @@ if [[ "$host" != "deimos" ]]; then
   exit 1
 fi
 
-custom_browsers_src="$repo_root/systems/deimos/config/1password/custom_allowed_browsers"
+custom_browsers_src="$repo_root/systems/deimos/rootfs/etc/1password/custom_allowed_browsers"
 custom_browsers_target="/etc/1password/custom_allowed_browsers"
-firefox_native_host_src="$repo_root/systems/deimos/config/1password/firefox-native-messaging-host.json"
-chromium_native_host_src="$repo_root/systems/deimos/config/1password/chromium-native-messaging-host.json"
+firefox_native_host_src="$repo_root/systems/deimos/rootfs/usr/lib/mozilla/native-messaging-hosts/com.1password.1password.json"
+chromium_native_host_src="$repo_root/systems/deimos/rootfs/etc/chromium/native-messaging-hosts/com.1password.1password.json"
 native_host_name="com.1password.1password.json"
 install_dir="/opt/1Password"
 

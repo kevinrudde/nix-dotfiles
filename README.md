@@ -56,6 +56,8 @@ Common host-owned files live under `systems/<hostname>/`:
 - `dnf-release-rpms.txt`: optional Fedora repository release RPMs installed before package install
 - `dnf-enabled-repos.txt`: optional Fedora repository IDs enabled before package install
 - `migrations/`: timestamped host migration scripts
+- `rootfs/`: optional always-run root filesystem overlay installed by `rebuild-system`
+- `sync-config-post.sh`: optional hook called after the root filesystem overlay syncs
 - `default.nix`: optional system module for hosts that have one
 
 ## Host Migrations
@@ -94,7 +96,9 @@ The script version also works before your shell aliases are loaded:
 ~/.config/nix-dotfiles/scripts/rebuild-system.sh
 ```
 
-On Linux it runs host migrations and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
+On Linux it runs host migrations, refreshes always-run host config, and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
+
+If `systems/<hostname>/rootfs/` exists, Linux rebuilds copy its files into `/` after migrations and before Home Manager. Use it for root-owned host config files that should be refreshed on every rebuild instead of only once through a stamped migration. For example, `systems/deimos/rootfs/etc/logid.cfg` installs to `/etc/logid.cfg`. If `systems/<hostname>/sync-config-post.sh` exists, it receives the changed target list in `DOTFILES_SYNC_CHANGED_TARGETS_FILE` and can restart affected services.
 
 To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.templates/host-migration.sh.template` into `systems/<hostname>/migrations/` and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
 

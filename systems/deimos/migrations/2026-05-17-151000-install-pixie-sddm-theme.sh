@@ -20,7 +20,7 @@ theme_repo="https://github.com/xCaptaiN09/pixie-sddm.git"
 theme_ref="v3.0"
 theme_commit="12a5f459ebd6d699be42c188c10976c8bb7076d7"
 theme_dir="/usr/share/sddm/themes/${theme_name}"
-sddm_config="${repo_root}/systems/deimos/config/sddm/20-deimos.conf"
+sddm_config="${repo_root}/systems/deimos/rootfs/etc/sddm.conf.d/20-deimos.conf"
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git is required to install the Pixie SDDM theme." >&2

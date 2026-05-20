@@ -20,7 +20,7 @@ fi
 launcher="${repo_root}/systems/deimos/bin/start-hyprland-session.sh"
 public_launcher="/usr/local/bin/start-hyprland-deimos-session"
 lua_config="${repo_root}/systems/deimos/config/hypr/hyprland.lua"
-sddm_config="${repo_root}/systems/deimos/config/sddm/20-deimos.conf"
+sddm_config="${repo_root}/systems/deimos/rootfs/etc/sddm.conf.d/20-deimos.conf"
 session_entry="/usr/local/share/wayland-sessions/hyprland-deimos-uwsm.desktop"
 
 if ! command -v sddm >/dev/null 2>&1; then
