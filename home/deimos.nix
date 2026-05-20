@@ -97,13 +97,18 @@ in
   ];
 
   xdg.configFile."helium/extensions/slack-open-links-external".source =
-    ../systems/deimos/config/helium/slack-open-links-external;
+    ./deimos/helium/slack-open-links-external;
 
   xdg.configFile."net.imput.helium/NativeMessagingHosts/${slackOpenLinksExternalHostName}.json".text =
     builtins.toJSON slackOpenLinksExternalNativeHostManifest + "\n";
 
   home.file.".local/bin/slack-open-link-external-native-host" = {
-    source = ../systems/deimos/bin/slack-open-link-external-native-host;
+    source = ./deimos/bin/slack-open-link-external-native-host;
+    executable = true;
+  };
+
+  home.file.".local/bin/steam-deimos" = {
+    source = ./deimos/bin/steam;
     executable = true;
   };
 
@@ -137,13 +142,13 @@ in
   xdg.desktopEntries.steam = {
     name = "Steam";
     comment = "Play games";
-    exec = "/home/kevin/.config/nix-dotfiles/systems/deimos/bin/steam %U";
+    exec = "${config.home.homeDirectory}/.local/bin/steam-deimos %U";
     icon = "steam";
     terminal = false;
     type = "Application";
     categories = [ "Game" ];
     settings = {
-      TryExec = "/home/kevin/.config/nix-dotfiles/systems/deimos/bin/steam";
+      TryExec = "${config.home.homeDirectory}/.local/bin/steam-deimos";
       StartupWMClass = "steam";
     };
   };
