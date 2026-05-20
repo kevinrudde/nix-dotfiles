@@ -64,7 +64,6 @@ gnome-keyring-pam
 curl
 openssl
 logid
-vicinae
 nvim
 btop
 helium-bin
