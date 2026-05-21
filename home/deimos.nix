@@ -73,6 +73,40 @@ in
     monitor.bluez.properties = {
       bluez5.dummy-avrcp-player = true
     }
+
+    monitor.bluez.rules = [
+      {
+        matches = [
+          {
+            device.name = "bluez_card.74_15_F5_21_E1_26"
+          }
+        ]
+        actions = {
+          update-props = {
+            session.dont-restore-off-profile = true
+          }
+        }
+      }
+    ]
+
+    device.profile.priority.rules = [
+      {
+        matches = [
+          {
+            device.name = "bluez_card.74_15_F5_21_E1_26"
+          }
+        ]
+        actions = {
+          update-props = {
+            priorities = [
+              "a2dp-sink-sbc_xq"
+              "a2dp-sink"
+              "a2dp-sink-sbc"
+            ]
+          }
+        }
+      }
+    ]
   '';
 
   qt = {
