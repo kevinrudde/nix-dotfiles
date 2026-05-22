@@ -17,6 +17,7 @@
     ./features/go
     ./features/php
     ./features/k9s
+    ./features/claude
   ];
 
   # This value determines the Home Manager release that your configuration is

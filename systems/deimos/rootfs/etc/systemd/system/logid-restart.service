@@ -1,0 +1,8 @@
+[Unit]
+Description=Restart logid after a Logitech HID++ device appears
+After=logid.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sleep 1
+ExecStart=/usr/bin/systemctl try-restart logid.service

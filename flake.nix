@@ -22,6 +22,11 @@
     catppuccin.url = "github:catppuccin/nix";
 
     mac-app-util.url = "github:hraban/mac-app-util";
+
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -34,6 +39,7 @@
     , sops-nix
     , catppuccin
     , mac-app-util
+    , nixgl
     , ...
     }:
     let
@@ -41,7 +47,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv;
+          inherit sops-nix catppuccin mac-app-util devenv nixgl;
         };
       };
       mkPkgs = system: import nixpkgs {

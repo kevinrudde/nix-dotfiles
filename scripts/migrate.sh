@@ -50,14 +50,7 @@ while (($# > 0)); do
 done
 
 if [[ -z "$migrations_dir" ]]; then
-  host_migrations_dir="$repo_root/systems/$host/migrations"
-  legacy_host_migrations_dir="$repo_root/migrations/system/$host"
-
-  if [[ -d "$host_migrations_dir" ]]; then
-    migrations_dir="$host_migrations_dir"
-  elif [[ -d "$legacy_host_migrations_dir" ]]; then
-    migrations_dir="$legacy_host_migrations_dir"
-  fi
+  migrations_dir="$repo_root/systems/$host/migrations"
 fi
 
 if [[ -z "$state_dir" ]]; then

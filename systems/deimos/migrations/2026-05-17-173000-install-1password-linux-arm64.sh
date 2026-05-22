@@ -8,13 +8,6 @@ set -euo pipefail
 # but not the desktop 1password package. The desktop app is installed from
 # 1Password's official signed arm64 tarball.
 
-host="${DOTFILES_MIGRATION_HOST:?missing host}"
-
-if [[ "$host" != "deimos" ]]; then
-  echo "This migration is for deimos, but the active host is $host" >&2
-  exit 1
-fi
-
 case "$(uname -m)" in
   aarch64|arm64)
     archive_arch="aarch64"

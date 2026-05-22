@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec "/home/kevin/.config/nix-dotfiles/systems/deimos/bin/start-hyprland-session.sh" "$@"

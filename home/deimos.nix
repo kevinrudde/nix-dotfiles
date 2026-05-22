@@ -38,6 +38,7 @@ in
     ./features/hypr
     ./features/swaync
     ./features/waybar
+    ./features/librepods
   ];
 
   home.username = "kevin";

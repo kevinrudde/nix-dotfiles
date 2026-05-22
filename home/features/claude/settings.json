@@ -1,0 +1,117 @@
+{
+  "theme": "auto",
+  "permissions": {
+    "defaultMode": "default",
+
+    "allow": [
+      "Edit",
+      "Write",
+
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
+      "Bash(jq *)",
+
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+
+      "Bash(npm *)",
+      "Bash(pnpm *)",
+      "Bash(yarn *)",
+      "Bash(bun *)",
+
+      "Bash(node *)",
+      "Bash(npx *)",
+
+      "Bash(python *)",
+      "Bash(pytest *)",
+      "Bash(pip *)",
+
+      "Bash(go *)",
+      "Bash(cargo *)",
+      "Bash(make *)",
+      "Bash(task *)",
+      "Bash(just *)",
+
+      "Bash(docker ps *)",
+      "Bash(docker images *)",
+      "Bash(docker logs *)",
+      "Bash(docker exec *)",
+      "Bash(docker compose ps *)",
+      "Bash(docker compose logs *)",
+
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(kubectl top *)",
+      "Bash(kubectl explain *)",
+      "Bash(kubectl config current-context)",
+      "Bash(kubectl config get-contexts *)",
+
+      "Bash(helm list *)",
+      "Bash(helm status *)"
+    ],
+
+    "ask": [
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+
+      "Bash(sudo *)",
+
+      "Bash(git push *)",
+      "Bash(git reset *)",
+      "Bash(git clean *)",
+      "Bash(git restore *)",
+      "Bash(git rebase *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git stash drop *)",
+      "Bash(git branch -D *)",
+      "Bash(git tag -d *)",
+
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)",
+      "Bash(docker stop *)",
+      "Bash(docker kill *)",
+      "Bash(docker compose down *)",
+
+      "Bash(kubectl apply *)",
+      "Bash(kubectl create *)",
+      "Bash(kubectl edit *)",
+      "Bash(kubectl patch *)",
+      "Bash(kubectl replace *)",
+      "Bash(kubectl scale *)",
+      "Bash(kubectl delete *)",
+      "Bash(kubectl rollout restart *)",
+
+      "Bash(helm install *)",
+      "Bash(helm upgrade *)",
+      "Bash(helm rollback *)",
+      "Bash(helm uninstall *)"
+    ],
+
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)"
+    ]
+  }
+}

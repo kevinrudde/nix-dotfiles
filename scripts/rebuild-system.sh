@@ -94,6 +94,12 @@ case "$(uname -s)" in
     "$repo_root/scripts/sync-host-config.sh" --host "$host" --repo "$repo_root"
     echo ""
 
+    apply_state="$repo_root/systems/$host/apply-system-state.sh"
+    if [[ -x "$apply_state" ]]; then
+      "$apply_state"
+      echo ""
+    fi
+
     if command -v nh >/dev/null 2>&1; then
       nh home switch "$repo_root"
     else
