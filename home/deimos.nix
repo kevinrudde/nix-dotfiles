@@ -148,11 +148,6 @@ in
     executable = true;
   };
 
-  home.file.".local/bin/steam-deimos" = {
-    source = ./deimos/bin/steam;
-    executable = true;
-  };
-
   xdg.desktopEntries.slack = {
     name = "Slack";
     exec = "uwsm-app -- helium --load-extension=${slackOpenLinksExternalExtensionPath} --app=https://app.slack.com/client/";
@@ -183,13 +178,13 @@ in
   xdg.desktopEntries.steam = {
     name = "Steam";
     comment = "Play games";
-    exec = "${config.home.homeDirectory}/.local/bin/steam-deimos %U";
+    exec = "/usr/bin/muvm ${config.home.homeDirectory}/.local/share/Steam/steamrtarm64/steam %U";
     icon = "steam";
     terminal = false;
     type = "Application";
     categories = [ "Game" ];
     settings = {
-      TryExec = "${config.home.homeDirectory}/.local/bin/steam-deimos";
+      TryExec = "/usr/bin/muvm";
       StartupWMClass = "steam";
     };
   };
