@@ -89,6 +89,8 @@ hl.bind("XF86Launch6", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%+"), {
 })
 
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("uwsm app -- playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("uwsm app -- playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioStop", hl.dsp.exec_cmd("uwsm app -- playerctl stop"), { locked = true })
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("uwsm app -- playerctl next"), { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("uwsm app -- playerctl previous"), { locked = true })
 
