@@ -1,0 +1,6 @@
+# Managed by nix-dotfiles for deimos.
+# 1Password checks the browser process executable basename.
+helium
+zen-bin
+zen-browser
+zen

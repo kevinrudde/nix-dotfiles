@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # https://github.com/DeterminateSystems/determinate/releases
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.20.0";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.21.0";
 
     nix-darwin.url = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -22,6 +22,11 @@
     catppuccin.url = "github:catppuccin/nix";
 
     mac-app-util.url = "github:hraban/mac-app-util";
+
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -34,6 +39,7 @@
     , sops-nix
     , catppuccin
     , mac-app-util
+    , nixgl
     , ...
     }:
     let
@@ -41,7 +47,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv;
+          inherit sops-nix catppuccin mac-app-util devenv nixgl;
         };
       };
       mkPkgs = system: import nixpkgs {
@@ -89,10 +95,10 @@
           extraSpecialArgs = extraArgs;
         };
 
-        # Arch-based Linux host
+        # Fedora-based Linux host (Asahi)
         "kevin@deimos" = home-manager.lib.homeManagerConfiguration {
           modules = [ ./home/deimos.nix ];
-          pkgs = mkPkgs "x86_64-linux";
+          pkgs = mkPkgs "aarch64-linux";
           extraSpecialArgs = extraArgs;
         };
       };

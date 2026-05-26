@@ -51,8 +51,13 @@ The repository is organized by responsibility:
 
 Common host-owned files live under `systems/<hostname>/`:
 
-- `packages.txt`: native packages installed through `paru`
+- `packages.txt`: native packages installed by the host package sync script
+- `copr-repos.txt`: optional Fedora COPR repositories enabled before package install
+- `dnf-release-rpms.txt`: optional Fedora repository release RPMs installed before package install
+- `dnf-enabled-repos.txt`: optional Fedora repository IDs enabled before package install
 - `migrations/`: timestamped host migration scripts
+- `rootfs/`: optional always-run root filesystem overlay installed by `rebuild-system`
+- `sync-config-post.sh`: optional hook called after the root filesystem overlay syncs
 - `default.nix`: optional system module for hosts that have one
 
 ## Host Migrations
@@ -91,25 +96,62 @@ The script version also works before your shell aliases are loaded:
 ~/.config/nix-dotfiles/scripts/rebuild-system.sh
 ```
 
-On Linux it runs host migrations and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
+On Linux it runs host migrations, refreshes always-run host config, and then applies the matching Home Manager configuration for `<user>@<hostname>`. On macOS it runs host migrations and then applies the matching nix-darwin configuration for `<hostname>`. This keeps migrations out of Home Manager activation and makes rebuilds the single entrypoint.
+
+If `systems/<hostname>/rootfs/` exists, Linux rebuilds copy its files into `/` after migrations and before Home Manager. Use it for root-owned host config files that should be refreshed on every rebuild instead of only once through a stamped migration. For example, `systems/deimos/rootfs/etc/logid.cfg` installs to `/etc/logid.cfg`. If `systems/<hostname>/sync-config-post.sh` exists, it receives the changed target list in `DOTFILES_SYNC_CHANGED_TARGETS_FILE` and can restart affected services.
 
 To add a new migration, use `./scripts/new-migration.sh` or copy `migrations/.templates/host-migration.sh.template` into `systems/<hostname>/migrations/` and rename it to a timestamped `.sh` file. Keep each migration idempotent so it is safe even if you need to clear state and re-run it during development. These migrations run as the invoking user; if something truly needs root, keep that escalation explicit inside the migration itself, like the `intel-lpmd` example for `deimos`, instead of silently running the whole migration stream as `root`.
 
 ## Host Native Packages
 
-Linux hosts can define native packages managed through `paru` in:
+Linux hosts can define native packages in:
 ```bash
 systems/<hostname>/packages.txt
 ```
 
 Put one package name per line. Empty lines and `#` comments are ignored.
 
-During `rebuild-system`, Linux hosts run:
+During `rebuild-system`, Linux hosts choose a native package sync backend from the current distro:
+
+- Arch/Cachy-based hosts use `./scripts/paru-sync.sh`
+- Fedora hosts use `./scripts/fedora-packages-sync.sh`
+
+Fedora hosts can also define COPR repositories in:
 ```bash
-./scripts/paru-sync.sh --host <hostname>
+systems/<hostname>/copr-repos.txt
 ```
 
-If there is no package file for a host, the sync step is skipped.
+Put one COPR repository per line, such as `owner/project` or `@group/project`. The Fedora sync enables these repositories before installing packages with `dnf`. Empty lines and `#` comments are ignored.
+
+Fedora hosts can install repository release RPMs before package installation with:
+```bash
+systems/<hostname>/dnf-release-rpms.txt
+```
+
+Put one release RPM per line as `<installed-package-name> <rpm-url>`. The placeholder `{fedora}` is expanded with `rpm -E %fedora`.
+
+Fedora hosts can enable existing DNF repository IDs before package installation with:
+```bash
+systems/<hostname>/dnf-enabled-repos.txt
+```
+
+Put one repository ID per line, such as `fedora-cisco-openh264`.
+
+Fedora hosts can define signed vendor RPM repositories with:
+```bash
+systems/<hostname>/rpm-keys.txt
+systems/<hostname>/dnf-repos/*.repo
+```
+
+Put one RPM signing key URL or file path per line in `rpm-keys.txt`. Repository files are installed into `/etc/yum.repos.d/` before installing packages.
+
+You can run the sync scripts manually:
+```bash
+./scripts/paru-sync.sh --host <hostname>
+./scripts/fedora-packages-sync.sh --host <hostname>
+```
+
+If there are no native package, Fedora COPR, RPM key, or DNF repository definitions for a host, the sync step is skipped.
  
 ## MacOS Settings
 

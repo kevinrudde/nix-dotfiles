@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Hyprland (UWSM, deimos)
+Comment=Hyprland session managed by Universal Wayland Session Manager
+TryExec=/usr/local/bin/start-hyprland-deimos-session
+Exec=/usr/local/bin/start-hyprland-deimos-session
+Type=Application
+DesktopNames=Hyprland

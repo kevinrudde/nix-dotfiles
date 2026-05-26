@@ -1,7 +1,9 @@
 { pkgs, inputs, ... }:
 
 let
+  lib = pkgs.lib;
   system = pkgs.stdenv.hostPlatform.system;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 in
 {
 
@@ -14,7 +16,6 @@ in
     sops
     nh
 
-    _1password-cli
     jq
     gnused
     ripgrep
@@ -52,5 +53,7 @@ in
     awscli2
 
     kind
+  ] ++ lib.optionals isDarwin [
+    _1password-cli
   ];
 }

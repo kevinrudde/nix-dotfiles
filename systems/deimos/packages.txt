@@ -1,11 +1,26 @@
+# One Fedora package name per line.
+# COPR repositories are defined in copr-repos.txt and enabled before install.
+
 # Hyprland / UWSM session
 hyprland
 uwsm
 
+# Display manager
+sddm
+weston
+
+# SDDM theme dependencies
+qt6-qtdeclarative
+qt6-qtsvg
+
+# Fonts
+jetbrains-mono-fonts
+nerd-fonts
+
 # Core Wayland desktop tools
 foot
 fuzzel
-mako
+SwayNotificationCenter
 wireplumber
 wl-clipboard
 grim
@@ -14,11 +29,78 @@ brightnessctl
 playerctl
 
 # Hypr ecosystem
+hyprland-guiutils
 hypridle
 hyprlock
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
+waybar
+nautilus
 
 # Qt Wayland support
-qt5-wayland
-qt6-wayland
+qt5-qtwayland
+qt6-qtwayland
+
+# Multimedia codecs
+ffmpeg
+gstreamer1-plugin-libav
+gstreamer1-plugin-openh264
+gstreamer1-plugins-bad-free
+gstreamer1-plugins-bad-freeworld
+gstreamer1-plugins-good
+gstreamer1-plugins-ugly
+gstreamer1-plugins-ugly-free
+mozilla-openh264
+widevine-installer
+
+# Misc
+1password-cli
+zen-browser
+opera-stable
+ghostty
+bluez
+gnome-keyring
+gnome-keyring-pam
+curl
+openssl
+logid
+nvim
+btop
+helium-bin
+tailscale
+mysql8.0
+
+# Docker Engine (from docker-ce.repo)
+docker-ce
+docker-ce-cli
+containerd.io
+docker-buildx-plugin
+docker-compose-plugin
+
+# Build tools
+golang
+cargo
+patch
+openssl-devel
+openssl-devel-engine
+dbus-devel
+gobject-introspection-devel
+gtk3-devel
+gtk-layer-shell-devel
+libxkbcommon-devel
+pkgconf-pkg-config
+pulseaudio-libs-devel
+gcc
+gcc-c++
+make
+bc
+git
+ncurses-devel
+flex
+bison 
+elfutils-libelf-devel
+rust
+rust-src
+bindgen-cli
+clang
+llvm
