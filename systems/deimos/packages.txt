@@ -20,7 +20,6 @@ nerd-fonts
 # Core Wayland desktop tools
 foot
 fuzzel
-SwayNotificationCenter
 wireplumber
 wl-clipboard
 grim
@@ -32,9 +31,9 @@ playerctl
 hyprland-guiutils
 hypridle
 hyprlock
+quickshell
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
-waybar
 nautilus
 
 # Qt Wayland support

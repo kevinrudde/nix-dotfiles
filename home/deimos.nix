@@ -36,8 +36,7 @@ in
   imports = [
     ./default.nix
     ./features/hypr
-    ./features/swaync
-    ./features/waybar
+    ./features/quickshell
     ./features/librepods
   ];
 

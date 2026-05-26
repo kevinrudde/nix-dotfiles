@@ -8,4 +8,4 @@ sneexy/zen-browser
 che/nerd-fonts
 scottames/ghostty
 imput/helium
-erikreider/SwayNotificationCenter
+errornointernet/quickshell
