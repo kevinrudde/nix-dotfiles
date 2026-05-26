@@ -3,7 +3,7 @@ hl.config({
 		kb_layout = "de",
 		follow_mouse = 1,
 		touchpad = {
-			natural_scroll = true,
+			natural_scroll = false,
 			tap_to_click = true,
 			disable_while_typing = true,
 		},
