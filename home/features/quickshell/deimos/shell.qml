@@ -38,6 +38,7 @@ Scope {
   property bool notificationsDnd: false
   property string submap: ""
   property bool volumeOsdOpen: false
+  property var expandedNotificationGroups: ({})
   property var toastDeadlines: ({})
   property var toastNotifications: []
   readonly property int notificationCount: notificationServer.trackedNotifications ? notificationServer.trackedNotifications.values.length : 0
@@ -584,6 +585,23 @@ Scope {
     notification.dismiss();
   }
 
+  function closeNotificationCenter() {
+    root.notificationCenterOpen = false;
+    root.expandedNotificationGroups = ({});
+  }
+
+  function dismissNotificationGroup(group) {
+    const notifications = group && group.notifications ? group.notifications.slice() : [];
+
+    for (let index = 0; index < notifications.length; index += 1) {
+      root.dismissNotification(notifications[index]);
+    }
+
+    if (group && group.key) {
+      root.setNotificationGroupExpanded(group.key, false);
+    }
+  }
+
   function clearNotifications() {
     const notifications = Array.from(notificationServer.trackedNotifications.values);
 
@@ -592,7 +610,101 @@ Scope {
     }
 
     root.toastNotifications = [];
-    root.notificationCenterOpen = false;
+    root.closeNotificationCenter();
+  }
+
+  function notificationAppName(notification) {
+    const appName = notification ? String(notification.appName || "").trim() : "";
+    const desktopEntry = notification ? String(notification.desktopEntry || "").trim() : "";
+
+    if (appName !== "") {
+      return appName;
+    }
+
+    if (desktopEntry !== "") {
+      return desktopEntry;
+    }
+
+    return "Notifications";
+  }
+
+  function notificationGroupKey(notification) {
+    const desktopEntry = notification ? String(notification.desktopEntry || "").trim().toLowerCase() : "";
+    if (desktopEntry !== "") {
+      return desktopEntry;
+    }
+
+    return root.notificationAppName(notification).toLowerCase();
+  }
+
+  function notificationGroupExpanded(key) {
+    return !!(key && root.expandedNotificationGroups[key]);
+  }
+
+  function setNotificationGroupExpanded(key, expanded) {
+    if (!key) {
+      return;
+    }
+
+    const next = Object.assign({}, root.expandedNotificationGroups);
+
+    if (expanded) {
+      next[key] = true;
+    } else {
+      delete next[key];
+    }
+
+    root.expandedNotificationGroups = next;
+  }
+
+  function toggleNotificationGroup(group) {
+    if (!group || !group.notifications || group.notifications.length < 2) {
+      return;
+    }
+
+    root.setNotificationGroupExpanded(group.key, !root.notificationGroupExpanded(group.key));
+  }
+
+  function notificationGroups() {
+    const notifications = notificationServer.trackedNotifications ? notificationServer.trackedNotifications.values : [];
+    const groupsByKey = {};
+    const groups = [];
+
+    for (let index = 0; index < notifications.length; index += 1) {
+      const notification = notifications[index];
+      const key = root.notificationGroupKey(notification);
+      let group = groupsByKey[key];
+
+      if (!group) {
+        group = {
+          key: key,
+          appName: root.notificationAppName(notification),
+          critical: false,
+          latestId: 0,
+          notifications: []
+        };
+        groupsByKey[key] = group;
+        groups.push(group);
+      }
+
+      group.notifications.push(notification);
+      group.latestId = Math.max(group.latestId, notification ? notification.id : 0);
+      group.critical = group.critical || !!(notification && notification.urgency === NotificationUrgency.Critical);
+    }
+
+    groups.sort((left, right) => {
+      if (left.critical !== right.critical) {
+        return left.critical ? -1 : 1;
+      }
+
+      return right.latestId - left.latestId;
+    });
+
+    for (let groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
+      groups[groupIndex].notifications = groups[groupIndex].notifications.slice().sort((left, right) => (right ? right.id : 0) - (left ? left.id : 0));
+    }
+
+    return groups;
   }
 
   function nodeDisplayName(node) {
@@ -967,6 +1079,7 @@ Scope {
           }
         }
       }
+
     }
   }
 
@@ -1005,6 +1118,15 @@ Scope {
 
       Item {
         anchors.fill: parent
+
+        Item {
+          id: notificationPopupAnchor
+
+          width: 1
+          height: 1
+          anchors.top: parent.top
+          anchors.right: parent.right
+        }
 
         Row {
           id: leftModules
@@ -1241,6 +1363,8 @@ Scope {
           }
 
           Pill {
+            id: notificationPill
+
             text: root.notificationText
             fontSize: 17
             foreground: root.notificationsDnd ? root.muted : root.primary
@@ -2365,6 +2489,350 @@ Scope {
           }
         }
       }
+
+      PopupWindow {
+        id: notificationCenterPopup
+
+        visible: root.notificationCenterOpen && root.popupScreen === modelData
+        implicitWidth: 420
+        implicitHeight: Math.min(notificationCenterStack.implicitHeight, Math.max(0, modelData.height - 72))
+        color: "transparent"
+        grabFocus: true
+
+        onVisibleChanged: {
+          if (!visible && root.popupScreen === modelData) {
+            root.closeNotificationCenter();
+          }
+        }
+
+        anchor {
+          item: notificationPopupAnchor
+          edges: Edges.Top | Edges.Right
+          gravity: Edges.Top | Edges.Right
+          adjustment: PopupAdjustment.Slide | PopupAdjustment.FlipY
+          margins.top: 50
+          margins.right: 0
+        }
+
+        surfaceFormat {
+          opaque: false
+        }
+
+        Flickable {
+          anchors.fill: parent
+          contentHeight: notificationCenterStack.implicitHeight
+          clip: true
+          interactive: notificationCenterStack.implicitHeight > height
+
+          Column {
+            id: notificationCenterStack
+
+            width: parent.width
+            spacing: 6
+
+            Rectangle {
+              width: parent.width
+              height: 28
+              color: root.backgroundStrong
+              border.color: root.primary
+              border.width: 1
+              radius: 8
+
+              RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 8
+                spacing: 7
+
+                Text {
+                  Layout.fillWidth: true
+                  text: root.notificationCount === 1 ? "1 notification" : root.notificationCount + " notifications"
+                  color: root.foreground
+                  elide: Text.ElideRight
+                  font.family: root.fontFamily
+                  font.pixelSize: 12
+                  font.bold: true
+                  textFormat: Text.PlainText
+                }
+
+                Text {
+                  text: root.notificationsDnd ? "DND on" : "DND off"
+                  color: centerDndArea.containsMouse ? root.foreground : (root.notificationsDnd ? root.muted : root.primary)
+                  font.family: root.fontFamily
+                  font.pixelSize: 12
+                  font.bold: true
+                  textFormat: Text.PlainText
+
+                  MouseArea {
+                    id: centerDndArea
+
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    onClicked: {
+                      root.notificationsDnd = !root.notificationsDnd;
+                      root.toastNotifications = [];
+                    }
+                  }
+                }
+
+                Text {
+                  text: "clear"
+                  visible: root.notificationCount > 0
+                  color: centerClearArea.containsMouse ? root.foreground : root.primary
+                  font.family: root.fontFamily
+                  font.pixelSize: 12
+                  font.bold: true
+                  textFormat: Text.PlainText
+
+                  MouseArea {
+                    id: centerClearArea
+
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    onClicked: root.clearNotifications()
+                  }
+                }
+              }
+            }
+
+            Rectangle {
+              width: parent.width
+              height: 52
+              visible: root.notificationCount === 0
+              color: root.background
+              border.color: root.primary
+              border.width: 1
+              radius: 8
+
+              Text {
+                anchors.centerIn: parent
+                text: "No notifications"
+                color: root.muted
+                font.family: root.fontFamily
+                font.pixelSize: 13
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+            }
+
+            Repeater {
+              model: root.notificationGroups()
+
+              Column {
+                id: notificationGroup
+
+                readonly property var group: modelData
+                readonly property var latestNotification: group.notifications.length > 0 ? group.notifications[0] : null
+                readonly property bool expandable: group.notifications.length > 1
+                readonly property bool expanded: root.notificationGroupExpanded(group.key)
+
+                width: notificationCenterStack.width
+                spacing: 5
+
+                Rectangle {
+                  width: parent.width
+                  height: 28
+                  visible: notificationGroup.expanded
+                  color: root.activeBackground
+                  border.color: modelData.critical ? root.danger : root.primary
+                  border.width: 1
+                  radius: 8
+
+                  MouseArea {
+                    id: groupToggleArea
+
+                    anchors.fill: parent
+                    enabled: notificationGroup.expandable
+                    hoverEnabled: true
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: root.toggleNotificationGroup(notificationGroup.group)
+                  }
+
+                  RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 8
+                    spacing: 8
+
+                    Text {
+                      Layout.fillWidth: true
+                      text: modelData.appName
+                      color: root.foreground
+                      elide: Text.ElideRight
+                      font.family: root.fontFamily
+                      font.pixelSize: 12
+                      font.bold: true
+                      textFormat: Text.PlainText
+                    }
+
+                    Text {
+                      text: modelData.notifications.length === 1 ? "1 item" : modelData.notifications.length + " items"
+                      color: modelData.critical ? root.danger : root.muted
+                      font.family: root.fontFamily
+                      font.pixelSize: 11
+                      font.bold: true
+                      textFormat: Text.PlainText
+                    }
+
+                    Text {
+                      text: notificationGroup.expanded ? "collapse" : "expand"
+                      color: groupToggleArea.containsMouse ? root.foreground : root.primary
+                      font.family: root.fontFamily
+                      font.pixelSize: 11
+                      font.bold: true
+                      textFormat: Text.PlainText
+                    }
+
+                    Text {
+                      text: "clear"
+                      color: groupClearArea.containsMouse ? root.foreground : root.primary
+                      font.family: root.fontFamily
+                      font.pixelSize: 11
+                      font.bold: true
+                      textFormat: Text.PlainText
+
+                      MouseArea {
+                        id: groupClearArea
+
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        hoverEnabled: true
+                        onClicked: root.dismissNotificationGroup(modelData)
+                      }
+                    }
+                  }
+                }
+
+                Rectangle {
+                  id: collapsedGroupCard
+
+                  visible: notificationGroup.expandable && !notificationGroup.expanded
+                  width: parent.width
+                  height: visible ? Math.max(74, collapsedGroupContent.implicitHeight + 18) : 0
+                  color: root.background
+                  border.color: modelData.critical ? root.danger : root.primary
+                  border.width: 1
+                  radius: 8
+
+                  MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: mouse => {
+                      if (mouse.button === Qt.RightButton) {
+                        root.dismissNotificationGroup(notificationGroup.group);
+                      } else {
+                        root.toggleNotificationGroup(notificationGroup.group);
+                      }
+                    }
+                  }
+
+                  ColumnLayout {
+                    id: collapsedGroupContent
+
+                    anchors.fill: parent
+                    anchors.margins: 9
+                    spacing: 4
+
+                    RowLayout {
+                      Layout.fillWidth: true
+                      spacing: 8
+
+                      Text {
+                        Layout.fillWidth: true
+                        text: modelData.appName
+                        color: root.muted
+                        elide: Text.ElideRight
+                        font.family: root.fontFamily
+                        font.pixelSize: 11
+                        font.bold: true
+                        textFormat: Text.PlainText
+                      }
+
+                      Text {
+                        text: modelData.notifications.length + " grouped"
+                        color: modelData.critical ? root.danger : root.primary
+                        font.family: root.fontFamily
+                        font.pixelSize: 11
+                        font.bold: true
+                        textFormat: Text.PlainText
+                      }
+
+                      Text {
+                        text: "clear"
+                        color: collapsedGroupClearArea.containsMouse ? root.foreground : root.primary
+                        font.family: root.fontFamily
+                        font.pixelSize: 11
+                        font.bold: true
+                        textFormat: Text.PlainText
+
+                        MouseArea {
+                          id: collapsedGroupClearArea
+
+                          anchors.fill: parent
+                          anchors.margins: -6
+                          hoverEnabled: true
+                          onClicked: root.dismissNotificationGroup(modelData)
+                        }
+                      }
+                    }
+
+                    Text {
+                      Layout.fillWidth: true
+                      text: notificationGroup.latestNotification ? notificationGroup.latestNotification.summary : ""
+                      color: root.foreground
+                      elide: Text.ElideRight
+                      font.family: root.fontFamily
+                      font.pixelSize: 14
+                      font.bold: true
+                      maximumLineCount: 1
+                      textFormat: Text.PlainText
+                    }
+
+                    Text {
+                      Layout.fillWidth: true
+                      visible: text !== ""
+                      text: notificationGroup.latestNotification ? notificationGroup.latestNotification.body : ""
+                      color: root.foreground
+                      elide: Text.ElideRight
+                      font.family: root.fontFamily
+                      font.pixelSize: 13
+                      maximumLineCount: 2
+                      opacity: 0.84
+                      textFormat: Text.PlainText
+                      wrapMode: Text.Wrap
+                    }
+                  }
+                }
+
+                Repeater {
+                  model: notificationGroup.expanded || !notificationGroup.expandable ? notificationGroup.group.notifications : []
+
+                  NotificationCard {
+                    width: notificationGroup.width
+                    height: implicitHeight
+                    notification: modelData
+                    autoHide: false
+                    centerMode: true
+                    primary: root.primary
+                    background: root.background
+                    backgroundStrong: root.backgroundStrong
+                    foreground: root.foreground
+                    muted: root.muted
+                    warning: root.warning
+                    danger: root.danger
+                    fontFamily: root.fontFamily
+                    onDismissed: notification => root.dismissNotification(notification)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -2372,17 +2840,14 @@ Scope {
     model: Quickshell.screens
 
     PanelWindow {
-      id: notificationWindow
+      id: toastWindow
 
       required property var modelData
 
-      readonly property bool centerOpen: root.notificationCenterOpen && root.popupScreen === modelData
-      readonly property int itemCount: centerOpen ? root.notificationCount : root.toastNotifications.length
-
       screen: modelData
-      visible: centerOpen || root.toastNotifications.length > 0
+      visible: !root.notificationCenterOpen && root.toastNotifications.length > 0
       implicitWidth: 420
-      implicitHeight: Math.min(notificationStack.implicitHeight, screen.height - 72)
+      implicitHeight: Math.min(toastStack.implicitHeight, screen.height - 72)
       color: "transparent"
       exclusiveZone: 0
       aboveWindows: true
@@ -2403,111 +2868,23 @@ Scope {
 
       Flickable {
         anchors.fill: parent
-        contentHeight: notificationStack.implicitHeight
+        contentHeight: toastStack.implicitHeight
         clip: true
-        interactive: notificationStack.implicitHeight > height
+        interactive: toastStack.implicitHeight > height
 
         Column {
-          id: notificationStack
+          id: toastStack
 
           width: parent.width
           spacing: 6
 
-          Rectangle {
-            width: parent.width
-            height: 28
-            visible: notificationWindow.centerOpen
-            color: root.backgroundStrong
-            border.color: root.primary
-            border.width: 1
-            radius: 8
-
-            RowLayout {
-              anchors.fill: parent
-              anchors.leftMargin: 10
-              anchors.rightMargin: 8
-              spacing: 7
-
-              Text {
-                Layout.fillWidth: true
-                text: root.notificationCount === 1 ? "1 notification" : root.notificationCount + " notifications"
-                color: root.foreground
-                elide: Text.ElideRight
-                font.family: root.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                textFormat: Text.PlainText
-              }
-
-              Text {
-                text: root.notificationsDnd ? "DND on" : "DND off"
-                color: dndArea.containsMouse ? root.foreground : (root.notificationsDnd ? root.muted : root.primary)
-                font.family: root.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                textFormat: Text.PlainText
-
-                MouseArea {
-                  id: dndArea
-
-                  anchors.fill: parent
-                  anchors.margins: -6
-                  hoverEnabled: true
-                  onClicked: {
-                    root.notificationsDnd = !root.notificationsDnd;
-                    root.toastNotifications = [];
-                  }
-                }
-              }
-
-              Text {
-                text: "clear"
-                visible: root.notificationCount > 0
-                color: clearArea.containsMouse ? root.foreground : root.primary
-                font.family: root.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                textFormat: Text.PlainText
-
-                MouseArea {
-                  id: clearArea
-
-                  anchors.fill: parent
-                  anchors.margins: -6
-                  hoverEnabled: true
-                  onClicked: root.clearNotifications()
-                }
-              }
-            }
-          }
-
-          Rectangle {
-            width: parent.width
-            height: 52
-            visible: notificationWindow.centerOpen && root.notificationCount === 0
-            color: root.background
-            border.color: root.primary
-            border.width: 1
-            radius: 8
-
-            Text {
-              anchors.centerIn: parent
-              text: "No notifications"
-              color: root.muted
-              font.family: root.fontFamily
-              font.pixelSize: 13
-              font.bold: true
-              textFormat: Text.PlainText
-            }
-          }
-
           Repeater {
-            model: notificationWindow.centerOpen ? notificationServer.trackedNotifications : toastModel
+            model: toastModel
 
             NotificationCard {
               notification: modelData
-              autoHide: !notificationWindow.centerOpen
-              centerMode: notificationWindow.centerOpen
+              autoHide: true
+              centerMode: false
               primary: root.primary
               background: root.background
               backgroundStrong: root.backgroundStrong

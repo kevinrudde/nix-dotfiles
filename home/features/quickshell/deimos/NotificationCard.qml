@@ -18,6 +18,7 @@ Rectangle {
   property string fontFamily: "JetBrains Mono"
 
   signal dismissed(var notification)
+  signal clicked(var notification)
 
   function actionText(action) {
     if (!action || !action.text) {
@@ -83,10 +84,21 @@ Rectangle {
 
   MouseArea {
     anchors.fill: parent
-    acceptedButtons: Qt.LeftButton
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     cursorShape: card.defaultAction() ? Qt.PointingHandCursor : Qt.ArrowCursor
     hoverEnabled: true
-    onClicked: card.invokeDefaultAction()
+    onClicked: mouse => {
+      if (mouse.button === Qt.RightButton) {
+        card.dismissed(card.notification);
+        return;
+      }
+
+      if (card.defaultAction()) {
+        card.invokeDefaultAction();
+      } else {
+        card.clicked(card.notification);
+      }
+    }
   }
 
   ColumnLayout {
@@ -146,7 +158,7 @@ Rectangle {
       color: card.foreground
       elide: Text.ElideRight
       font.family: card.fontFamily
-      font.pixelSize: 13
+      font.pixelSize: 14
       font.bold: true
       maximumLineCount: 2
       textFormat: Text.PlainText
@@ -160,7 +172,7 @@ Rectangle {
       color: card.foreground
       elide: Text.ElideRight
       font.family: card.fontFamily
-      font.pixelSize: 12
+      font.pixelSize: 13
       maximumLineCount: card.centerMode ? 6 : 3
       opacity: 0.84
       textFormat: Text.PlainText
