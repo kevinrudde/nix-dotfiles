@@ -37,6 +37,7 @@ Scope {
   property bool notificationCenterOpen: false
   property bool notificationsDnd: false
   property string submap: ""
+  property bool volumeOsdOpen: false
   property var toastDeadlines: ({})
   property var toastNotifications: []
   readonly property int notificationCount: notificationServer.trackedNotifications ? notificationServer.trackedNotifications.values.length : 0
@@ -727,6 +728,15 @@ Scope {
     node.audio.muted = !node.audio.muted;
   }
 
+  function showVolumeOsd() {
+    if (!Pipewire.defaultAudioSink || !Pipewire.defaultAudioSink.audio) {
+      return;
+    }
+
+    root.volumeOsdOpen = true;
+    volumeOsdHideTimer.restart();
+  }
+
   function setCurrentAudioVolumeFromPosition(position, width) {
     if (width <= 0) {
       return;
@@ -853,12 +863,109 @@ Scope {
     objects: Pipewire.nodes.values
   }
 
+  PwObjectTracker {
+    objects: Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []
+  }
+
+  Connections {
+    target: Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio ? Pipewire.defaultAudioSink.audio : null
+
+    function onVolumesChanged() {
+      root.showVolumeOsd();
+    }
+
+    function onMutedChanged() {
+      root.showVolumeOsd();
+    }
+  }
+
   Connections {
     target: Hyprland
 
     function onRawEvent(event) {
       if (event.name === "submap") {
         root.submap = event.data === "default" ? "" : event.data;
+      }
+    }
+  }
+
+  Timer {
+    id: volumeOsdHideTimer
+
+    interval: 1100
+    repeat: false
+    onTriggered: root.volumeOsdOpen = false
+  }
+
+  LazyLoader {
+    active: root.volumeOsdOpen
+
+    PanelWindow {
+      implicitWidth: 360
+      implicitHeight: 58
+      color: "transparent"
+      exclusiveZone: 0
+      aboveWindows: true
+
+      anchors.top: true
+      margins.top: 56
+
+      surfaceFormat {
+        opaque: false
+      }
+
+      mask: Region {}
+
+      Rectangle {
+        anchors.fill: parent
+        color: root.backgroundStrong
+        border.color: root.primary
+        border.width: 1
+        radius: 8
+
+        RowLayout {
+          anchors.fill: parent
+          anchors.leftMargin: 12
+          anchors.rightMargin: 14
+          spacing: 10
+
+          Text {
+            text: root.audioIcon(root.audioMuted(Pipewire.defaultAudioSink), root.audioPercent(Pipewire.defaultAudioSink))
+            color: root.audioMuted(Pipewire.defaultAudioSink) ? root.muted : root.primary
+            font.family: root.fontFamily
+            font.pixelSize: 22
+            font.bold: true
+            textFormat: Text.PlainText
+          }
+
+          Rectangle {
+            Layout.fillWidth: true
+            height: 8
+            color: root.background
+            radius: 4
+
+            Rectangle {
+              anchors.left: parent.left
+              anchors.top: parent.top
+              anchors.bottom: parent.bottom
+              width: parent.width * root.audioPercent(Pipewire.defaultAudioSink) / 100
+              color: root.audioMuted(Pipewire.defaultAudioSink) ? root.muted : root.primary
+              radius: 4
+            }
+          }
+
+          Text {
+            width: 56
+            text: root.audioMuted(Pipewire.defaultAudioSink) ? "muted" : root.audioPercent(Pipewire.defaultAudioSink) + "%"
+            color: root.audioMuted(Pipewire.defaultAudioSink) ? root.muted : root.foreground
+            elide: Text.ElideRight
+            font.family: root.fontFamily
+            font.pixelSize: 13
+            font.bold: true
+            horizontalAlignment: Text.AlignRight
+            textFormat: Text.PlainText
+          }
+        }
       }
     }
   }
