@@ -1,9 +1,11 @@
 import Quickshell
+import Quickshell.Bluetooth
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
+import Quickshell.Services.UPower
 import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
@@ -27,6 +29,7 @@ Scope {
   property bool audioPopupOpen: false
   property string audioPopupMode: "output"
   property bool bluetoothPopupOpen: false
+  property bool batteryPopupOpen: false
   property bool networkPopupOpen: false
   property string networkPasswordSsid: ""
   property var popupScreen: null
@@ -41,23 +44,9 @@ Scope {
   readonly property string notificationText: notificationCount > 0 ? notificationCount + " " + notificationIcon : notificationIcon
   property var status: ({
     backlight: 0,
-    audio: {
-      text: "--% ",
-      sourceMuted: false
-    },
-    bluetooth: {
-      text: "",
-      powered: false,
-      connected: false,
-      count: 0
-    },
     network: {
       text: "",
       connected: false
-    },
-    battery: {
-      text: "--% ",
-      class: "missing"
     },
     clock: ""
   })
@@ -66,11 +55,6 @@ Scope {
     activeWifi: "",
     wired: [],
     wifi: []
-  })
-  property var bluetoothState: ({
-    powered: false,
-    discovering: false,
-    devices: []
   })
 
   function run(command) {
@@ -101,24 +85,12 @@ Scope {
     }
   }
 
-  function setBluetoothState(text) {
-    try {
-      root.bluetoothState = JSON.parse(text);
-    } catch (error) {
-      console.log("quickshell bluetooth parse failed: " + error);
-    }
-  }
-
   function wiredConnections() {
     return root.networkState && root.networkState.wired ? root.networkState.wired : [];
   }
 
   function wifiNetworks() {
     return root.networkState && root.networkState.wifi ? root.networkState.wifi : [];
-  }
-
-  function bluetoothDevices() {
-    return root.bluetoothState && root.bluetoothState.devices ? root.bluetoothState.devices : [];
   }
 
   function lastStatusToken(text, fallback) {
@@ -132,24 +104,191 @@ Scope {
   }
 
   function compactAudioText() {
-    if (String(root.status.audio.text).indexOf("muted") === 0) {
-      return "";
-    }
-
-    return root.lastStatusToken(root.status.audio.text, "");
+    const node = Pipewire.defaultAudioSink;
+    return root.audioIcon(root.audioMuted(node), root.audioPercent(node));
   }
 
   function compactBluetoothText() {
-    return root.status.bluetooth && root.status.bluetooth.powered ? "" : "󰂲";
+    return root.bluetoothPowered() ? "" : "󰂲";
   }
 
-  function refreshBluetooth(scan) {
-    if (bluetoothProc.running) {
-      return;
+  function batteryDevice() {
+    const devices = UPower.devices && UPower.devices.values ? UPower.devices.values : [];
+    for (let index = 0; index < devices.length; index += 1) {
+      const device = devices[index];
+      if (device && device.isLaptopBattery && device.isPresent) {
+        return device;
+      }
     }
 
-    bluetoothProc.command = scan ? [Quickshell.shellDir + "/scripts/bluetooth-status.sh", "--scan"] : [Quickshell.shellDir + "/scripts/bluetooth-status.sh"];
-    bluetoothProc.running = true;
+    return UPower.displayDevice;
+  }
+
+  function batteryReady() {
+    const device = root.batteryDevice();
+    return !!(device && device.ready && device.isPresent);
+  }
+
+  function batteryPercent() {
+    const device = root.batteryDevice();
+    const rawPercent = Number(device && device.ready ? device.percentage : 0) || 0;
+    return root.clampPercent(rawPercent > 0 && rawPercent <= 1 ? rawPercent * 100 : rawPercent);
+  }
+
+  function batteryIcon() {
+    const device = root.batteryDevice();
+    const percent = root.batteryPercent();
+
+    if (!root.batteryReady()) {
+      return "";
+    }
+
+    if (device.state === UPowerDeviceState.Charging || device.state === UPowerDeviceState.PendingCharge) {
+      return "";
+    }
+
+    if (percent >= 80) {
+      return "";
+    }
+
+    if (percent >= 60) {
+      return "";
+    }
+
+    if (percent >= 40) {
+      return "";
+    }
+
+    if (percent >= 20) {
+      return "";
+    }
+
+    return "";
+  }
+
+  function batteryText() {
+    if (!root.batteryReady()) {
+      return "--% " + root.batteryIcon();
+    }
+
+    return root.batteryPercent() + "% " + root.batteryIcon();
+  }
+
+  function batteryForeground() {
+    if (!root.batteryReady()) {
+      return root.muted;
+    }
+
+    const percent = root.batteryPercent();
+    if (percent <= 15) {
+      return root.danger;
+    }
+
+    if (percent <= 30) {
+      return root.warning;
+    }
+
+    return root.success;
+  }
+
+  function batteryStateText() {
+    const device = root.batteryDevice();
+    if (!root.batteryReady()) {
+      return "Unavailable";
+    }
+
+    switch (device.state) {
+    case UPowerDeviceState.Charging:
+      return "Charging";
+    case UPowerDeviceState.Discharging:
+      return "Discharging";
+    case UPowerDeviceState.FullyCharged:
+      return "Full";
+    case UPowerDeviceState.PendingCharge:
+      return "Waiting to charge";
+    case UPowerDeviceState.PendingDischarge:
+      return "Waiting to discharge";
+    case UPowerDeviceState.Empty:
+      return "Empty";
+    default:
+      return UPower.onBattery ? "On battery" : "On AC";
+    }
+  }
+
+  function formatBatteryDuration(seconds) {
+    const value = Math.round(Number(seconds) || 0);
+    if (value <= 0) {
+      return "";
+    }
+
+    const minutes = Math.max(1, Math.round(value / 60));
+    const hours = Math.floor(minutes / 60);
+    const remainder = minutes % 60;
+
+    if (hours <= 0) {
+      return minutes + "m";
+    }
+
+    return hours + "h " + (remainder < 10 ? "0" : "") + remainder + "m";
+  }
+
+  function batteryTimeText() {
+    const device = root.batteryDevice();
+    if (!root.batteryReady()) {
+      return "Unknown";
+    }
+
+    if (device.state === UPowerDeviceState.FullyCharged) {
+      return "Full";
+    }
+
+    if (device.state === UPowerDeviceState.Charging || device.state === UPowerDeviceState.PendingCharge) {
+      const timeToFull = root.formatBatteryDuration(device.timeToFull);
+      return timeToFull === "" ? "Charging" : timeToFull + " to full";
+    }
+
+    if (device.state === UPowerDeviceState.Discharging || device.state === UPowerDeviceState.PendingDischarge || UPower.onBattery) {
+      const timeToEmpty = root.formatBatteryDuration(device.timeToEmpty);
+      return timeToEmpty === "" ? "Calculating" : timeToEmpty + " left";
+    }
+
+    return UPower.onBattery ? "Calculating" : "On AC";
+  }
+
+  function batteryRateText() {
+    const device = root.batteryDevice();
+    if (!root.batteryReady()) {
+      return "-- W";
+    }
+
+    const rate = Math.abs(Number(device.changeRate) || 0);
+    let suffix = "idle";
+
+    if (device.state === UPowerDeviceState.Charging || device.state === UPowerDeviceState.PendingCharge) {
+      suffix = "charge";
+    } else if (device.state === UPowerDeviceState.Discharging || device.state === UPowerDeviceState.PendingDischarge || UPower.onBattery) {
+      suffix = "draw";
+    }
+
+    return rate.toFixed(1) + " W " + suffix;
+  }
+
+  function batteryEnergyText() {
+    const device = root.batteryDevice();
+    if (!root.batteryReady() || !device.energyCapacity) {
+      return "Unknown";
+    }
+
+    return (Number(device.energy) || 0).toFixed(1) + " / " + (Number(device.energyCapacity) || 0).toFixed(1) + " Wh";
+  }
+
+  function batteryHealthText() {
+    const device = root.batteryDevice();
+    if (!root.batteryReady() || !device.healthSupported) {
+      return "";
+    }
+
+    return root.clampPercent(device.healthPercentage) + "% health";
   }
 
   function refreshNetwork(rescan) {
@@ -253,6 +392,94 @@ Scope {
     return "";
   }
 
+  function bluetoothAdapter() {
+    return Bluetooth.defaultAdapter;
+  }
+
+  function bluetoothPowered() {
+    const adapter = root.bluetoothAdapter();
+    return !!(adapter && adapter.enabled);
+  }
+
+  function bluetoothDiscovering() {
+    const adapter = root.bluetoothAdapter();
+    return !!(adapter && adapter.discovering);
+  }
+
+  function bluetoothDevices() {
+    const adapter = root.bluetoothAdapter();
+    const devices = adapter && adapter.devices && adapter.devices.values ? adapter.devices.values : [];
+
+    return devices.slice().sort((left, right) => {
+      const leftConnected = left && left.connected ? 0 : 1;
+      const rightConnected = right && right.connected ? 0 : 1;
+      if (leftConnected !== rightConnected) {
+        return leftConnected - rightConnected;
+      }
+
+      const leftPaired = left && (left.paired || left.bonded) ? 0 : 1;
+      const rightPaired = right && (right.paired || right.bonded) ? 0 : 1;
+      if (leftPaired !== rightPaired) {
+        return leftPaired - rightPaired;
+      }
+
+      return root.bluetoothDeviceName(left).localeCompare(root.bluetoothDeviceName(right));
+    });
+  }
+
+  function bluetoothConnectedDevices() {
+    return root.bluetoothDevices().filter(device => device && device.connected);
+  }
+
+  function bluetoothDeviceName(device) {
+    return device ? (device.name || device.deviceName || device.address || "Unknown") : "Unknown";
+  }
+
+  function bluetoothText() {
+    if (!root.bluetoothPowered()) {
+      return "󰂲";
+    }
+
+    const count = root.bluetoothConnectedDevices().length;
+    return count > 0 ? count + " " : "";
+  }
+
+  function bluetoothForeground() {
+    if (!root.bluetoothPowered()) {
+      return root.muted;
+    }
+
+    return root.bluetoothConnectedDevices().length > 0 ? root.success : root.primary;
+  }
+
+  function setBluetoothScanning(discovering) {
+    const adapter = root.bluetoothAdapter();
+    if (!adapter || !adapter.enabled) {
+      return;
+    }
+
+    adapter.discovering = discovering;
+
+    if (discovering) {
+      bluetoothScanTimer.restart();
+    } else {
+      bluetoothScanTimer.stop();
+    }
+  }
+
+  function toggleBluetoothPower() {
+    const adapter = root.bluetoothAdapter();
+    if (!adapter) {
+      return;
+    }
+
+    if (adapter.enabled) {
+      bluetoothScanTimer.stop();
+    }
+
+    adapter.enabled = !adapter.enabled;
+  }
+
   function bluetoothDetail(device) {
     if (!device) {
       return "";
@@ -262,7 +489,9 @@ Scope {
 
     if (device.connected) {
       parts.push("connected");
-    } else if (device.paired) {
+    } else if (root.bluetoothDeviceBusy(device)) {
+      parts.push("busy");
+    } else if (device.paired || device.bonded) {
       parts.push("paired");
     } else {
       parts.push("new");
@@ -275,34 +504,39 @@ Scope {
     return parts.join(" · ");
   }
 
+  function bluetoothDeviceBusy(device) {
+    return !!(device && (device.pairing || device.state === BluetoothDeviceState.Connecting || device.state === BluetoothDeviceState.Disconnecting));
+  }
+
   function bluetoothActionText(device) {
-    if (!root.bluetoothState.powered) {
+    if (!root.bluetoothPowered()) {
       return "";
+    }
+
+    if (root.bluetoothDeviceBusy(device)) {
+      return "busy";
     }
 
     if (device.connected) {
       return "disconnect";
     }
 
-    return device.paired ? "connect" : "pair";
-  }
-
-  function runBluetoothAction(action, address) {
-    bluetoothActionProc.command = address ? [Quickshell.shellDir + "/scripts/bluetooth-action.sh", action, address] : [Quickshell.shellDir + "/scripts/bluetooth-action.sh", action];
-    bluetoothActionProc.running = true;
+    return device.paired || device.bonded ? "connect" : "pair";
   }
 
   function activateBluetoothDevice(device) {
-    if (!device || bluetoothActionProc.running || !root.bluetoothState.powered) {
+    if (!device || !root.bluetoothPowered() || device.blocked || root.bluetoothDeviceBusy(device)) {
       return;
     }
 
     if (device.connected) {
-      root.runBluetoothAction("disconnect", device.address);
-    } else if (device.paired) {
-      root.runBluetoothAction("connect", device.address);
+      device.disconnect();
+    } else if (device.paired || device.bonded) {
+      device.trusted = true;
+      device.connect();
     } else {
-      root.runBluetoothAction("pair", device.address);
+      device.trusted = true;
+      device.pair();
     }
   }
 
@@ -422,6 +656,85 @@ Scope {
     return current && node && current.id === node.id;
   }
 
+  function clampPercent(value) {
+    return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  }
+
+  function audioIcon(muted, percent) {
+    if (muted) {
+      return "";
+    }
+
+    if (percent < 30) {
+      return "";
+    }
+
+    if (percent < 70) {
+      return "";
+    }
+
+    return "";
+  }
+
+  function audioNode(mode) {
+    return mode === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource;
+  }
+
+  function currentAudioNode() {
+    return root.audioNode(root.audioPopupMode);
+  }
+
+  function audioPercent(node) {
+    return root.clampPercent(node && node.audio ? node.audio.volume * 100 : 0);
+  }
+
+  function audioMuted(node) {
+    return !!(node && node.audio && node.audio.muted);
+  }
+
+  function audioText(node) {
+    const muted = root.audioMuted(node);
+    const percent = root.audioPercent(node);
+    const icon = root.audioIcon(muted, percent);
+    return muted ? "muted " + icon : percent + "% " + icon;
+  }
+
+  function currentAudioPercent() {
+    return root.audioPercent(root.currentAudioNode());
+  }
+
+  function currentAudioMuted() {
+    return root.audioMuted(root.currentAudioNode());
+  }
+
+  function setAudioVolume(node, percent) {
+    if (!node || !node.audio) {
+      return;
+    }
+
+    node.audio.volume = root.clampPercent(percent) / 100;
+  }
+
+  function setCurrentAudioVolume(percent) {
+    root.setAudioVolume(root.currentAudioNode(), percent);
+  }
+
+  function toggleAudioMute(node) {
+    if (!node || !node.audio) {
+      return;
+    }
+
+    node.audio.muted = !node.audio.muted;
+  }
+
+  function setCurrentAudioVolumeFromPosition(position, width) {
+    if (width <= 0) {
+      return;
+    }
+
+    root.setCurrentAudioVolume(position * 100 / width);
+  }
+
   function selectAudioNode(node) {
     if (!node) {
       return;
@@ -432,8 +745,6 @@ Scope {
     } else {
       Pipewire.preferredDefaultAudioSource = node;
     }
-
-    refreshDelay.restart();
   }
 
   Process {
@@ -461,29 +772,10 @@ Scope {
   }
 
   Process {
-    id: bluetoothProc
-
-    command: [Quickshell.shellDir + "/scripts/bluetooth-status.sh"]
-    running: true
-    stdout: StdioCollector {
-      onStreamFinished: root.setBluetoothState(this.text)
-    }
-  }
-
-  Process {
     id: networkActionProc
 
     onExited: {
       root.refreshNetwork(false);
-      refreshDelay.restart();
-    }
-  }
-
-  Process {
-    id: bluetoothActionProc
-
-    onExited: {
-      root.refreshBluetooth(false);
       refreshDelay.restart();
     }
   }
@@ -493,6 +785,19 @@ Scope {
     repeat: true
     running: true
     onTriggered: root.refresh()
+  }
+
+  Timer {
+    id: bluetoothScanTimer
+
+    interval: 6000
+    repeat: false
+    onTriggered: {
+      const adapter = root.bluetoothAdapter();
+      if (adapter) {
+        adapter.discovering = false;
+      }
+    }
   }
 
   Timer {
@@ -754,8 +1059,8 @@ Scope {
           Pill {
             id: audioPill
 
-            text: root.rightExpanded ? root.status.audio.text : root.compactAudioText()
-            foreground: root.status.audio.text.indexOf("muted") === 0 ? root.muted : root.primary
+            text: root.rightExpanded ? root.audioText(Pipewire.defaultAudioSink) : root.compactAudioText()
+            foreground: root.audioMuted(Pipewire.defaultAudioSink) ? root.muted : root.primary
             background: root.background
             horizontalPadding: root.rightExpanded ? 10 : 8
             maxTextWidth: root.rightExpanded ? 120 : 20
@@ -765,33 +1070,32 @@ Scope {
                 root.popupScreen = modelData;
                 root.audioPopupOpen = true;
                 root.bluetoothPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.networkPopupOpen = false;
                 root.notificationCenterOpen = false;
               } else if (mouse.button === Qt.MiddleButton) {
-                root.run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle");
+                root.toggleAudioMute(Pipewire.defaultAudioSink);
               } else {
                 root.audioPopupMode = "output";
                 root.audioPopupOpen = !(root.audioPopupOpen && root.popupScreen === modelData);
                 root.popupScreen = modelData;
                 root.bluetoothPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.networkPopupOpen = false;
                 root.notificationCenterOpen = false;
               }
             }
             onWheel: wheel => {
-              if (wheel.angleDelta.y > 0) {
-                root.run("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+");
-              } else {
-                root.run("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-");
-              }
+              const delta = wheel.angleDelta.y > 0 ? 5 : -5;
+              root.setAudioVolume(Pipewire.defaultAudioSink, root.audioPercent(Pipewire.defaultAudioSink) + delta);
             }
           }
 
           Pill {
             id: bluetoothPill
 
-            text: root.rightExpanded ? root.status.bluetooth.text : root.compactBluetoothText()
-            foreground: root.status.bluetooth.connected ? root.success : root.status.bluetooth.powered ? root.primary : root.muted
+            text: root.rightExpanded ? root.bluetoothText() : root.compactBluetoothText()
+            foreground: root.bluetoothForeground()
             background: root.background
             horizontalPadding: root.rightExpanded ? 10 : 8
             maxTextWidth: root.rightExpanded ? 70 : 20
@@ -800,19 +1104,17 @@ Scope {
                 root.popupScreen = modelData;
                 root.bluetoothPopupOpen = true;
                 root.audioPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.networkPopupOpen = false;
                 root.notificationCenterOpen = false;
-                root.runBluetoothAction("scan");
+                root.setBluetoothScanning(true);
               } else {
                 root.bluetoothPopupOpen = !(root.bluetoothPopupOpen && root.popupScreen === modelData);
                 root.popupScreen = modelData;
                 root.audioPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.networkPopupOpen = false;
                 root.notificationCenterOpen = false;
-
-                if (root.bluetoothPopupOpen) {
-                  root.refreshBluetooth(false);
-                }
               }
             }
           }
@@ -847,17 +1149,28 @@ Scope {
                 root.popupScreen = modelData;
                 root.audioPopupOpen = false;
                 root.bluetoothPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.networkPopupOpen = false;
               }
             }
           }
 
           Pill {
-            text: root.rightExpanded ? root.status.battery.text : root.lastStatusToken(root.status.battery.text, "")
-            foreground: root.status.battery.class === "critical" ? root.danger : root.status.battery.class === "warning" ? root.warning : root.success
+            id: batteryPill
+
+            text: root.rightExpanded ? root.batteryText() : root.batteryIcon()
+            foreground: root.batteryForeground()
             background: root.background
             horizontalPadding: root.rightExpanded ? 10 : 8
             maxTextWidth: root.rightExpanded ? 100 : 20
+            onClicked: {
+              root.batteryPopupOpen = !(root.batteryPopupOpen && root.popupScreen === modelData);
+              root.popupScreen = modelData;
+              root.audioPopupOpen = false;
+              root.bluetoothPopupOpen = false;
+              root.networkPopupOpen = false;
+              root.notificationCenterOpen = false;
+            }
           }
 
           Pill {
@@ -874,6 +1187,7 @@ Scope {
                 root.networkPopupOpen = true;
                 root.audioPopupOpen = false;
                 root.bluetoothPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.notificationCenterOpen = false;
                 root.refreshNetwork(true);
               } else {
@@ -881,6 +1195,7 @@ Scope {
                 root.popupScreen = modelData;
                 root.audioPopupOpen = false;
                 root.bluetoothPopupOpen = false;
+                root.batteryPopupOpen = false;
                 root.notificationCenterOpen = false;
 
                 if (root.networkPopupOpen) {
@@ -891,12 +1206,11 @@ Scope {
           }
 
           Pill {
-            visible: root.rightExpanded
             text: root.status.clock
             foreground: root.primary
             background: root.background
-            horizontalPadding: 12
-            maxTextWidth: 180
+            horizontalPadding: 10
+            maxTextWidth: 110
           }
 
           Pill {
@@ -1008,6 +1322,108 @@ Scope {
                   anchors.fill: parent
                   hoverEnabled: true
                   onClicked: root.audioPopupMode = "input"
+                }
+              }
+            }
+
+            Rectangle {
+              width: parent.width
+              height: 56
+              color: root.background
+              border.color: root.activeBackground
+              border.width: 1
+              radius: 7
+
+              RowLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.topMargin: 8
+                height: 18
+                spacing: 8
+
+                Text {
+                  Layout.fillWidth: true
+                  text: root.audioPopupMode === "output" ? " Volume" : " Volume"
+                  color: root.foreground
+                  elide: Text.ElideRight
+                  font.family: root.fontFamily
+                  font.pixelSize: 12
+                  font.bold: true
+                  textFormat: Text.PlainText
+                }
+
+                Text {
+                  text: root.currentAudioMuted() ? "muted" : root.currentAudioPercent() + "%"
+                  color: root.currentAudioMuted() ? root.muted : root.primary
+                  font.family: root.fontFamily
+                  font.pixelSize: 12
+                  font.bold: true
+                  textFormat: Text.PlainText
+                }
+              }
+
+              Rectangle {
+                id: volumeSlider
+
+                readonly property int percent: root.currentAudioPercent()
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.bottomMargin: 8
+                height: 20
+                color: "transparent"
+
+                Rectangle {
+                  anchors.left: parent.left
+                  anchors.right: parent.right
+                  anchors.verticalCenter: parent.verticalCenter
+                  height: 4
+                  color: root.backgroundStrong
+                  radius: 2
+                }
+
+                Rectangle {
+                  anchors.left: parent.left
+                  anchors.verticalCenter: parent.verticalCenter
+                  width: parent.width * volumeSlider.percent / 100
+                  height: 4
+                  color: root.currentAudioMuted() ? root.muted : root.primary
+                  radius: 2
+                }
+
+                Rectangle {
+                  width: 14
+                  height: 14
+                  x: Math.max(0, Math.min(parent.width - width, parent.width * volumeSlider.percent / 100 - width / 2))
+                  y: Math.round((parent.height - height) / 2)
+                  color: volumeSliderArea.containsMouse ? root.foreground : root.primary
+                  border.color: root.backgroundStrong
+                  border.width: 1
+                  radius: 7
+                }
+
+                MouseArea {
+                  id: volumeSliderArea
+
+                  anchors.fill: parent
+                  anchors.margins: -6
+                  hoverEnabled: true
+                  onPressed: mouse => root.setCurrentAudioVolumeFromPosition(mouse.x, volumeSlider.width)
+                  onPositionChanged: mouse => {
+                    if (volumeSliderArea.pressed) {
+                      root.setCurrentAudioVolumeFromPosition(mouse.x, volumeSlider.width);
+                    }
+                  }
+                  onWheel: wheel => {
+                    const delta = wheel.angleDelta.y > 0 ? 5 : -5;
+                    root.setCurrentAudioVolume(root.currentAudioPercent() + delta);
+                  }
                 }
               }
             }
@@ -1162,8 +1578,8 @@ Scope {
               }
 
               Text {
-                text: root.bluetoothState.powered ? "on" : "off"
-                color: powerArea.containsMouse ? root.foreground : (root.bluetoothState.powered ? root.primary : root.muted)
+                text: root.bluetoothPowered() ? "on" : "off"
+                color: powerArea.containsMouse ? root.foreground : (root.bluetoothPowered() ? root.primary : root.muted)
                 font.family: root.fontFamily
                 font.pixelSize: 12
                 font.bold: true
@@ -1175,13 +1591,13 @@ Scope {
                   anchors.fill: parent
                   anchors.margins: -6
                   hoverEnabled: true
-                  onClicked: root.runBluetoothAction("power")
+                  onClicked: root.toggleBluetoothPower()
                 }
               }
 
               Text {
-                visible: root.bluetoothState.powered
-                text: bluetoothActionProc.running || bluetoothProc.running ? "busy" : "scan"
+                visible: root.bluetoothPowered()
+                text: root.bluetoothDiscovering() ? "busy" : "scan"
                 color: scanBluetoothArea.containsMouse ? root.foreground : root.primary
                 font.family: root.fontFamily
                 font.pixelSize: 12
@@ -1193,17 +1609,17 @@ Scope {
 
                   anchors.fill: parent
                   anchors.margins: -6
-                  enabled: !bluetoothActionProc.running
+                  enabled: !root.bluetoothDiscovering()
                   hoverEnabled: true
-                  onClicked: root.runBluetoothAction("scan")
+                  onClicked: root.setBluetoothScanning(true)
                 }
               }
             }
 
             Text {
               width: parent.width
-              visible: !root.bluetoothState.powered || root.bluetoothDevices().length === 0
-              text: root.bluetoothState.powered ? "No Bluetooth devices" : "Bluetooth disabled"
+              visible: !root.bluetoothPowered() || root.bluetoothDevices().length === 0
+              text: root.bluetoothPowered() ? "No Bluetooth devices" : "Bluetooth disabled"
               color: root.muted
               font.family: root.fontFamily
               font.pixelSize: 12
@@ -1213,12 +1629,12 @@ Scope {
             }
 
             Repeater {
-              model: root.bluetoothState.powered ? root.bluetoothDevices().slice(0, 10) : []
+              model: root.bluetoothPowered() ? root.bluetoothDevices().slice(0, 10) : []
 
               Rectangle {
                 readonly property string actionText: root.bluetoothActionText(modelData)
                 readonly property bool active: modelData.connected
-                readonly property bool usable: root.bluetoothState.powered && !bluetoothActionProc.running && !modelData.blocked
+                readonly property bool usable: root.bluetoothPowered() && !root.bluetoothDeviceBusy(modelData) && !modelData.blocked
 
                 width: bluetoothPopupContent.width
                 height: Math.max(38, bluetoothName.implicitHeight + bluetoothDetail.implicitHeight + 12)
@@ -1251,7 +1667,7 @@ Scope {
                     id: bluetoothName
 
                     width: parent.width
-                    text: modelData.name || modelData.address
+                    text: root.bluetoothDeviceName(modelData)
                     color: active ? root.foreground : usable ? root.primary : root.muted
                     elide: Text.ElideRight
                     font.family: root.fontFamily
@@ -1298,6 +1714,234 @@ Scope {
                   hoverEnabled: true
                   onClicked: root.activateBluetoothDevice(modelData)
                 }
+              }
+            }
+          }
+        }
+      }
+
+      PopupWindow {
+        id: batteryPopup
+
+        visible: root.batteryPopupOpen && root.popupScreen === modelData
+        implicitWidth: 340
+        implicitHeight: batteryPopupShell.implicitHeight
+        color: "transparent"
+        grabFocus: true
+
+        onVisibleChanged: {
+          if (!visible && root.popupScreen === modelData) {
+            root.batteryPopupOpen = false;
+          }
+        }
+
+        anchor {
+          item: batteryPill
+          edges: Edges.Bottom | Edges.Right
+          gravity: Edges.Bottom | Edges.Left
+          adjustment: PopupAdjustment.Slide | PopupAdjustment.FlipY
+          margins.top: 18
+        }
+
+        surfaceFormat {
+          opaque: false
+        }
+
+        Rectangle {
+          id: batteryPopupShell
+
+          implicitWidth: 340
+          implicitHeight: batteryPopupContent.implicitHeight + 16
+          color: root.backgroundStrong
+          border.color: root.primary
+          border.width: 1
+          radius: 8
+
+          Column {
+            id: batteryPopupContent
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 8
+            spacing: 8
+
+            RowLayout {
+              width: parent.width
+              height: 26
+              spacing: 8
+
+              Text {
+                Layout.fillWidth: true
+                text: "Battery"
+                color: root.foreground
+                elide: Text.ElideRight
+                font.family: root.fontFamily
+                font.pixelSize: 13
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                text: root.batteryStateText()
+                color: root.batteryForeground()
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+            }
+
+            Rectangle {
+              width: parent.width
+              height: 72
+              color: root.background
+              border.color: root.activeBackground
+              border.width: 1
+              radius: 7
+
+              Text {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.leftMargin: 12
+                anchors.topMargin: 10
+                text: root.batteryPercent() + "%"
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: 22
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.rightMargin: 12
+                anchors.topMargin: 13
+                text: root.batteryIcon()
+                color: root.batteryForeground()
+                font.family: root.fontFamily
+                font.pixelSize: 20
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+
+              Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.bottomMargin: 12
+                height: 8
+                color: root.backgroundStrong
+                radius: 4
+
+                Rectangle {
+                  anchors.left: parent.left
+                  anchors.top: parent.top
+                  anchors.bottom: parent.bottom
+                  width: parent.width * root.batteryPercent() / 100
+                  color: root.batteryForeground()
+                  radius: 4
+                }
+              }
+            }
+
+            RowLayout {
+              width: parent.width
+              height: 20
+              spacing: 8
+
+              Text {
+                Layout.fillWidth: true
+                text: "Power"
+                color: root.muted
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                text: root.batteryRateText()
+                color: root.primary
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+            }
+
+            RowLayout {
+              width: parent.width
+              height: 20
+              spacing: 8
+
+              Text {
+                Layout.fillWidth: true
+                text: "Time"
+                color: root.muted
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                text: root.batteryTimeText()
+                color: root.primary
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+            }
+
+            RowLayout {
+              width: parent.width
+              height: 20
+              spacing: 8
+
+              Text {
+                Layout.fillWidth: true
+                text: "Energy"
+                color: root.muted
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                text: root.batteryEnergyText()
+                color: root.primary
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.bold: true
+                textFormat: Text.PlainText
+              }
+            }
+
+            RowLayout {
+              visible: root.batteryHealthText() !== ""
+              width: parent.width
+              height: 20
+              spacing: 8
+
+              Text {
+                Layout.fillWidth: true
+                text: "Health"
+                color: root.muted
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                textFormat: Text.PlainText
+              }
+
+              Text {
+                text: root.batteryHealthText()
+                color: root.primary
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.bold: true
+                textFormat: Text.PlainText
               }
             }
           }
