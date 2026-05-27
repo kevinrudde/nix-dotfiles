@@ -78,7 +78,21 @@ in
       {
         matches = [
           {
-            device.name = "bluez_card.74_15_F5_21_E1_26"
+            node.name = "~bluez_output.*"
+            media.class = "Audio/Sink"
+          }
+        ]
+        actions = {
+          update-props = {
+            # Beat WirePlumber's +30000 boost for the previously configured sink.
+            priority.session = 40000
+          }
+        }
+      }
+      {
+        matches = [
+          {
+            device.api = "bluez5"
           }
         ]
         actions = {
