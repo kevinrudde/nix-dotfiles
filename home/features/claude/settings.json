@@ -1,5 +1,6 @@
 {
   "theme": "auto",
+  "tui": "fullscreen",
   "permissions": {
     "defaultMode": "default",
 
