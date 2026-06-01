@@ -63,6 +63,18 @@ if any_target_changed "${sysctl_changes[@]}"; then
   echo "Reloaded sysctl settings"
 fi
 
+if target_changed /etc/docker/daemon.json; then
+  # daemon.json pins container DNS to Cloudflare so the embedded resolver does
+  # not inherit the host's systemd-resolved loopback stub (127.0.0.53), which is
+  # unreachable from container netns and breaks in-cluster (k3d CoreDNS) lookups.
+  # A full restart is required; reload/SIGHUP does not re-apply DNS, and existing
+  # containers (the k3d cluster) only pick up the new resolv.conf on restart.
+  if systemctl is-active --quiet docker.service; then
+    run_as_root systemctl restart docker.service
+    echo "Restarted docker.service to apply daemon.json (container DNS)"
+  fi
+fi
+
 if systemctl cat logid.service >/dev/null 2>&1; then
   if ! systemctl is-enabled --quiet logid.service; then
     run_as_root systemctl enable logid.service
