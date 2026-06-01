@@ -29,6 +29,16 @@
   # release notes.
   home.stateVersion = "23.05"; # Please read the comment before changing.
 
+  # catppuccin/nix is switching `catppuccin.enable` into a global on/off toggle
+  # and introducing `catppuccin.autoEnable` for auto-enrolling all ports. GTK/Qt
+  # theming is configured manually (see home/deimos.nix), so keep auto-enroll off
+  # to avoid clobbering it; ports are opted into explicitly (e.g. catppuccin.k9s).
+  # Setting autoEnable explicitly also silences the migration warning.
+  catppuccin = {
+    enable = true;
+    autoEnable = false;
+  };
+
   home.sessionVariables = {
     EDITOR = "nvim";
   };
