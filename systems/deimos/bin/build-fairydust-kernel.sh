@@ -43,6 +43,11 @@ scripts/config --enable SPI_HID_APPLE_CORE
 scripts/config --enable RUST
 scripts/config --enable DRM_ASAHI
 
+# Broadcom HCI priority commands (30fcc498ff7c) deadlock the ordered HCI
+# workqueue when BT audio starts, freezing all BT traffic (e.g. BLE mouse).
+# Re-enable once the hci_cmd_sync call in hci_sched_acl_pkt is made async.
+scripts/config --disable BT_BRCMEXT
+
 scripts/config --module TYPEC_DP_ALTMODE
 scripts/config --module TYPEC_NVIDIA_ALTMODE
 scripts/config --module TYPEC_TBT_ALTMODE
