@@ -68,6 +68,7 @@ btop
 helium-bin
 tailscale
 mysql8.0
+dua-cli
 
 # Docker Engine (from docker-ce.repo)
 docker-ce
