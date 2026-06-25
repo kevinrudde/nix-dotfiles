@@ -77,7 +77,11 @@ in
 
   services.ssh-agent.enable = true;
 
-  programs.ghostty.settings.mouse-scroll-multiplier = "precision:0.1,discrete:1";
+  programs.ghostty.settings = {
+    mouse-scroll-multiplier = "precision:0.1,discrete:1";
+    quit-after-last-window-closed = true;
+    quit-after-last-window-closed-delay = "5m";
+  };
 
   programs.ssh = {
     enable = true;
@@ -94,6 +98,8 @@ in
     gtk4 = {
       theme = gtkTheme;
       iconTheme = iconTheme;
+      colorScheme = null;
+      extraConfig."gtk-interface-color-scheme" = "prefer-dark";
     };
   };
 

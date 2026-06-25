@@ -2,7 +2,7 @@ local main_mod = "ALT"
 
 local workspaces = require("conf.workspaces")
 
-local terminal = "ghostty"
+local terminal = "ghostty +new-window"
 local launcher = "fuzzel"
 local browser = "zen-browser"
 local lock_cmd = "uwsm app -- hyprlock --immediate-render"
@@ -10,7 +10,7 @@ local resize_step = 50
 
 hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 
-hl.bind(main_mod .. " + Return", hl.dsp.exec_cmd("uwsm app -- " .. terminal))
+hl.bind(main_mod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(main_mod .. " + D", hl.dsp.exec_cmd("uwsm app -- " .. launcher))
 hl.bind(main_mod .. " + B", hl.dsp.exec_cmd("uwsm app -- " .. browser))
 hl.bind(main_mod .. " + SHIFT + Q", hl.dsp.window.close())
