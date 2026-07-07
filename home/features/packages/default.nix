@@ -37,6 +37,7 @@ in
     btop
     ugrep
     bfs
+    rtk
 
     nodejs_24
 
