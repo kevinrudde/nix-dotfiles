@@ -65,7 +65,7 @@ in
     ./default.nix
     ./features/hypr
     ./features/quickshell
-    ./features/librepods
+    # ./features/librepods
   ];
 
   home.username = "kevin";
