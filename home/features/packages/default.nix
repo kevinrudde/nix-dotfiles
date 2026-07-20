@@ -38,6 +38,7 @@ in
     ugrep
     bfs
     rtk
+    natscli
 
     nodejs_24
 
