@@ -15,7 +15,7 @@
     ]
   },
   "permissions": {
-    "defaultMode": "default",
+    "defaultMode": "auto",
 
     "allow": [
       "Edit",
