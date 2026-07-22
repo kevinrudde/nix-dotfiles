@@ -8,6 +8,7 @@
     inputs.catppuccin.homeModules.catppuccin
     ./features/shell
     ./features/packages
+    ./features/mise
     ./features/git
     ./features/nvim
     ./features/secrets
@@ -18,6 +19,7 @@
     ./features/php
     ./features/k9s
     ./features/claude
+    ./features/pi
   ];
 
   # This value determines the Home Manager release that your configuration is

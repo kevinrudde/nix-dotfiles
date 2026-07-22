@@ -1,0 +1,6 @@
+{
+  "provider": "exa",
+  "allowBrowserCookies": false,
+  "workflow": "none",
+  "curatorTimeoutSeconds": 20
+}

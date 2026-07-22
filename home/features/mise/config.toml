@@ -1,0 +1,5 @@
+[tools]
+pi = "latest"
+pnpm = "latest"
+terraform = "latest"
+terragrunt = "latest"

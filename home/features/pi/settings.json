@@ -1,0 +1,15 @@
+{
+  "theme": "dark",
+  "externalEditor": "nvim",
+  "quietStartup": true,
+  "enableInstallTelemetry": false,
+  "enableAnalytics": false,
+  "defaultProjectTrust": "ask",
+  "enableSkillCommands": true,
+  "packages": [
+    "npm:pi-web-access@0.13.0",
+    "npm:pi-codex-goal@0.1.38",
+    "npm:pi-agent-browser-native@0.2.71",
+    "git:github.com/jonjonrankin/pi-caveman@v1.0.7"
+  ]
+}

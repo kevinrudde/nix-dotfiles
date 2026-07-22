@@ -69,9 +69,10 @@ in
       # Cargo
       fish_add_path $HOME/.cargo/bin
 
-      # Mise
-      if command -q mise
-        mise activate fish | source
+      # Mise: use Home Manager's profile package rather than a separately
+      # installed copy in ~/.local/bin.
+      if test -x $HOME/.nix-profile/bin/mise
+        $HOME/.nix-profile/bin/mise activate fish | source
       end
     '';
 

@@ -1,0 +1,4 @@
+- Read relevant local files first when the answer is available in the codebase. Otherwise, use pi-web-access to research online. Before making a substantial change based on online research, confirm with me first.
+- Explain risky file edits and destructive commands before executing them.
+- Write simply. Avoid flowery adjectives, unnecessary adverbs, and overly formal phrasing.
+- Use en dashes (–), not em dashes (—).
