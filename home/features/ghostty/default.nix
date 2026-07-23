@@ -32,7 +32,7 @@
         "super+c=text:\\x03"
         # super+shift+c for actual copy (since super+c is remapped to ctrl+c above)
         "super+shift+c=copy_to_clipboard"
-        "ctrl+v=paste_from_clipboard"
+        "performable:ctrl+v=paste_from_clipboard"
         # Option+arrows for word navigation
         "alt+left=text:\\x1bb"
         "alt+right=text:\\x1bf"
