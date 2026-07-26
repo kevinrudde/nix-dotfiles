@@ -1,5 +1,5 @@
 {
-  "theme": "dark",
+  "theme": "gh-dark",
   "externalEditor": "nvim",
   "quietStartup": true,
   "enableInstallTelemetry": false,
@@ -10,6 +10,12 @@
     "npm:pi-web-access@0.13.0",
     "npm:pi-codex-goal@0.1.38",
     "npm:pi-agent-browser-native@0.2.71",
-    "git:github.com/jonjonrankin/pi-caveman@v1.0.7"
+    "git:github.com/jonjonrankin/pi-caveman@v1.0.7",
+    "npm:@gotgenes/pi-permission-system@24.0.0",
+    "npm:@juicesharp/rpiv-ask-user-question@2.1.0",
+    "npm:@tintinweb/pi-subagents@0.14.3",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-gh-dark-theme@0.1.0",
+    "npm:pi-tool-display@0.5.0"
   ]
 }

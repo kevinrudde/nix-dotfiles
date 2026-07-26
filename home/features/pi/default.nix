@@ -19,5 +19,13 @@ in
     ".pi/agent/AGENTS.md".source = ./AGENTS.md;
     ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
     ".pi/web-search.json".source = ./web-search.json;
+    ".pi/agent/extensions/pi-permission-system/config.json" = {
+      source = ./extensions/pi-permission-system/config.json;
+      force = true;
+    };
+    ".pi/agent/extensions/pi-tool-display/config.json" = {
+      source = ./tool-display-config.json;
+      force = true;
+    };
   };
 }

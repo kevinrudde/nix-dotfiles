@@ -1,0 +1,13 @@
+{
+  "debug": false,
+  "enableNativeUserMessageBox": true,
+  "readOutputMode": "hidden",
+  "searchOutputMode": "hidden",
+  "mcpOutputMode": "hidden",
+  "bashOutputMode": "opencode",
+  "diffViewMode": "auto",
+  "diffIndicatorMode": "bars",
+  "diffWordWrap": true,
+  "showTruncationHints": false,
+  "showRtkCompactionHints": false
+}

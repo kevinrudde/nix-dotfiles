@@ -2,3 +2,4 @@
 - Explain risky file edits and destructive commands before executing them.
 - Write simply. Avoid flowery adjectives, unnecessary adverbs, and overly formal phrasing.
 - Use en dashes (–), not em dashes (—).
+- NEVER commit or push code unless the user explicitly asks for it. If asked, confirm with me first: "I'll commit/push. OK?". This is a hard rule, not a suggestion.

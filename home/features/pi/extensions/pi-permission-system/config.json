@@ -1,0 +1,24 @@
+{
+  "permission": {
+    "*": "allow",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "read": "allow",
+    "write": "allow",
+    "edit": "allow",
+    "bash": {
+      "*": "allow",
+      "*git commit*": "deny",
+      "*git push*": "deny",
+      "*rm -rf*": "deny",
+      "*rm -fr*": "deny",
+      "*sudo *": "deny",
+      "*curl * | *sh*": "deny",
+      "*curl * | bash*": "deny"
+    }
+  }
+}

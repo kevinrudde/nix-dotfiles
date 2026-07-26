@@ -21,8 +21,38 @@ packages downloaded by Pi under `~/.pi/agent/npm` or `~/.pi/agent/git`.
 - `rtk.ts` rewrites eligible Bash tool calls through RTK to reduce tool-output tokens.
 - `pi-caveman` is pinned to upstream `v1.0.7`; enable it with `/caveman`.
 - `minimal-footer.ts` is the pinned minimal-footer gist from the referenced setup.
+- `@juicesharp/rpiv-ask-user-question` adds an `ask_user_question` tool for interactive follow-ups.
+- `@tintinweb/pi-subagents` adds foreground/background subagents, parallel execution, steering, FleetView, and `/agents` management.
+- `@ff-labs/pi-fff` replaces `find`/`grep` with fast FFF-backed search and adds `@`-mention file autocomplete.
+- `pi-gh-dark-theme` supplies the `gh-dark` color theme.
+- `pi-tool-display` provides compact tool output, diffs, and native input box rendering.
+- `hetzner-inference.ts` registers Hetzner Inference's OpenAI-compatible API.
 
 `pi-cursor-sdk` and `pi-vision-proxy` are intentionally not installed.
+
+## Subagents and search
+
+Use `Agent` for foreground or background subagents. Use `/agents` to inspect running agents, steer them, resume sessions, configure the widget, or manage schedules. Existing `cavecrew` skills remain useful for compressed investigator/builder/reviewer delegation; `pi-subagents` supplies the runtime and UI.
+
+`pi-fff` registers `ffgrep`, `fffind`, and multi-grep tools. It can replace built-in search behavior and maintains ranked, git-aware results. Rebuild and restart Pi after changing packages so package resources load.
+
+## Permission System
+
+`@gotgenes/pi-permission-system` enforces tool and bash permissions. Config is managed in `extensions/pi-permission-system/config.json`.
+
+Defaults: `rm -rf` / `git commit` / `git push` are **denied**. All other bash commands prompt (`ask`). File reads auto-allowed. `.env` files denied.
+
+The permission-system config is managed by Home Manager (`extensions/pi-permission-system/config.json`). Any manual edits to `~/.pi/agent/extensions/pi-permission-system/config.json` are overwritten on rebuild. To customize, edit the source and rebuild.
+
+## Hetzner Inference
+
+Create token in [Hetzner Experiments](https://experiments.hetzner.com). After rebuilding, restart Pi and run:
+
+```text
+/login hetzner-inference
+```
+
+Pi prompts for token and stores it in runtime auth state (`~/.pi/agent/auth.json`), never `models.json`, repository, or Home-Manager store. Choose `hetzner-inference/Qwen/Qwen3.6-35B-A3B-FP8` with `/model`.
 
 ## Add a package
 
@@ -38,6 +68,9 @@ Add its pinned source to `settings.json`, for example:
 Rebuild Home Manager, then start Pi. Pi installs missing configured packages on
 startup. Use pinned npm versions and git tags/commits; do not use `pi install`,
 since it edits the Home-Manager-managed settings file.
+
+`pi-tool-display` config is managed at `tool-display-config.json`; manual edits
+under `~/.pi/agent/extensions/pi-tool-display/` are overwritten on rebuild.
 
 ## Write an extension
 
