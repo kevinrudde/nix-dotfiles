@@ -12,7 +12,6 @@
 
     taps = [
       "aws/tap"
-      "TheBoredTeam/boring-notch"
       "jackielii/tap"
     ];
 
@@ -34,12 +33,8 @@
     casks = [
       "orbstack"
       "hammerspoon"
-      "gitify"
-      "boring-notch"
       "calibre"
       "codex"
-      "beekeeper-studio"
-      "stats"
       "dbeaver-community"
       "t3-code"
     ];
