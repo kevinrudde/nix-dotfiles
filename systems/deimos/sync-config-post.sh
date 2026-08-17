@@ -56,6 +56,7 @@ fi
 sysctl_changes=(
   /etc/sysctl.d/99-k3d.conf
   /etc/sysctl.d/99-inotify.conf
+  /etc/sysctl.d/99-docker.conf
 )
 
 if any_target_changed "${sysctl_changes[@]}"; then
@@ -69,6 +70,8 @@ if target_changed /etc/docker/daemon.json; then
   # unreachable from container netns and breaks in-cluster (k3d CoreDNS) lookups.
   # A full restart is required; reload/SIGHUP does not re-apply DNS, and existing
   # containers (the k3d cluster) only pick up the new resolv.conf on restart.
+  # It also pins firewall-backend=nftables: firewalld 2.4 dropped the iptables
+  # backend, so the default backend fails with INVALID_IPV on bridge setup.
   if systemctl is-active --quiet docker.service; then
     run_as_root systemctl restart docker.service
     echo "Restarted docker.service to apply daemon.json (container DNS)"
