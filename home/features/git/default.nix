@@ -38,10 +38,10 @@
       promptToReturnFromSubprocess = false;
       git = {
         overrideGpg = true;
-        pagers = [
+        diffRenderers = [
           {
             colorArg = "always";
-            pager = "delta --dark --line-numbers --paging=never";
+            command = "delta --dark --line-numbers --paging=never";
           }
         ];
       };
