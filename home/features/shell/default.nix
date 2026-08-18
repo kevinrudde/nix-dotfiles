@@ -89,11 +89,21 @@ in
         tmux attach -t "$(tmux ls -F '#{session_name}:#{window_name}' | fzf)"
       '';
       awsx = ''
-        if test -z $AWSX_PROFILES
-            set -gx AWS_PROFILES (aws configure list-profiles | string split0)
+        # Cache the profile list for this shell only (not exported: child
+        # processes have no use for it).
+        if not set -q AWSX_PROFILES
+            set -g AWSX_PROFILES (aws configure list-profiles)
         end
 
-        set -gx AWS_PROFILE (echo $AWS_PROFILES | fzf)
+        set -l selected (printf '%s\n' $AWSX_PROFILES | fzf --prompt "aws profile> ")
+        if test -z "$selected"
+            echo "No profile selected, keeping $AWS_PROFILE"
+            return 1
+        end
+
+        # -g: current shell session only. Other shells and future sessions are
+        # untouched, and nothing is written to universal variables.
+        set -gx AWS_PROFILE $selected
 
         echo "Using profile: $AWS_PROFILE"
         aws sts get-caller-identity &> /dev/null
@@ -132,7 +142,15 @@ in
     enable = true;
 
     settings = {
-      aws.disabled = true;
+      aws = {
+        disabled = false;
+        # Without this starship hides the module unless static credentials are
+        # present; with SSO there are none, so gate on AWS_PROFILE instead.
+        force_display = true;
+        symbol = "☁️";
+        format = "[$symbol $profile]($style) ";
+        style = "bold yellow";
+      };
       gcloud.disabled = true;
       git_status.disabled = true;
       command_timeout = 1500;
