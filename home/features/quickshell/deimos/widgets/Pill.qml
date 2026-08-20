@@ -15,6 +15,9 @@ Rectangle {
     property int horizontalPadding: Theme.pillPad
     property int minPillWidth: 18
     property int maxTextWidth: 260
+    // Shown on a long hover. Empty by default — most pills already say
+    // everything they need to in their own label.
+    property string tooltip: ""
 
     readonly property int textWidthLimit: Math.max(0, root.maxTextWidth)
     // Measured rather than read off the Text item: the label is elided, so its
@@ -79,5 +82,11 @@ Rectangle {
         hoverEnabled: true
         onClicked: mouse => root.clicked(mouse)
         onWheel: wheel => root.wheel(wheel)
+    }
+
+    HoverTooltip {
+        anchorItem: root
+        hovering: root.hovered
+        text: root.tooltip
     }
 }

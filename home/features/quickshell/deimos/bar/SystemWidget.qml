@@ -20,6 +20,9 @@ Pill {
     // Pill normally sizes itself around a text label; this pill's content is a
     // row of widgets instead, so its width has to come from that row.
     implicitWidth: contentRow.implicitWidth + root.horizontalPadding * 2
+    tooltip: "CPU " + Theme.clampPercent(SysStats.cpu * 100) + "% · RAM " + Theme.clampPercent(SysStats.mem * 100) + "%"
+        + " · Volume " + (Audio.sinkMuted ? "muted" : Audio.sinkPercent + "%")
+        + (BatteryInfo.ready ? " · Battery " + BatteryInfo.percent + "%" : "")
 
     onClicked: mouse => {
         if (mouse.button === Qt.MiddleButton)

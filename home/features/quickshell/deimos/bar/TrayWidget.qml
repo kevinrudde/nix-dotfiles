@@ -33,9 +33,20 @@ Island {
                 source: slot.modelData.icon
             }
 
+            HoverTooltip {
+                anchorItem: slot
+                hovering: iconMouse.containsMouse
+                // Neither field is guaranteed — a tray item that sets
+                // neither just never shows a tooltip.
+                text: slot.modelData.tooltipTitle || slot.modelData.title || ""
+            }
+
             MouseArea {
+                id: iconMouse
+
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                hoverEnabled: true
 
                 onClicked: mouse => {
                     if (mouse.button === Qt.RightButton && slot.modelData.hasMenu) {

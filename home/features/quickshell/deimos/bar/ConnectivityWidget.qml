@@ -19,6 +19,8 @@ Pill {
     // Pill normally sizes itself around a text label; this pill's content is
     // a row of two, so its width has to come from that row.
     implicitWidth: contentRow.implicitWidth + root.horizontalPadding * 2
+    tooltip: "Bluetooth: " + (!BluetoothInfo.powered ? "off" : BluetoothInfo.connectedDevices.length > 0 ? BluetoothInfo.connectedDevices.length + " connected" : "on")
+        + " · Network: " + (SystemStatus.networkConnected ? (NetworkInfo.activeWifi !== "" ? NetworkInfo.activeWifi : "connected") : "disconnected")
 
     onClicked: Popups.toggle("connectivity", root.barScreen)
 

@@ -15,6 +15,9 @@ Pill {
     foreground: GitHubInfo.urgent ? Theme.warning : (GitHubInfo.totalCount > 0 ? Theme.primary : Theme.muted)
     horizontalPadding: Theme.pillPadIcon
     maxTextWidth: 40
+    tooltip: GitHubInfo.totalCount > 0
+        ? GitHubInfo.reviewCount + " review requests · " + GitHubInfo.assignedCount + " assigned PRs"
+        : "No pull requests waiting"
 
     onClicked: Popups.toggle("github", root.barScreen)
 

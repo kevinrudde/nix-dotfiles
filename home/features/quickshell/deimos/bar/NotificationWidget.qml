@@ -18,6 +18,9 @@ Pill {
     foreground: NotificationService.dnd ? Theme.muted : Theme.primary
     horizontalPadding: Theme.pillPadIcon
     maxTextWidth: 52
+    tooltip: NotificationService.dnd
+        ? "Do not disturb"
+        : NotificationService.count + (NotificationService.count === 1 ? " notification" : " notifications")
 
     onClicked: mouse => {
         if (mouse.button === Qt.RightButton)

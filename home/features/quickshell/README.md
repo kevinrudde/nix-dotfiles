@@ -42,6 +42,16 @@ gap between that and the advance box. Every pill gets this for free, not
 just icon-only ones, since the correction is self-measuring and near zero
 for ordinary text.
 
+Every `Pill` also carries a `tooltip` property (empty by default — most
+labels already say what they need to), shown by `widgets/HoverTooltip.qml`
+after a pause in hovering. It is its own `PopupWindow` rather than a plain
+child `Item` specifically because `Pill` clips its own bounds — an
+in-tree tooltip would be cut off the moment it grew past the pill's edge.
+`mask: Region {}` keeps it click-through, the same as the volume OSD, so it
+can never swallow a click meant for the desktop underneath. Anything with
+its own hover source — `TrayWidget`'s icons, which are not `Pill`s — embeds
+`HoverTooltip` directly rather than going through `Pill` at all.
+
 Every bar item is always in its compact, icon-only form; there is no more
 "expanded" variant that swaps an icon for icon-plus-percentage. Percentages,
 device lists and everything else still live one click away in the popup.

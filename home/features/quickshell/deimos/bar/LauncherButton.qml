@@ -7,5 +7,6 @@ Pill {
     text: Theme.iconLauncher
     fontSize: Theme.fontSizeIcon
     horizontalPadding: Theme.pillPadIcon
+    tooltip: "Application launcher"
     onClicked: Actions.launcher()
 }

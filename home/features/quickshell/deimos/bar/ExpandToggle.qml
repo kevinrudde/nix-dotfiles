@@ -9,5 +9,6 @@ Pill {
     text: BarState.expanded ? ">" : "<"
     horizontalPadding: Theme.pillPadIcon
     maxTextWidth: 14
+    tooltip: BarState.expanded ? "Hide tray" : "Show tray"
     onClicked: BarState.expanded = !BarState.expanded
 }

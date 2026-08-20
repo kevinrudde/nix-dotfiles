@@ -8,5 +8,6 @@ Pill {
     text: Theme.iconPower
     foreground: Theme.danger
     horizontalPadding: Theme.pillPadIcon
+    tooltip: "Power menu"
     onClicked: Actions.powerMenu()
 }
