@@ -35,9 +35,18 @@ symlinks, rather than one symlink to the whole store path.
   Widgets call `Popups.toggle(name, screen)` instead of clearing their
   neighbours' flags, so a new popup does not mean touching every other widget.
 - **Services hold no visuals and widgets hold no state.** Anything a second
-  module might need (audio, battery, brightness, Bluetooth, network, GitHub,
-  notifications, system stats, the active submap, the bar's expanded state) is
-  a singleton in `services/`.
+  module might need (audio, battery, brightness, Bluetooth, network, Wi-Fi
+  telemetry, GitHub, notifications, system stats, the active submap, the
+  bar's expanded state) is a singleton in `services/`.
+- **A service that only matters while its popup is open gates its own poll
+  loop on that, rather than always running.** `WifiStats` pings the gateway
+  and re-reads the network device's byte counters every few seconds — a fair
+  cost while the network tab is visible, a pointless one otherwise. Because
+  one `ConnectivityPopup` instance exists per monitor but `WifiStats` is a
+  single shared singleton, the gate is set imperatively
+  (`onOpenChanged`/`onModeChanged`), not as a continuous binding — two
+  instances both binding the same singleton property from their own state
+  would fight over it every time either one changed.
 - **A remote data source goes through a script, never a QML HTTP client.**
   `GitHubInfo` shells out to `scripts/github-fetch.sh`, which does everything
   through `gh` — no token ever touches this repository, and `gh auth status`
@@ -76,5 +85,27 @@ startup; `qs log <file>` reads one back.
   generation while `qs -p` still works.
 - **`Timer`, `Connections` and the `color` type need `import QtQuick`,** even in
   a service that renders nothing.
-- **A `Variants` delegate must not redeclare a `required property modelData`
-  that its own component already declares** — the injection then misses it.
+- **A `Variants` or `Repeater` delegate must not redeclare a
+  `required property modelData` that its own component already declares** —
+  the injection then misses it, and the delegate fails to create with
+  "Required property modelData was not initialized". Applies to an inline
+  `component` used as a delegate too, not just a plain `Item`.
+- **Mutating network commands (`nmcli connection modify`, `radio wifi off`)
+  are not something to run against the machine actually running the shell.**
+  `network-action.sh`'s `wifi-power` and `set-dns` cases were exercised end
+  to end with the script stubbed out behind a fake state file standing in
+  for `nmcli` — proving the refresh cycle fires correctly — rather than by
+  actually flipping the real radio or forcing a real reconnect, either of
+  which is a live disruption with no undo. Only `wifi-status.sh`'s read side
+  (ping, sysfs byte counters, `nmcli` reads) was run against the real
+  connection.
+- **A control that fires a detached, fire-and-forget command must not read
+  its own displayed value from a property nothing then refreshes.** The
+  Wi-Fi power switch did exactly this: `execDetached` changed the radio but
+  never told `NetworkInfo` to re-poll, so `wifiEnabled` — and the switch's
+  `checked` — froze at whatever they were when the popup opened. Every
+  further click computed `!<the same stale value>` and re-sent the same
+  direction instead of alternating. The fix routes the action through
+  `NetworkInfo`'s existing action `Process`, whose `onExited` already
+  refreshes — the same pattern `connect` already used, just not yet applied
+  to this control.

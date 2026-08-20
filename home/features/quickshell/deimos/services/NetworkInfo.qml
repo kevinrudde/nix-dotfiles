@@ -26,6 +26,18 @@ Singleton {
             wifi: []
         })
 
+    // The one entry in `wifi` the script marked active, if any — the signal
+    // strength for the popup header, which the script's separate
+    // `activeWifi` string does not carry.
+    function activeEntry(): var {
+        for (const entry of root.wifi) {
+            if (entry.active)
+                return entry;
+        }
+
+        return null;
+    }
+
     function refresh(rescan: bool): void {
         if (networkProc.running)
             return;
@@ -95,6 +107,18 @@ Singleton {
         networkActionProc.running = true;
         root.passwordSsid = "";
         Popups.close();
+    }
+
+    // Routed through the same action process as `connect`, purely so its
+    // `onExited` refresh applies here too — without it, `wifiEnabled` would
+    // freeze at whatever it was when the popup opened and never notice the
+    // radio actually changed, on-screen or off it.
+    function setWifiPower(on: bool): void {
+        if (networkActionProc.running)
+            return;
+
+        networkActionProc.command = [Quickshell.shellDir + "/scripts/network-action.sh", "wifi-power", on ? "on" : "off"];
+        networkActionProc.running = true;
     }
 
     Process {

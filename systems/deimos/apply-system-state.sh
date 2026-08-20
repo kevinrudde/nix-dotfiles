@@ -114,59 +114,6 @@ if command -v sddm >/dev/null 2>&1; then
   fi
 fi
 
-# Cloudflare DNS via NetworkManager per-profile settings. The conf.d file in
-# rootfs hands resolution off to systemd-resolved; here we publish the
-# Cloudflare resolvers into every ethernet/wifi profile so resolved picks them
-# up. Skip-if-already-configured so re-runs are no-ops.
-if command -v nmcli >/dev/null 2>&1; then
-  expected_dns=$'ipv4.dns:1.1.1.1,1.0.0.1\nipv4.ignore-auto-dns:yes\nipv4.dns-priority:-1000\nipv4.dns-search:~.\nipv6.dns:\nipv6.ignore-auto-dns:yes\nipv6.dns-priority:-1000\nipv6.dns-search:'
-
-  mapfile -t physical_uuids < <(
-    nmcli -t -f UUID,TYPE connection show \
-      | awk -F: '$2 == "802-3-ethernet" || $2 == "802-11-wireless" { print $1 }'
-  )
-
-  changed_uuids=()
-  for uuid in "${physical_uuids[@]}"; do
-    actual_dns="$(nmcli -t -f ipv4.dns,ipv4.ignore-auto-dns,ipv4.dns-priority,ipv4.dns-search,ipv6.dns,ipv6.ignore-auto-dns,ipv6.dns-priority,ipv6.dns-search connection show "$uuid")"
-    if [[ "$actual_dns" == "$expected_dns" ]]; then
-      continue
-    fi
-
-    run_as_root nmcli connection modify "$uuid" \
-      ipv4.dns "1.1.1.1 1.0.0.1" \
-      ipv4.ignore-auto-dns yes \
-      ipv4.dns-priority -1000 \
-      ipv4.dns-search "~." \
-      ipv6.dns "" \
-      ipv6.ignore-auto-dns yes \
-      ipv6.dns-priority -1000 \
-      ipv6.dns-search ""
-    changed_uuids+=("$uuid")
-    echo "Applied Cloudflare DNS to NetworkManager profile $uuid"
-  done
-
-  if (( ${#changed_uuids[@]} > 0 )); then
-    run_as_root nmcli general reload conf,dns-full,dns-rc
-
-    mapfile -t active_changed_devices < <(
-      printf '%s\n' "${changed_uuids[@]}" \
-        | while read -r uuid; do
-            nmcli -t -f GENERAL.DEVICES connection show "$uuid" 2>/dev/null \
-              | awk -F: 'NF > 1 { print $2 }'
-          done \
-        | LC_ALL=C sort -u
-    )
-
-    for device in "${active_changed_devices[@]}"; do
-      [[ -z "$device" || "$device" == "--" ]] && continue
-      if ! run_as_root nmcli device reapply "$device"; then
-        echo "Could not reapply $device; reconnect it to apply DNS" >&2
-      fi
-    done
-  fi
-fi
-
 # 1Password permission repair. /opt/1Password is populated by the
 # install-1password-linux-arm64 migration, which also runs upstream's
 # after-install.sh once; here we maintain the SUID/SGID bits + onepassword

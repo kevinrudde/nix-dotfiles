@@ -18,6 +18,16 @@ BarPopup {
     popupName: "connectivity"
     body: surface
 
+    // One WifiStats singleton is shared by a popup instance per monitor, so
+    // this has to be imperative rather than a continuous binding: two
+    // instances both binding `WifiStats.watching` to their own `open`/`mode`
+    // would fight over the same property. Popups.qml only ever lets one
+    // instance be open at a time, so only the instance whose own state just
+    // changed ever writes here — the other, closed, instance has nothing to
+    // change and stays silent.
+    onOpenChanged: WifiStats.watching = root.open && root.mode === "network"
+    onModeChanged: WifiStats.watching = root.open && root.mode === "network"
+
     PopupSurface {
         id: surface
 
@@ -100,124 +110,197 @@ BarPopup {
         }
         // ── Network ──────────────────────────────────────────────────────
         Column {
+            id: networkPane
+
             width: parent.width
             visible: root.mode === "network"
             spacing: Theme.popupSpacing
 
-            SectionHeader {
+            // Whether the custom-DNS field is showing. Separate from
+            // `WifiStats.dnsProvider === "custom"` so clicking the chip opens
+            // the field immediately rather than waiting on the reconnect that
+            // confirms the change actually took.
+            property bool dnsCustomOpen: false
+            property var knownNetworks: NetworkInfo.wifi.filter(entry => entry.known)
+            // Capped: the list is sorted by signal, and everything past this
+            // is too weak to be worth a click.
+            property var otherNetworks: NetworkInfo.wifi.filter(entry => !entry.known).slice(0, 10)
+
+            RowLayout {
                 width: parent.width
-                title: ""
+                spacing: 10
 
                 StyledText {
-                    text: NetworkInfo.wifiEnabled ? "Wi-Fi on" : "Wi-Fi off"
-                    color: NetworkInfo.wifiEnabled ? Theme.primary : Theme.muted
+                    text: WifiStats.connected ? NetworkInfo.signalIcon((NetworkInfo.activeEntry() || {}).signal || 0) : Theme.iconWifi0
+                    color: NetworkInfo.wifiEnabled ? (WifiStats.connected ? Theme.primary : Theme.muted) : Theme.muted
+                    font.pixelSize: Theme.fontSizeDisplay
                 }
 
-                TextButton {
-                    text: "scan"
-                    onClicked: NetworkInfo.refresh(true)
-                }
-            }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 1
 
-            Rectangle {
-                width: parent.width
-                height: Math.max(34, wiredColumn.implicitHeight + 12)
-                visible: NetworkInfo.wired.length > 0
-                color: Theme.background
-                border.color: Theme.primary
-                border.width: 1
-                radius: Theme.rowRadius
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: WifiStats.connected ? NetworkInfo.activeWifi : (NetworkInfo.wifiEnabled ? "Not connected" : "Wi-Fi off")
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.fontSizeLarge
+                    }
 
-                Column {
-                    id: wiredColumn
-
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    spacing: 3
-
-                    Repeater {
-                        model: NetworkInfo.wired
-
-                        RowLayout {
-                            required property var modelData
-
-                            width: wiredColumn.width
-                            spacing: Theme.popupSpacing
-
-                            StyledText {
-                                text: Theme.iconEthernet
-                                color: modelData.connected ? Theme.success : Theme.muted
-                                font.pixelSize: Theme.fontSizeNormal
-                            }
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: modelData.connection || modelData.device
-                                elide: Text.ElideRight
-                            }
-
-                            StyledText {
-                                text: modelData.connected ? "connected" : modelData.state
-                                color: modelData.connected ? Theme.success : Theme.muted
-                                font.bold: false
-                                font.pixelSize: Theme.fontSizeTiny
-                            }
-                        }
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: WifiStats.connected ? "connected" : (NetworkInfo.wifiEnabled ? "searching" : "off")
+                        color: Theme.muted
+                        font.bold: false
+                        font.pixelSize: Theme.fontSizeTiny
                     }
                 }
+
+                Switch {
+                    checked: NetworkInfo.wifiEnabled
+                    onToggled: checked => NetworkInfo.setWifiPower(checked)
+                }
             }
 
-            EmptyHint {
+            GridLayout {
                 width: parent.width
-                visible: NetworkInfo.wifi.length === 0
-                text: NetworkInfo.wifiEnabled ? "No Wi-Fi networks" : "Wi-Fi disabled"
+                visible: WifiStats.connected
+                columns: 2
+                columnSpacing: 16
+                rowSpacing: 2
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Ping"
+                    value: WifiStats.pingMs !== null ? Math.round(WifiStats.pingMs) + " ms" : "--"
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Packet loss"
+                    value: WifiStats.packetLoss !== null ? WifiStats.packetLoss + "%" : "--"
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Receiving"
+                    value: WifiStats.rateText(WifiStats.rxRate)
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Sending"
+                    value: WifiStats.rateText(WifiStats.txRate)
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Downloaded"
+                    value: WifiStats.byteUnits(WifiStats.rawRx)
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Uploaded"
+                    value: WifiStats.byteUnits(WifiStats.rawTx)
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "IP address"
+                    value: WifiStats.ip
+                }
+
+                InfoRow {
+                    Layout.fillWidth: true
+                    label: "Gateway"
+                    value: WifiStats.gateway
+                }
             }
 
-            Repeater {
-                // Capped: the list is sorted by signal, and everything past
-                // this is too weak to be worth a click.
-                model: NetworkInfo.wifi.slice(0, 10)
+            Divider {
+                visible: WifiStats.connected
+            }
 
-                ListRow {
-                    id: networkRow
+            StyledText {
+                width: parent.width
+                visible: WifiStats.connected && WifiStats.band !== ""
+                text: "Wi-Fi band: " + WifiStats.band
+                color: Theme.muted
+                font.bold: false
+            }
 
-                    required property var modelData
+            Divider {
+                visible: WifiStats.connected
+            }
 
-                    readonly property bool connectable: NetworkInfo.canConnect(modelData)
+            Column {
+                width: parent.width
+                visible: WifiStats.connected
+                spacing: Theme.popupSpacing
 
+                Caption {
                     width: parent.width
-                    icon: modelData.active ? Theme.iconCheck : NetworkInfo.signalIcon(modelData.signal)
-                    iconColor: modelData.active ? Theme.success : (connectable ? Theme.primary : Theme.muted)
-                    title: modelData.ssid
-                    titleColor: modelData.active ? Theme.foreground : (connectable ? Theme.primary : Theme.muted)
-                    detail: NetworkInfo.detail(modelData)
-                    active: modelData.active
-                    footerOpen: NetworkInfo.passwordSsid === modelData.ssid && NetworkInfo.needsPassword(modelData)
-                    onActivated: NetworkInfo.connect(modelData, "")
+                    label: "DNS provider"
+                }
 
-                    onFooterOpenChanged: {
-                        if (networkRow.footerOpen) {
-                            passwordInput.text = "";
-                            passwordInput.forceActiveFocus();
+                Row {
+                    width: parent.width
+                    spacing: 6
+
+                    Chip {
+                        width: (parent.width - parent.spacing * 3) / 4
+                        text: "DHCP"
+                        selected: WifiStats.dnsProvider === "dhcp"
+                        onClicked: {
+                            networkPane.dnsCustomOpen = false;
+                            WifiStats.setDns("dhcp", "");
                         }
                     }
+
+                    Chip {
+                        width: (parent.width - parent.spacing * 3) / 4
+                        text: "Cloudflare"
+                        selected: WifiStats.dnsProvider === "cloudflare"
+                        onClicked: {
+                            networkPane.dnsCustomOpen = false;
+                            WifiStats.setDns("cloudflare", "");
+                        }
+                    }
+
+                    Chip {
+                        width: (parent.width - parent.spacing * 3) / 4
+                        text: "Google"
+                        selected: WifiStats.dnsProvider === "google"
+                        onClicked: {
+                            networkPane.dnsCustomOpen = false;
+                            WifiStats.setDns("google", "");
+                        }
+                    }
+
+                    Chip {
+                        width: (parent.width - parent.spacing * 3) / 4
+                        text: "Custom"
+                        selected: WifiStats.dnsProvider === "custom"
+                        onClicked: networkPane.dnsCustomOpen = !networkPane.dnsCustomOpen
+                    }
+                }
+
+                Row {
+                    width: parent.width
+                    visible: networkPane.dnsCustomOpen || WifiStats.dnsProvider === "custom"
+                    spacing: 6
 
                     Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: joinButton.left
-                        anchors.rightMargin: 6
-                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width - 66
                         height: 26
                         color: Theme.background
-                        border.color: passwordInput.activeFocus ? Theme.primary : Theme.muted
+                        border.color: dnsCustomInput.activeFocus ? Theme.primary : Theme.muted
                         border.width: 1
                         radius: 6
 
                         TextInput {
-                            id: passwordInput
+                            id: dnsCustomInput
 
                             anchors.fill: parent
                             anchors.leftMargin: 8
@@ -226,43 +309,194 @@ BarPopup {
                             color: Theme.foreground
                             selectionColor: Theme.activeBackground
                             selectedTextColor: Theme.foreground
-                            echoMode: TextInput.Password
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             verticalAlignment: TextInput.AlignVCenter
+                            text: WifiStats.dnsProvider === "custom" ? WifiStats.dns.split(",").join(" ") : ""
 
-                            onAccepted: NetworkInfo.connect(networkRow.modelData, text)
-                            Keys.onEscapePressed: NetworkInfo.passwordSsid = ""
+                            onAccepted: WifiStats.setDns("custom", text)
                         }
                     }
 
                     Rectangle {
-                        id: joinButton
-
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
                         width: 60
                         height: 26
-                        color: joinArea.containsMouse ? Theme.activeBackground : Theme.background
+                        color: dnsApplyArea.containsMouse ? Theme.activeBackground : Theme.background
                         border.color: Theme.primary
                         border.width: 1
                         radius: 6
 
                         StyledText {
                             anchors.centerIn: parent
-                            text: "join"
+                            text: "apply"
                             font.pixelSize: Theme.fontSizeTiny
                         }
 
                         MouseArea {
-                            id: joinArea
+                            id: dnsApplyArea
 
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: NetworkInfo.connect(networkRow.modelData, passwordInput.text)
+                            onClicked: WifiStats.setDns("custom", dnsCustomInput.text)
                         }
                     }
                 }
+            }
+
+            Divider {}
+
+            Caption {
+                width: parent.width
+                label: "Known networks"
+            }
+
+            EmptyHint {
+                width: parent.width
+                visible: networkPane.knownNetworks.length === 0
+                text: "No known networks nearby"
+            }
+
+            Repeater {
+                model: networkPane.knownNetworks
+
+                NetworkEntryRow {}
+            }
+
+            RowLayout {
+                width: parent.width
+
+                Caption {
+                    Layout.fillWidth: true
+                    label: "Other networks"
+                }
+
+                TextButton {
+                    text: "scan"
+                    onClicked: NetworkInfo.refresh(true)
+                }
+            }
+
+            EmptyHint {
+                width: parent.width
+                visible: networkPane.otherNetworks.length === 0
+                text: NetworkInfo.wifiEnabled ? "No other networks nearby" : "Wi-Fi disabled"
+            }
+
+            // Collapsed by default: a scan in a busy building can turn up a
+            // long tail of networks nobody here is going to join, and the
+            // "scan" button above already works without expanding this.
+            Expander {
+                id: otherNetworksExpander
+
+                width: parent.width
+                visible: networkPane.otherNetworks.length > 0
+
+                header: [
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: networkPane.otherNetworks.length + " nearby"
+                        color: Theme.muted
+                        font.bold: false
+                    },
+                    StyledText {
+                        text: otherNetworksExpander.expanded ? "less" : "more"
+                        color: Theme.muted
+                        font.bold: false
+                        font.pixelSize: Theme.fontSizeTiny
+                    }
+                ]
+
+                Repeater {
+                    model: networkPane.otherNetworks
+
+                    NetworkEntryRow {}
+                }
+            }
+        }
+    }
+
+    // One row of the Wi-Fi lists — declared once and used for both the known
+    // and other repeaters, which are otherwise identical down to the password
+    // footer.
+    component NetworkEntryRow: ListRow {
+        id: networkRow
+
+        required property var modelData
+
+        readonly property bool connectable: NetworkInfo.canConnect(modelData)
+
+        width: parent.width
+        icon: modelData.active ? Theme.iconCheck : NetworkInfo.signalIcon(modelData.signal)
+        iconColor: modelData.active ? Theme.success : (connectable ? Theme.primary : Theme.muted)
+        title: modelData.ssid
+        titleColor: modelData.active ? Theme.foreground : (connectable ? Theme.primary : Theme.muted)
+        detail: NetworkInfo.detail(modelData)
+        active: modelData.active
+        footerOpen: NetworkInfo.passwordSsid === modelData.ssid && NetworkInfo.needsPassword(modelData)
+        onActivated: NetworkInfo.connect(modelData, "")
+
+        onFooterOpenChanged: {
+            if (networkRow.footerOpen) {
+                passwordInput.text = "";
+                passwordInput.forceActiveFocus();
+            }
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: joinButton.left
+            anchors.rightMargin: 6
+            anchors.verticalCenter: parent.verticalCenter
+            height: 26
+            color: Theme.background
+            border.color: passwordInput.activeFocus ? Theme.primary : Theme.muted
+            border.width: 1
+            radius: 6
+
+            TextInput {
+                id: passwordInput
+
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                clip: true
+                color: Theme.foreground
+                selectionColor: Theme.activeBackground
+                selectedTextColor: Theme.foreground
+                echoMode: TextInput.Password
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                verticalAlignment: TextInput.AlignVCenter
+
+                onAccepted: NetworkInfo.connect(networkRow.modelData, text)
+                Keys.onEscapePressed: NetworkInfo.passwordSsid = ""
+            }
+        }
+
+        Rectangle {
+            id: joinButton
+
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: 60
+            height: 26
+            color: joinArea.containsMouse ? Theme.activeBackground : Theme.background
+            border.color: Theme.primary
+            border.width: 1
+            radius: 6
+
+            StyledText {
+                anchors.centerIn: parent
+                text: "join"
+                font.pixelSize: Theme.fontSizeTiny
+            }
+
+            MouseArea {
+                id: joinArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: NetworkInfo.connect(networkRow.modelData, passwordInput.text)
             }
         }
     }
