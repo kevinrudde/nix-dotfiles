@@ -4,18 +4,18 @@ import qs.popups
 import qs.services
 import qs.widgets
 
-// System resources, volume and battery in one pill — CPU/RAM as small always-
-// on bars, volume and battery as icons that gain their percentage once the bar
-// is expanded. Left click opens the combined system popup; wheel and middle
-// click act on the default sink without opening anything, matching how the
-// other pills handle their primary control.
+// System resources, volume and battery in one pill — CPU/RAM as small bars,
+// volume and battery as bare icons; the popup carries the percentages, the
+// bar only carries the glance. Left click opens the combined system popup;
+// wheel and middle click act on the default sink without opening anything,
+// matching how the other pills handle their primary control.
 Pill {
     id: root
 
     required property var barScreen
 
     text: ""
-    horizontalPadding: BarState.expanded ? Theme.pillPad : Theme.pillPadCompact
+    horizontalPadding: Theme.pillPadIcon
     minPillWidth: 0
     // Pill normally sizes itself around a text label; this pill's content is a
     // row of widgets instead, so its width has to come from that row.
@@ -55,43 +55,19 @@ Pill {
             }
         }
 
-        Row {
+        StyledText {
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
-
-            StyledText {
-                anchors.verticalCenter: parent.verticalCenter
-                text: Audio.sinkIcon
-                color: Audio.sinkMuted ? Theme.muted : Theme.primary
-                font.pixelSize: Theme.fontSizeNormal
-            }
-
-            StyledText {
-                visible: BarState.expanded
-                anchors.verticalCenter: parent.verticalCenter
-                text: Audio.sinkMuted ? "muted" : Audio.sinkPercent + "%"
-                color: Audio.sinkMuted ? Theme.muted : Theme.foreground
-            }
+            text: Audio.sinkIcon
+            color: Audio.sinkMuted ? Theme.muted : Theme.primary
+            font.pixelSize: Theme.fontSizeNormal
         }
 
-        Row {
-            anchors.verticalCenter: parent.verticalCenter
+        StyledText {
             visible: BatteryInfo.ready
-            spacing: 4
-
-            StyledText {
-                anchors.verticalCenter: parent.verticalCenter
-                text: BatteryInfo.icon
-                color: BatteryInfo.foreground
-                font.pixelSize: Theme.fontSizeNormal
-            }
-
-            StyledText {
-                visible: BarState.expanded
-                anchors.verticalCenter: parent.verticalCenter
-                text: BatteryInfo.percent + "%"
-                color: BatteryInfo.foreground
-            }
+            anchors.verticalCenter: parent.verticalCenter
+            text: BatteryInfo.icon
+            color: BatteryInfo.foreground
+            font.pixelSize: Theme.fontSizeNormal
         }
     }
 

@@ -23,6 +23,33 @@ Directory names are QML module names: `bar/` is imported as `qs.bar`,
 links the tree with `recursive = true` — real directories holding individual
 symlinks, rather than one symlink to the whole store path.
 
+## Design language
+
+The bar is one flush, opaque strip — icons and text sit directly on it, not
+inside bordered "pill" boxes. `Pill.qml`/`Island.qml` still exist as the
+shared building blocks (sizing, click handling, hover), but at rest they
+paint nothing: a highlighted rounded rect only appears on hover, or where an
+item (`SubmapIndicator`) deliberately wants to stand out even at rest.
+Popups keep their own separate, bordered-card look — that redesign was the
+bar only, popups were not touched.
+
+`Pill.qml`'s label also corrects for Nerd Font glyphs not sitting centred in
+their own advance box — `AlignHCenter`/`AlignVCenter` centre that box, not
+the ink inside it, which reads as visibly off-centre on an icon-only pill
+(the launcher's Fedora badge, for one). A `TextMetrics`-measured
+`tightBoundingRect` gives the real ink bounds; a `Translate` shifts by the
+gap between that and the advance box. Every pill gets this for free, not
+just icon-only ones, since the correction is self-measuring and near zero
+for ordinary text.
+
+Every bar item is always in its compact, icon-only form; there is no more
+"expanded" variant that swaps an icon for icon-plus-percentage. Percentages,
+device lists and everything else still live one click away in the popup.
+`BarState.expanded` survives with a narrower job: it now only reveals the
+system tray and the idle-inhibit toggle, the two things worth keeping out of
+sight by default. `ExpandToggle`'s "<"/">" is that overflow chevron, not a
+detail-level switch anymore.
+
 ## Rules the modules follow
 
 - **Colours, sizes and icons come from `Theme.qml` only.** A value that appears
@@ -99,6 +126,21 @@ startup; `qs log <file>` reads one back.
   which is a live disruption with no undo. Only `wifi-status.sh`'s read side
   (ping, sysfs byte counters, `nmcli` reads) was run against the real
   connection.
+- **`Row` top-aligns children of different heights; it does not centre
+  them.** `leftGroup`/`rightGroup` in `Bar.qml` are `RowLayout`, not `Row`,
+  specifically so every child can carry `Layout.alignment: Qt.AlignVCenter`
+  — without it, the launcher's 28px-tall icon pill and the shorter,
+  borderless workspace numbers next to it are each perfectly centred *within
+  themselves* but do not line up with each other, which reads as the
+  launcher icon sitting low. A new bar widget only needs this if its own
+  implicit height differs from its neighbours', but there is no visible pill
+  border left to reveal that mismatch by eye — check it by screenshot, the
+  way this one was found.
+- **A screenshot for review needs the output's native pixel size, not the
+  logical size `hyprctl monitors` reports.** On a scaled output (2x here),
+  `grim -g "x,y WxH"` and the physical PNG size disagree in ways that are
+  easy to mis-crop against — `grim -o <name>` (no `-g`) sidesteps the whole
+  question by asking the compositor for the output's own bounds directly.
 - **A control that fires a detached, fire-and-forget command must not read
   its own displayed value from a property nothing then refreshes.** The
   Wi-Fi power switch did exactly this: `execDetached` changed the radio but
@@ -109,3 +151,17 @@ startup; `qs log <file>` reads one back.
   `NetworkInfo`'s existing action `Process`, whose `onExited` already
   refreshes — the same pattern `connect` already used, just not yet applied
   to this control.
+- **A list a person is about to click must never move an item that is
+  already on screen — only grow or shrink at one end.** `addToast` used to
+  `unshift` each new toast to the front, pushing every already-visible one
+  down a slot. A click timed against a toast's position could then land on
+  whatever had just slid into that spot instead — clicking one notification
+  and triggering a different one's action, which is exactly as confusing as
+  it sounds. Confirmed by sending two real notifications a second apart
+  through a probe instance and logging `toasts` on every change: with
+  `unshift`, the second notification jumped to index 0 and the first moved
+  to index 1; with `push` (the fix), the first stays at index 0 and the
+  second only ever appends after it. `NotificationService.groups` sorts by
+  `latestId` and is not protected against this the same way — a lower-risk
+  spot to hit the same bug if the notification centre is ever reported to
+  have it too.

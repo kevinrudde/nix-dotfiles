@@ -20,6 +20,10 @@ Singleton {
     readonly property color backgroundStrong: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 0.92)
     readonly property color activeBackground: Qt.rgba(150 / 255, 216 / 255, 255 / 255, 0.14)
     readonly property color hoverBackground: Qt.rgba(150 / 255, 216 / 255, 255 / 255, 0.20)
+    // Solid rather than translucent: the bar is a flush, opaque strip, not a
+    // floating panel with the desktop showing through it like the islands and
+    // popups are.
+    readonly property color barBackground: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 1)
 
     // Notification cards sit on their own background and use a softer border
     // than the bar so a stack of them does not read as a grid of boxes.
@@ -39,17 +43,24 @@ Singleton {
     readonly property int fontSizeDisplay: 22
 
     // ── Geometry ─────────────────────────────────────────────────────────
-    readonly property int barHeight: 36
-    readonly property int barMarginTop: 6
-    readonly property int barMarginSide: 10
-    readonly property int barGap: 8
-    readonly property int barGapCompact: 5
+    // A dense, flush strip rather than a floating bar of boxed pills — the
+    // bar reads as one surface, not a row of cards, so there is no gap left
+    // between it and the screen edge for a shadow or a rounded corner to sit
+    // in.
+    readonly property int barHeight: 30
+    // Applied to the bar's content, not the window itself: the strip stays
+    // flush with the edge, but the first and last icon still get a little
+    // breathing room instead of touching the screen corner.
+    readonly property int barEdgeInset: 10
+    // One spacing value for the whole bar: nothing here still has a
+    // "collapsed vs. expanded" width, so there is no second value to keep in
+    // sync with it.
+    readonly property int barGap: 12
 
     readonly property int pillHeight: 28
     readonly property int pillRadius: 8
-    readonly property int pillPad: 10
-    readonly property int pillPadCompact: 8
-    readonly property int pillPadIcon: 9
+    readonly property int pillPad: 8
+    readonly property int pillPadIcon: 7
 
     readonly property int rowRadius: 7
     readonly property int rowHeight: 28

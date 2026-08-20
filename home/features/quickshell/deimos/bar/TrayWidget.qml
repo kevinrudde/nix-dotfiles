@@ -1,16 +1,19 @@
 import QtQuick
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import qs.services
 import qs.widgets
 
-// System tray. Left click activates, right click opens the item's own DBus
-// menu, middle click triggers its secondary action.
+// System tray: third-party icons this shell has no say over the look of.
+// Tucked behind the overflow toggle so they cannot outnumber the bar's own,
+// consistent icons. Left click activates, right click opens the item's own
+// DBus menu, middle click triggers its secondary action.
 Island {
     id: root
 
     required property var barWindow
 
-    visible: SystemTray.items.values.length > 0
+    visible: BarState.expanded && SystemTray.items.values.length > 0
     spacing: 6
 
     Repeater {

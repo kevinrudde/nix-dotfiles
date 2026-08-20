@@ -112,9 +112,17 @@ Singleton {
         deadlines[notification.id] = Date.now() + root.timeout(notification);
         root.toastDeadlines = deadlines;
 
+        // Appended, not unshifted: an existing toast must never change
+        // position just because a new one arrived. Unshifting pushed every
+        // visible toast down a slot on each new arrival, so a click timed
+        // against what was on screen a moment ago could land on whatever
+        // had just slid into that spot instead — clicking one notification
+        // and triggering a different one's action. Capping from the front
+        // (oldest first) keeps the same "4 most recent" behaviour without
+        // that reshuffle.
         const next = root.toasts.filter(item => item !== notification);
-        next.unshift(notification);
-        root.toasts = next.slice(0, 4);
+        next.push(notification);
+        root.toasts = next.slice(-4);
     }
 
     function removeToast(notification: var): void {

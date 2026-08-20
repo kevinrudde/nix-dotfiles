@@ -3,7 +3,6 @@ pragma Singleton
 // Values that have no Quickshell binding and come from a shell script instead:
 // the clock string and a one-line network summary.
 import Quickshell
-import qs
 import Quickshell.Io
 import QtQuick
 
@@ -14,9 +13,6 @@ Singleton {
     readonly property string networkText: root.status.network ? String(root.status.network.text || "") : ""
     readonly property bool networkConnected: root.status.network ? !!root.status.network.connected : false
 
-    // The compact bar shows only the icon, which the script appends last.
-    readonly property string networkIcon: root.lastToken(root.networkText, Theme.iconUnknown)
-
     property var status: ({
             network: {
                 text: "",
@@ -24,15 +20,6 @@ Singleton {
             },
             clock: ""
         })
-
-    function lastToken(text: string, fallback: string): string {
-        const value = String(text || "").trim();
-        if (value === "")
-            return fallback;
-
-        const parts = value.split(/\s+/);
-        return parts.length > 0 ? parts[parts.length - 1] : fallback;
-    }
 
     function refresh(): void {
         if (!statusProc.running)

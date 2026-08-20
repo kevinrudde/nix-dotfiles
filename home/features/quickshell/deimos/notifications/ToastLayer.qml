@@ -27,7 +27,7 @@ PanelWindow {
 
     margins {
         top: 8
-        right: Theme.barMarginSide
+        right: Theme.barEdgeInset
     }
 
     surfaceFormat {

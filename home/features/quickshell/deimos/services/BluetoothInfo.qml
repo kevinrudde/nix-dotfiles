@@ -41,8 +41,6 @@ Singleton {
         ? (root.connectedDevices.length > 0 ? root.connectedDevices.length + " " + Theme.iconBluetooth : Theme.iconBluetooth)
         : Theme.iconBluetoothOff
 
-    readonly property string compactLabel: root.powered ? Theme.iconBluetooth : Theme.iconBluetoothOff
-
     readonly property color foreground: {
         if (!root.powered)
             return Theme.muted;

@@ -16,8 +16,8 @@ Pill {
     text: NotificationService.label
     fontSize: Theme.fontSizeIcon
     foreground: NotificationService.dnd ? Theme.muted : Theme.primary
-    horizontalPadding: BarState.expanded ? Theme.pillPadIcon : Theme.pillPadCompact
-    maxTextWidth: BarState.expanded ? 80 : 52
+    horizontalPadding: Theme.pillPadIcon
+    maxTextWidth: 52
 
     onClicked: mouse => {
         if (mouse.button === Qt.RightButton)

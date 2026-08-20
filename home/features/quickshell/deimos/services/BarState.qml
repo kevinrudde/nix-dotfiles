@@ -7,7 +7,8 @@ import Quickshell
 Singleton {
     id: root
 
-    // Right-hand group shows labels and the secondary pills.
+    // Shows the overflow icons — the system tray and the idle-inhibit
+    // toggle — that the flat bar keeps tucked away by default.
     property bool expanded: false
     property bool idleInhibited: false
 }

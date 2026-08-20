@@ -1,12 +1,14 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import qs
 import qs.services
 
-// One bar per monitor. The bar itself is transparent — only the pills are
-// visible. Three separately anchored groups instead of one layout row, so the
-// centred window title does not shift when a neighbour changes width.
+// One bar per monitor: a single flush, opaque strip — not a floating row of
+// boxed pills — with icons sitting directly on it. Three separately anchored
+// groups instead of one layout row, so the centred window title does not
+// shift when a neighbour changes width.
 PanelWindow {
     id: root
 
@@ -15,7 +17,7 @@ PanelWindow {
 
     screen: root.modelData
     implicitHeight: Theme.barHeight
-    color: "transparent"
+    color: Theme.barBackground
 
     anchors {
         top: true
@@ -23,14 +25,8 @@ PanelWindow {
         right: true
     }
 
-    margins {
-        top: Theme.barMarginTop
-        left: Theme.barMarginSide
-        right: Theme.barMarginSide
-    }
-
     surfaceFormat {
-        opaque: false
+        opaque: true
     }
 
     // Inhibiting idle needs a surface to hang off; the bar is the one window
@@ -44,6 +40,8 @@ PanelWindow {
         id: content
 
         anchors.fill: parent
+        anchors.leftMargin: Theme.barEdgeInset
+        anchors.rightMargin: Theme.barEdgeInset
 
         // The notification centre lines up with the corner of the screen rather
         // than with the bell that opens it.
@@ -56,18 +54,29 @@ PanelWindow {
             anchors.right: parent.right
         }
 
-        Row {
+        // RowLayout rather than Row: a plain Row top-aligns children of
+        // different heights instead of centring each one, which is
+        // invisible between same-height pills but very visible between the
+        // launcher's tall icon pill and the shorter, borderless workspace
+        // numbers next to it.
+        RowLayout {
             id: leftGroup
 
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.barGap
 
-            LauncherButton {}
+            LauncherButton {
+                Layout.alignment: Qt.AlignVCenter
+            }
 
-            Workspaces {}
+            Workspaces {
+                Layout.alignment: Qt.AlignVCenter
+            }
 
-            SubmapIndicator {}
+            SubmapIndicator {
+                Layout.alignment: Qt.AlignVCenter
+            }
         }
 
         WindowTitle {
@@ -78,41 +87,54 @@ PanelWindow {
             availableWidth: content.width - 2 * Math.max(leftGroup.width, rightGroup.width) - 60
         }
 
-        Row {
+        RowLayout {
             id: rightGroup
 
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: BarState.expanded ? Theme.barGap : Theme.barGapCompact
+            spacing: Theme.barGap
 
-            ExpandToggle {}
+            ExpandToggle {
+                Layout.alignment: Qt.AlignVCenter
+            }
 
             TrayWidget {
+                Layout.alignment: Qt.AlignVCenter
                 barWindow: root
             }
 
-            IdleToggle {}
+            IdleToggle {
+                Layout.alignment: Qt.AlignVCenter
+            }
 
             SystemWidget {
+                Layout.alignment: Qt.AlignVCenter
                 barScreen: root.screen
             }
 
             ConnectivityWidget {
+                Layout.alignment: Qt.AlignVCenter
                 barScreen: root.screen
             }
 
             GitHubWidget {
+                Layout.alignment: Qt.AlignVCenter
                 barScreen: root.screen
             }
 
             NotificationWidget {
+                Layout.alignment: Qt.AlignVCenter
                 barScreen: root.screen
                 centreAnchor: centreAnchor
             }
 
-            ClockWidget {}
+            ClockWidget {
+                Layout.alignment: Qt.AlignVCenter
+            }
 
-            PowerButton {}
+            PowerButton {
+                Layout.alignment: Qt.AlignVCenter
+            }
         }
     }
 }

@@ -2,11 +2,12 @@ import qs
 import qs.services
 import qs.widgets
 
-// Collapses the right-hand group down to bare icons. Shared across monitors so
-// both bars stay in the same shape.
+// Reveals the overflow icons (the system tray, the idle-inhibit toggle) —
+// the flat bar's own icons are always visible and never behind this.
+// Shared across monitors so both bars stay in the same shape.
 Pill {
     text: BarState.expanded ? ">" : "<"
-    horizontalPadding: Theme.pillPadCompact
+    horizontalPadding: Theme.pillPadIcon
     maxTextWidth: 14
     onClicked: BarState.expanded = !BarState.expanded
 }

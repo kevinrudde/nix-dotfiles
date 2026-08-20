@@ -14,7 +14,7 @@ Pill {
     required property var barScreen
 
     text: ""
-    horizontalPadding: BarState.expanded ? Theme.pillPad : Theme.pillPadCompact
+    horizontalPadding: Theme.pillPadIcon
     minPillWidth: 0
     // Pill normally sizes itself around a text label; this pill's content is
     // a row of two, so its width has to come from that row.
@@ -30,13 +30,13 @@ Pill {
 
         StyledText {
             anchors.verticalCenter: parent.verticalCenter
-            text: BarState.expanded ? BluetoothInfo.label : BluetoothInfo.compactLabel
+            text: BluetoothInfo.label
             color: BluetoothInfo.foreground
         }
 
         StyledText {
             anchors.verticalCenter: parent.verticalCenter
-            text: BarState.expanded ? SystemStatus.networkText : SystemStatus.networkIcon
+            text: SystemStatus.networkText
             color: SystemStatus.networkConnected ? Theme.primary : Theme.muted
         }
     }
