@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-backlight_percent() {
-  brightnessctl -m 2>/dev/null | awk -F, '{ gsub(/%/, "", $4); print $4; found = 1; exit } END { if (!found) print "0" }'
-}
-
 network_json() {
   local line device type state connection signal text tooltip connected
 
@@ -39,11 +35,9 @@ network_json() {
 }
 
 jq -n \
-  --argjson backlight "$(backlight_percent)" \
   --argjson network "$(network_json)" \
   --arg clock "$(date '+%d %b %H:%M')" \
   '{
-    backlight: $backlight,
     network: $network,
     clock: $clock
   }'
