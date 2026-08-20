@@ -101,6 +101,10 @@ PanelWindow {
                 barScreen: root.screen
             }
 
+            GitHubWidget {
+                barScreen: root.screen
+            }
+
             NotificationWidget {
                 barScreen: root.screen
                 centreAnchor: centreAnchor

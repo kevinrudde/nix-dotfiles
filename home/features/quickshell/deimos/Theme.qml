@@ -84,6 +84,10 @@ Singleton {
     readonly property string iconBrightnessHigh: root.glyph(0xf00e0)
     readonly property string iconCpu: root.glyph(0xf2db)
     readonly property string iconRam: root.glyph(0xefc5)
+    readonly property string iconPullRequest: root.glyph(0xe726)
+    readonly property string iconChecksSuccess: root.glyph(0xf012c)
+    readonly property string iconChecksRunning: root.glyph(0xf046e)
+    readonly property string iconChecksFailed: root.glyph(0xf0156)
 
     readonly property string iconVolumeMuted: root.glyph(0xf466)
     readonly property string iconVolumeLow: root.glyph(0xf026)

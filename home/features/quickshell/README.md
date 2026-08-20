@@ -15,7 +15,7 @@ deimos/
   popups/          the popup contents
   notifications/   notification card, per-app group, toast overlay
   osd/             volume OSD
-  scripts/         nmcli/brightnessctl/power-menu helpers
+  scripts/         nmcli/brightnessctl/power-menu/gh helpers
 ```
 
 Directory names are QML module names: `bar/` is imported as `qs.bar`,
@@ -35,9 +35,18 @@ symlinks, rather than one symlink to the whole store path.
   Widgets call `Popups.toggle(name, screen)` instead of clearing their
   neighbours' flags, so a new popup does not mean touching every other widget.
 - **Services hold no visuals and widgets hold no state.** Anything a second
-  module might need (audio, battery, brightness, Bluetooth, network,
+  module might need (audio, battery, brightness, Bluetooth, network, GitHub,
   notifications, system stats, the active submap, the bar's expanded state) is
   a singleton in `services/`.
+- **A remote data source goes through a script, never a QML HTTP client.**
+  `GitHubInfo` shells out to `scripts/github-fetch.sh`, which does everything
+  through `gh` — no token ever touches this repository, and `gh auth status`
+  gates the whole fetch. It reports three lists — reviews requested directly
+  of the user, reviews routed to a team the user is on, and PRs assigned to
+  the user — plus each PR's check-rollup state; no notifications, no
+  repository browser. GitHub's search has `user-review-requested` but no
+  complementary team-only qualifier, so the team list is a plain
+  `review-requested` fetch with the direct list subtracted from it in `jq`.
 - **A popup only combines domains that are all a glance-and-close away.**
   `SystemWidget`/`SystemPopup` fold volume, brightness, power profile, CPU/RAM
   and battery into one pill and one popup — none of them need more than a

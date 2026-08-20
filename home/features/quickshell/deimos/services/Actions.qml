@@ -26,6 +26,13 @@ Singleton {
         root.run(up ? "brightnessctl set 5%+" : "brightnessctl set 5%-");
     }
 
+    // Array form rather than a shell string: a URL is untrusted enough (it
+    // comes back from an API response) that it should never be interpolated
+    // into something a shell parses.
+    function openUrl(url: string): void {
+        Quickshell.execDetached(["xdg-open", url]);
+    }
+
     Process {
         id: actionProc
     }
