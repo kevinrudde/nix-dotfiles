@@ -22,7 +22,7 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         height: 4
-        color: Theme.backgroundStrong
+        color: Theme.trackBackground
         radius: 2
     }
 
@@ -41,7 +41,7 @@ Item {
         x: Math.max(0, Math.min(parent.width - width, parent.width * Theme.clampPercent(root.percent) / 100 - width / 2))
         y: Math.round((parent.height - height) / 2)
         color: area.containsMouse ? Theme.foreground : root.fillColor
-        border.color: Theme.backgroundStrong
+        border.color: Theme.trackBackground
         border.width: 1
         radius: 7
     }

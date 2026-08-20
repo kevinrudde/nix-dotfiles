@@ -9,26 +9,41 @@ Singleton {
     id: root
 
     // ── Palette ──────────────────────────────────────────────────────────
-    readonly property color primary: "#96d8ff"
-    readonly property color foreground: "#d9e4ff"
-    readonly property color muted: "#6f7285"
-    readonly property color success: "#a8ff96"
-    readonly property color warning: "#ffd166"
-    readonly property color danger: "#ff5874"
-    // The one deliberately branded colour in an otherwise flat, single-hue
-    // bar — Anthropic's own terracotta, used only for the Claude usage icon
-    // so it reads as that specific app rather than another generic status
-    // pill.
+    // Tokyo Night, "night" variant. The upstream theme names its colours after
+    // syntax roles (comment, fg_gutter, terminal_black); the roles below are
+    // the shell's own, with the upstream name in a trailing comment so a value
+    // can be traced back to the palette it came from.
+    readonly property color primary: "#7aa2f7"       // blue
+    readonly property color foreground: "#c0caf5"    // fg
+    // dark5 rather than the palette's own `comment` (#565f89): a dimmed bar
+    // icon still has to be readable at a glance from across the desk, which
+    // comment-grey on the bar's background is not.
+    readonly property color muted: "#737aa2"         // dark5
+    readonly property color success: "#9ece6a"       // green
+    readonly property color warning: "#e0af68"       // yellow
+    readonly property color danger: "#f7768e"        // red
+    // The one deliberately branded colour in an otherwise Tokyo Night bar —
+    // Anthropic's own terracotta, used only for the Claude usage icon so it
+    // reads as that specific app rather than another generic status pill. Left
+    // off-palette on purpose; the theme's own orange would blend it back in.
     readonly property color claudeAccent: "#d97757"
 
-    readonly property color background: Qt.rgba(21 / 255, 18 / 255, 27 / 255, 0.82)
-    readonly property color backgroundStrong: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 0.92)
-    readonly property color activeBackground: Qt.rgba(150 / 255, 216 / 255, 255 / 255, 0.14)
-    readonly property color hoverBackground: Qt.rgba(150 / 255, 216 / 255, 255 / 255, 0.20)
-    // Solid rather than translucent: the bar is a flush, opaque strip, not a
-    // floating panel with the desktop showing through it like the islands and
-    // popups are.
-    readonly property color barBackground: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 1)
+    // Three surface levels, darkest first, so depth reads the way it does in
+    // any dark UI: the further forward something sits, the lighter it is.
+    // The bar is chrome and sits at the back; popups float above it; cards and
+    // buttons nested inside a popup sit above that again.
+    readonly property color barBackground: Qt.rgba(22 / 255, 22 / 255, 30 / 255, 1)          // bg_dark, solid
+    readonly property color backgroundStrong: Qt.rgba(26 / 255, 27 / 255, 38 / 255, 0.96)    // bg
+    readonly property color background: Qt.rgba(36 / 255, 40 / 255, 59 / 255, 0.82)          // bg_highlight-ish
+
+    // The empty part of a meter, slider or switch. Its own level rather than a
+    // reuse of `backgroundStrong`: a track has to stay visible against every
+    // surface above, and one that matches the panel it is drawn on disappears —
+    // which is exactly what the CPU and RAM meters on the bar used to do.
+    readonly property color trackBackground: "#3b4261"                                       // fg_gutter
+
+    readonly property color activeBackground: Qt.rgba(122 / 255, 162 / 255, 247 / 255, 0.16)
+    readonly property color hoverBackground: Qt.rgba(122 / 255, 162 / 255, 247 / 255, 0.22)
     // What a hovered pill actually resolves to once `hoverBackground` is
     // composited over the strip. A count badge punches its digits out of
     // whatever is behind them, so it needs that as one solid colour rather
@@ -43,8 +58,8 @@ Singleton {
 
     // Notification cards sit on their own background and use a softer border
     // than the bar so a stack of them does not read as a grid of boxes.
-    readonly property color cardBorder: Qt.rgba(150 / 255, 216 / 255, 255 / 255, 0.78)
-    readonly property color criticalBackground: Qt.rgba(255 / 255, 88 / 255, 116 / 255, 0.13)
+    readonly property color cardBorder: Qt.rgba(122 / 255, 162 / 255, 247 / 255, 0.78)
+    readonly property color criticalBackground: Qt.rgba(247 / 255, 118 / 255, 142 / 255, 0.13)
 
     // ── Typography ───────────────────────────────────────────────────────
     // One family for text and icons: the installed JetBrains Mono carries the

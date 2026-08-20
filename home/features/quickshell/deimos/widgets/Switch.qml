@@ -16,7 +16,7 @@ Rectangle {
     implicitWidth: 40
     implicitHeight: 22
     radius: height / 2
-    color: root.checked ? Theme.success : Theme.backgroundStrong
+    color: root.checked ? Theme.success : Theme.trackBackground
     border.color: Theme.primary
     border.width: 1
     opacity: root.interactive ? 1 : 0.6
