@@ -97,7 +97,7 @@ PanelWindow {
                 barScreen: root.screen
             }
 
-            BluetoothWidget {
+            ConnectivityWidget {
                 barScreen: root.screen
             }
 
@@ -108,10 +108,6 @@ PanelWindow {
             NotificationWidget {
                 barScreen: root.screen
                 centreAnchor: centreAnchor
-            }
-
-            NetworkWidget {
-                barScreen: root.screen
             }
 
             ClockWidget {}

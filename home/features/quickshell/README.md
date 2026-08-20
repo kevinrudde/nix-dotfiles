@@ -47,12 +47,16 @@ symlinks, rather than one symlink to the whole store path.
   repository browser. GitHub's search has `user-review-requested` but no
   complementary team-only qualifier, so the team list is a plain
   `review-requested` fetch with the direct list subtracted from it in `jq`.
-- **A popup only combines domains that are all a glance-and-close away.**
-  `SystemWidget`/`SystemPopup` fold volume, brightness, power profile, CPU/RAM
-  and battery into one pill and one popup — none of them need more than a
-  slider or a tap. Network and Bluetooth stay separate: both carry a real
-  interaction (a Wi-Fi password prompt, pairing) that would make a combined
-  popup either cramped or a second click deep.
+- **A popup combines domains that are the same kind of decision, even if each
+  has a real interaction of its own.** `SystemWidget`/`SystemPopup` fold
+  volume, brightness, power profile, CPU/RAM and battery into one pill and one
+  popup — none of them need more than a slider or a tap.
+  `ConnectivityWidget`/`ConnectivityPopup` fold Bluetooth and network into a
+  second pill behind a tab switch instead: both are "which device am I
+  talking to" questions, and each interaction (pairing, a Wi-Fi password
+  prompt) still gets a whole tab of uncontested room rather than sharing space
+  with the other. Bluetooth is the default tab — it sees more day-to-day use
+  than switching networks does.
 
 ## Working on it
 
