@@ -62,7 +62,7 @@ Pill {
             anchors.verticalCenter: parent.verticalCenter
             text: Audio.sinkIcon
             color: Audio.sinkMuted ? Theme.muted : Theme.primary
-            font.pixelSize: Theme.fontSizeNormal
+            font.pixelSize: Theme.fontSizeIcon
         }
 
         StyledText {
@@ -70,7 +70,7 @@ Pill {
             anchors.verticalCenter: parent.verticalCenter
             text: BatteryInfo.icon
             color: BatteryInfo.foreground
-            font.pixelSize: Theme.fontSizeNormal
+            font.pixelSize: Theme.fontSizeIcon
         }
     }
 

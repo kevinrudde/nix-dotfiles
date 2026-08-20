@@ -31,6 +31,24 @@ Singleton {
     readonly property var inputs: root.sorted(Pipewire.nodes.values.filter(node => root.isInput(node)))
     readonly property var devices: root.mode === "output" ? root.outputs : root.inputs
 
+    // Applications currently holding a capture stream, by name, deduplicated —
+    // one app can open the microphone more than once.
+    readonly property var recorders: {
+        const names = [];
+
+        for (const node of Pipewire.nodes.values) {
+            if (!root.isCapture(node))
+                continue;
+
+            const name = root.clientName(node);
+            if (names.indexOf(name) < 0)
+                names.push(name);
+        }
+
+        return names;
+    }
+    readonly property bool recording: root.recorders.length > 0
+
     function node(mode: string): PwNode {
         return mode === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource;
     }
@@ -115,6 +133,27 @@ Singleton {
             return nickname;
 
         return node.name || "";
+    }
+
+    // Something is reading from a source. `isStream && !isSink` alone is not
+    // enough: a filter chain is a stream too, and this machine's speaker and
+    // microphone DSP are connected from boot, so the plain check reads as
+    // "always recording". Only a real client carries `application.name`.
+    //
+    // No check on `pulse.corked` — an app can hold the source open without
+    // pulling from it, but corking flips on a live node, and this list is only
+    // re-evaluated when nodes come and go. Reporting the mic as open when an
+    // app merely has it claimed is the failure worth having in this direction.
+    function isCapture(node: PwNode): bool {
+        if (!node || !node.isStream || node.isSink || !node.audio)
+            return false;
+
+        return !!(node.properties && node.properties["application.name"]);
+    }
+
+    function clientName(node: PwNode): string {
+        const name = node && node.properties ? node.properties["application.name"] : "";
+        return String(name || (node ? node.name : "") || "Unknown");
     }
 
     function isMonitor(node: PwNode): bool {

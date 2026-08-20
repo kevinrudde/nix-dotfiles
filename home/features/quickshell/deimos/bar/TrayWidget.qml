@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import qs
 import qs.services
 import qs.widgets
 
@@ -24,12 +25,15 @@ Island {
 
             required property var modelData
 
-            width: 18
-            height: 18
+            width: Theme.fontSizeIcon
+            height: Theme.fontSizeIcon
 
             IconImage {
                 anchors.centerIn: parent
-                implicitSize: 18
+                // Sized off the icon font rather than a number of its own:
+                // these sit in the same row as the glyph icons and have to
+                // read as the same size as them.
+                implicitSize: Theme.fontSizeIcon
                 source: slot.modelData.icon
             }
 

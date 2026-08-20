@@ -7,6 +7,7 @@ import qs.widgets
 // Shared across monitors so both bars stay in the same shape.
 Pill {
     text: BarState.expanded ? ">" : "<"
+    fontSize: Theme.fontSizeIcon
     horizontalPadding: Theme.pillPadIcon
     maxTextWidth: 14
     tooltip: BarState.expanded ? "Hide tray" : "Show tray"

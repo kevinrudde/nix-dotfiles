@@ -1,47 +1,39 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+# Reports what is carrying traffic, not how to draw it: the shell owns the
+# icons, and which codepoint means "three bars of signal" is not something a
+# shell script should have an opinion about.
 network_json() {
-  local line device type state connection signal text tooltip connected
+  local line device type state connection signal tooltip
 
   line="$(nmcli -t -f DEVICE,TYPE,STATE,CONNECTION dev status 2>/dev/null | awk -F: '$3 == "connected" && $2 != "loopback" { print; exit }')"
 
   if [[ -z "$line" ]]; then
-    jq -n '{text: "", tooltip: "Disconnected", connected: false}'
+    jq -n '{type: "", signal: 0, tooltip: "Disconnected", connected: false}'
     return 0
   fi
 
   IFS=: read -r device type state connection <<< "$line"
-  connected=true
+  signal=0
 
   case "$type" in
     wifi)
       signal="$(nmcli -t -f IN-USE,SIGNAL dev wifi 2>/dev/null | awk -F: '$1 == "*" { print $2; exit }')"
-      text="${signal:-0}% "
-      tooltip="${connection:-$device} (${signal:-0}%)"
-      ;;
-    ethernet)
-      text="󰈀"
-      tooltip="${device}: ${connection:-connected}"
+      signal="${signal:-0}"
+      tooltip="${connection:-$device} (${signal}%)"
       ;;
     *)
-      text=""
       tooltip="${device}: ${connection:-connected}"
       ;;
   esac
 
-  jq -n --arg text "$text" --arg tooltip "$tooltip" --argjson connected "$connected" \
-    '{text: $text, tooltip: $tooltip, connected: $connected}'
+  jq -n --arg type "$type" --argjson signal "$signal" --arg tooltip "$tooltip" \
+    '{type: $type, signal: $signal, tooltip: $tooltip, connected: true}'
 }
 
-# %^b (uppercase month), not %b: a lowercase month abbreviation is the only
-# part of this string with a descender ("Aug"'s g), which pulls the shared
-# text baseline down and makes the digits either side of it read as sitting
-# above true centre even though the string as a whole measures centred.
 jq -n \
   --argjson network "$(network_json)" \
-  --arg clock "$(date '+%d %^b %H:%M')" \
   '{
-    network: $network,
-    clock: $clock
+    network: $network
   }'

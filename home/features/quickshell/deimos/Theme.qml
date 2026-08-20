@@ -73,6 +73,12 @@ Singleton {
     readonly property int fontSizeSmall: 12
     readonly property int fontSizeNormal: 13
     readonly property int fontSizeLarge: 14
+    // Every icon glyph on the bar renders at this size — the launcher, the
+    // tray, both toggles, and every status glyph in the right-hand group. A bar
+    // of icons at four different sizes reads as clutter rather than as a row,
+    // so a widget that wants a smaller icon is a widget that wants a different
+    // icon. Text beside an icon (the clock, a signal percentage, a submap name)
+    // is text and keeps its own size.
     readonly property int fontSizeIcon: 17
     readonly property int fontSizeDisplay: 22
 

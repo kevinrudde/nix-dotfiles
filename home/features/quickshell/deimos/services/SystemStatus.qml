@@ -1,24 +1,48 @@
 pragma Singleton
 
-// Values that have no Quickshell binding and come from a shell script instead:
-// the clock string and a one-line network summary.
+// The one-line network summary for the bar, from a shell script: nmcli is the
+// only thing that knows which device is actually carrying traffic and how
+// strong its signal is, and no Quickshell binding covers it.
+//
+// This is the shell's only unconditional poller — everything else here gates
+// on a `watching` flag set while a popup is open. It stays that way because
+// the bar shows this text all the time, but the interval is set to what the
+// value actually does: signal strength drifts slowly, and the events that
+// change it abruptly (a network switch) call `refreshSoon` themselves.
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs
 
 Singleton {
     id: root
 
-    readonly property string clock: String(root.status.clock || "")
-    readonly property string networkText: root.status.network ? String(root.status.network.text || "") : ""
+    readonly property string networkType: root.status.network ? String(root.status.network.type || "") : ""
+    readonly property int networkSignal: root.status.network ? Number(root.status.network.signal || 0) : 0
     readonly property bool networkConnected: root.status.network ? !!root.status.network.connected : false
+
+    // The glyph for whatever is carrying traffic, picked here rather than in
+    // the script: Theme owns the icons, and NetworkInfo already knows which
+    // one a given signal strength deserves.
+    readonly property string networkIcon: {
+        if (!root.networkConnected)
+            return "";
+
+        if (root.networkType === "wifi")
+            return NetworkInfo.signalIcon(root.networkSignal);
+
+        if (root.networkType === "ethernet")
+            return Theme.iconEthernet;
+
+        return "";
+    }
 
     property var status: ({
             network: {
-                text: "",
+                type: "",
+                signal: 0,
                 connected: false
-            },
-            clock: ""
+            }
         })
 
     function refresh(): void {
@@ -50,7 +74,7 @@ Singleton {
     }
 
     Timer {
-        interval: 2000
+        interval: 10000
         repeat: true
         running: true
         onTriggered: root.refresh()

@@ -23,6 +23,10 @@ Rectangle {
     // Measured rather than read off the Text item: the label is elided, so its
     // own width is the limit and cannot tell us how wide it wants to be.
     readonly property int labelNaturalWidth: Math.ceil(metrics.advanceWidth(root.text))
+    // How wide the label actually ends up — its natural width, or the limit it
+    // was elided to. Exposed so a neighbour can sit against the text rather
+    // than against the padding around it.
+    readonly property int drawnTextWidth: Math.min(root.labelNaturalWidth, root.textWidthLimit)
     readonly property alias hovered: area.containsMouse
 
     signal clicked(var mouse)
@@ -30,6 +34,13 @@ Rectangle {
 
     implicitWidth: Math.max(root.minPillWidth, Math.min(root.labelNaturalWidth, root.textWidthLimit) + root.horizontalPadding * 2)
     implicitHeight: Theme.pillHeight
+    // Where the label's baseline ends up once the ink correction below has
+    // moved it, reported as this item's own baseline. Nothing inside the pill
+    // needs it; it is here so a neighbouring pill can sit on the same line
+    // with `anchors.baseline` rather than guessing at a fixed offset — and the
+    // guess would be wrong anyway, since the correction depends on which
+    // characters the current label happens to contain.
+    baselineOffset: label.y + label.baselineOffset + inkShift.y
     clip: true
     color: area.containsMouse ? Theme.hoverBackground : root.background
     radius: Theme.pillRadius
@@ -38,7 +49,7 @@ Rectangle {
         id: label
 
         anchors.centerIn: parent
-        width: Math.min(root.labelNaturalWidth, root.textWidthLimit)
+        width: root.drawnTextWidth
         clip: true
         text: root.text
         color: root.foreground
@@ -54,6 +65,8 @@ Rectangle {
         // bounds, relative to the baseline; shifting by the gap between that
         // and the advance box centres what the eye actually sees instead.
         transform: Translate {
+            id: inkShift
+
             x: Math.round(ink.advanceWidth / 2 - (ink.tightBoundingRect.x + ink.tightBoundingRect.width / 2))
             y: Math.round(label.height / 2 - (label.baselineOffset + ink.tightBoundingRect.y + ink.tightBoundingRect.height / 2))
         }

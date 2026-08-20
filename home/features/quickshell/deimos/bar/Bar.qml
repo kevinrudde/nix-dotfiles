@@ -72,6 +72,7 @@ PanelWindow {
 
             Workspaces {
                 Layout.alignment: Qt.AlignVCenter
+                screen: root.modelData
             }
 
             SubmapIndicator {
@@ -80,6 +81,8 @@ PanelWindow {
         }
 
         WindowTitle {
+            id: title
+
             anchors.verticalCenter: parent.verticalCenter
             // Centred on the screen, not on the free space between the two
             // groups: rightGroup is much wider than leftGroup, so splitting
@@ -89,7 +92,34 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             // Symmetrical around the centre: whichever group is wider decides,
             // otherwise the title would sit off-centre or overlap one side.
-            availableWidth: content.width - 2 * Math.max(leftGroup.width, rightGroup.width) - 60
+            // Twice the recording indicator, not once: it only eats room on
+            // the right, so the same has to come off the left or the title
+            // stops being centred the moment the microphone opens.
+            availableWidth: content.width - 2 * Math.max(leftGroup.width, rightGroup.width) - 60 - 2 * (recording.visible ? recording.width + Theme.barGap : 0)
+        }
+
+        // Anchored to the title rather than placed in either group: it belongs
+        // to the middle of the bar, and the title's own width changes with
+        // every window focus.
+        RecordingIndicator {
+            id: recording
+
+            // Baseline, not verticalCenter: both pills centre their own ink,
+            // and the title's ink box grows downwards whenever its text has a
+            // descender in it. Sharing a centre therefore puts the two on
+            // different lines depending on the focused window's name; sharing
+            // a baseline puts them on the same one always.
+            anchors.baseline: title.baseline
+            // Placed against the title's text, not against its pill. The pill
+            // carries 14px of padding on each side for its own hover
+            // highlight, and using its edge puts that padding into the gap —
+            // which then reads as the space between two groups rather than
+            // between a label and the icon annotating it. Subtracting this
+            // pill's own padding as well leaves exactly `barGap` between the
+            // two inks.
+            anchors.left: title.left
+            anchors.leftMargin: (title.width + title.drawnTextWidth) / 2 + Theme.barGap - recording.horizontalPadding
+            barScreen: root.screen
         }
 
         RowLayout {

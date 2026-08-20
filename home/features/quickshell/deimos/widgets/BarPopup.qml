@@ -54,4 +54,19 @@ PopupWindow {
     surfaceFormat {
         opaque: false
     }
+
+    // Escape closes whatever is open, to match the click-elsewhere that
+    // `grabFocus` already gives. Its own item rather than a handler on the
+    // body, so every popup gets it without each one remembering to.
+    //
+    // A text field in the body keeps Escape while it has the focus — Qt
+    // delivers the key to the focused item and walks up its own parents, which
+    // never reach here. That is the order you want anyway: escape the field
+    // you are typing in before the popup around it.
+    Item {
+        anchors.fill: parent
+        focus: true
+
+        Keys.onEscapePressed: Popups.close()
+    }
 }

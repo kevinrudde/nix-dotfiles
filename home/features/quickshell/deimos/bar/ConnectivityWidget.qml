@@ -25,11 +25,10 @@ Pill {
 
     onClicked: Popups.toggle("connectivity", root.barScreen)
 
-    // RowLayout, not Row: a Row sets its children's y itself and ignores
-    // any anchors.verticalCenter on them — harmless here only because both
-    // labels happen to share the same font size, which hid the same bug
-    // NotificationWidget and GitHubWidget actually showed once their two
-    // parts stopped being the same height.
+    // RowLayout, not Row: a Row sets its children's y itself and ignores any
+    // anchors.verticalCenter on them, which would leave the shorter signal
+    // reading pinned to the top of the taller glyphs beside it — the same
+    // top-alignment gap Bar.qml's own RowLayout switch was for.
     RowLayout {
         id: contentRow
 
@@ -40,12 +39,24 @@ Pill {
             Layout.alignment: Qt.AlignVCenter
             text: BluetoothInfo.label
             color: BluetoothInfo.foreground
+            font.pixelSize: Theme.fontSizeIcon
+        }
+
+        // Signal strength stays at text size while the glyph beside it goes up
+        // to icon size — it is a reading, not an icon, and the two are allowed
+        // to differ.
+        StyledText {
+            visible: SystemStatus.networkType === "wifi"
+            Layout.alignment: Qt.AlignVCenter
+            text: SystemStatus.networkSignal + "%"
+            color: SystemStatus.networkConnected ? Theme.primary : Theme.muted
         }
 
         StyledText {
             Layout.alignment: Qt.AlignVCenter
-            text: SystemStatus.networkText
+            text: SystemStatus.networkIcon
             color: SystemStatus.networkConnected ? Theme.primary : Theme.muted
+            font.pixelSize: Theme.fontSizeIcon
         }
     }
 
