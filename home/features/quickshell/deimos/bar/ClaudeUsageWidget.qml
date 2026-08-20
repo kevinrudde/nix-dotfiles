@@ -11,6 +11,7 @@ Pill {
     required property var barScreen
 
     text: Theme.iconClaude
+    fontSize: Theme.fontSizeIcon
     foreground: Theme.claudeAccent
     horizontalPadding: Theme.pillPadIcon
     tooltip: ClaudeUsage.sessionActive

@@ -60,7 +60,7 @@ Singleton {
     // One spacing value for the whole bar: nothing here still has a
     // "collapsed vs. expanded" width, so there is no second value to keep in
     // sync with it.
-    readonly property int barGap: 12
+    readonly property int barGap: 8
 
     readonly property int pillHeight: 28
     readonly property int pillRadius: 8

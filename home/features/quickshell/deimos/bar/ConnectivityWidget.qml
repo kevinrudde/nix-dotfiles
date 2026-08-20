@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import qs
 import qs.popups
 import qs.services
@@ -24,20 +25,25 @@ Pill {
 
     onClicked: Popups.toggle("connectivity", root.barScreen)
 
-    Row {
+    // RowLayout, not Row: a Row sets its children's y itself and ignores
+    // any anchors.verticalCenter on them — harmless here only because both
+    // labels happen to share the same font size, which hid the same bug
+    // NotificationWidget and GitHubWidget actually showed once their two
+    // parts stopped being the same height.
+    RowLayout {
         id: contentRow
 
         anchors.centerIn: parent
         spacing: 8
 
         StyledText {
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             text: BluetoothInfo.label
             color: BluetoothInfo.foreground
         }
 
         StyledText {
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             text: SystemStatus.networkText
             color: SystemStatus.networkConnected ? Theme.primary : Theme.muted
         }

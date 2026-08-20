@@ -169,7 +169,26 @@ startup; `qs log <file>` reads one back.
   launcher icon sitting low. A new bar widget only needs this if its own
   implicit height differs from its neighbours', but there is no visible pill
   border left to reveal that mismatch by eye — check it by screenshot, the
-  way this one was found.
+  way this one was found. The exact same rule applies one level down, inside
+  a single pill's own content: `NotificationWidget`/`GitHubWidget` pair a
+  count badge with an icon at a different font size, and both used to sit in
+  a plain `Row` with `anchors.verticalCenter` on each child — which a `Row`
+  silently ignores, since it sets its children's `y` itself. `ConnectivityWidget`
+  had the identical bug and never showed it, purely because its two labels
+  happen to share one font size. All three are `RowLayout` now.
+- **`anchors.verticalCenter` only centres the box a glyph draws inside, not
+  the ink itself.** A digit's box carries descent space it never uses, which
+  leaves it sitting visibly above true centre — the same class of problem
+  `Pill`'s own ink-centring `Translate` exists to fix for its label, just
+  showing up one level lower once an icon and a count badge became two
+  separate items instead of one string. `widgets/CenteredGlyph.qml` pulls
+  that correction out standalone (it is generic over any single glyph, digit
+  or icon) for exactly this case — a widget that needs an icon and something
+  else, each independently centred, rather than one block centred as a
+  whole. `NotificationWidget` and `GitHubWidget` both use it now, with the
+  count rendered at `Theme.fontSizeSmall` — the same size the network tile's
+  percentage already used — instead of inheriting the icon's larger size,
+  so every number-as-badge on the bar reads at one consistent size.
 - **A screenshot for review needs the output's native pixel size, not the
   logical size `hyprctl monitors` reports.** On a scaled output (2x here),
   `grim -g "x,y WxH"` and the physical PNG size disagree in ways that are
@@ -199,6 +218,31 @@ startup; `qs log <file>` reads one back.
   `latestId` and is not protected against this the same way — a lower-risk
   spot to hit the same bug if the notification centre is ever reported to
   have it too.
+- **A mathematically-centred string can still read as sitting high, if a
+  descender elsewhere in the same string pulls the shared baseline down.**
+  The clock's `20 Aug 14:09` measured as centred to within a rounding error
+  (`Pill`'s ink-centring `Translate` computed a −1px shift, i.e. already
+  correct) — but "Aug" is the only part of that string with a descender
+  (the `g`), and Qt centres the string's whole ink box, descender space
+  included. Next to an icon whose ink fills its box top-to-bottom evenly,
+  that shifts every digit's *apparent* centre upward relative to it, even
+  though the string is centred by measurement. Confirmed by putting the
+  clock pill directly beside a `CenteredGlyph` bell and the power icon on
+  the same reference line — lowercase "Aug" visibly sits high against both,
+  uppercase "AUG" lines up with them exactly. `status.sh` formats the month
+  with `%^b`, not `%b`, purely to remove the only descender from the
+  string — not a `Pill`/centring-logic change.
+- **A window title centred on the bar's own midpoint is not the same as one
+  centred in the space actually left for it**, once the two side groups
+  stop being close to the same width. `rightGroup` picked up six more
+  widgets than `leftGroup` has this session; anchoring `WindowTitle` to
+  `parent.horizontalCenter` alone left it sitting about twice as close to
+  the right icons as to the launcher, with all the freed space pooling on
+  the left. `anchors.horizontalCenterOffset: (leftGroup.width -
+  rightGroup.width) / 2` re-centres it on the actual gap between the two
+  groups instead of the bar's raw midpoint, and keeps doing so as either
+  group's width changes — no magic number to revisit the next time a
+  widget is added to either side.
 - **`Popups.open(name, screen)` called from a `Timer`, not a real click,
   does not actually make a `BarPopup` visible on screen** — the Wayland
   focus grab a popup needs requires a serial tied to a genuine input event,

@@ -34,9 +34,13 @@ network_json() {
     '{text: $text, tooltip: $tooltip, connected: $connected}'
 }
 
+# %^b (uppercase month), not %b: a lowercase month abbreviation is the only
+# part of this string with a descender ("Aug"'s g), which pulls the shared
+# text baseline down and makes the digits either side of it read as sitting
+# above true centre even though the string as a whole measures centred.
 jq -n \
   --argjson network "$(network_json)" \
-  --arg clock "$(date '+%d %b %H:%M')" \
+  --arg clock "$(date '+%d %^b %H:%M')" \
   '{
     network: $network,
     clock: $clock
