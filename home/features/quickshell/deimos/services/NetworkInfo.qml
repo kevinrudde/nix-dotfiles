@@ -38,6 +38,18 @@ Singleton {
         return null;
     }
 
+    // The one `wired` entry actually carrying traffic, if any — everything
+    // else in that list is either not plugged in or one of the unmanaged
+    // veth* devices a container runtime leaves lying around.
+    function activeWired(): var {
+        for (const entry of root.wired) {
+            if (entry.connected)
+                return entry;
+        }
+
+        return null;
+    }
+
     function refresh(rescan: bool): void {
         if (networkProc.running)
             return;

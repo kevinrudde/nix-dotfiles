@@ -236,6 +236,72 @@ BarPopup {
                 visible: WifiStats.connected
             }
 
+            // Ethernet, independent of whatever Wi-Fi is doing above — a
+            // machine can easily have both up at once, and a wired link
+            // carrying the actual traffic is exactly when someone would
+            // open this tab to check on it.
+            Column {
+                id: ethernetSection
+
+                readonly property var wired: NetworkInfo.activeWired()
+
+                width: parent.width
+                visible: ethernetSection.wired !== null
+                spacing: Theme.popupSpacing
+
+                Caption {
+                    width: parent.width
+                    label: "Ethernet"
+                }
+
+                RowLayout {
+                    width: parent.width
+                    spacing: 10
+
+                    StyledText {
+                        text: Theme.iconEthernet
+                        color: Theme.primary
+                        font.pixelSize: Theme.fontSizeDisplay
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: ethernetSection.wired ? (ethernetSection.wired.connection || ethernetSection.wired.device) : ""
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.fontSizeLarge
+                    }
+                }
+
+                GridLayout {
+                    width: parent.width
+                    columns: 2
+                    columnSpacing: 16
+                    rowSpacing: 2
+
+                    InfoRow {
+                        Layout.fillWidth: true
+                        label: "IP address"
+                        value: ethernetSection.wired ? ethernetSection.wired.ip : ""
+                    }
+
+                    InfoRow {
+                        Layout.fillWidth: true
+                        label: "Gateway"
+                        value: ethernetSection.wired ? ethernetSection.wired.gateway : ""
+                    }
+
+                    InfoRow {
+                        Layout.fillWidth: true
+                        label: "Speed"
+                        value: ethernetSection.wired && ethernetSection.wired.speedMbps ? (ethernetSection.wired.speedMbps + " Mbps") : "--"
+                    }
+                }
+            }
+
+            Divider {
+                visible: ethernetSection.wired !== null
+            }
+
             Column {
                 width: parent.width
                 visible: WifiStats.connected

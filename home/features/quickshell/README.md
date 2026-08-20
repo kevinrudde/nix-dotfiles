@@ -84,6 +84,19 @@ detail-level switch anymore.
   (`onOpenChanged`/`onModeChanged`), not as a continuous binding — two
   instances both binding the same singleton property from their own state
   would fight over it every time either one changed.
+- **`NetworkInfo.wired` already existed before it had a reason to be shown.**
+  `network-status.sh` has listed ethernet devices from `nmcli dev status`
+  since the LAN tab was first deferred as out of scope — the popup just
+  never rendered any of it. Adding the "Ethernet" section to
+  `ConnectivityPopup.qml` was mostly wiring, not new plumbing: IP, gateway
+  and link speed (`/sys/class/net/<dev>/speed`) are only fetched for an
+  entry that is actually `connected`, since `dev status` also lists a
+  handful of unmanaged `veth*` "ethernet" devices a container runtime
+  leaves behind — cheap to list, not worth extra `nmcli`/sysfs calls on.
+  `NetworkInfo.activeWired()` mirrors the existing `activeEntry()` for
+  Wi-Fi, and the section is independently visible from the Wi-Fi one above
+  it — both links can be up at once, and a wired link carrying the real
+  traffic is exactly when this tab is worth opening.
 - **A remote data source goes through a script, never a QML HTTP client.**
   `GitHubInfo` shells out to `scripts/github-fetch.sh`, which does everything
   through `gh` — no token ever touches this repository, and `gh auth status`

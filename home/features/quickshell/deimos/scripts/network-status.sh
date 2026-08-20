@@ -48,12 +48,36 @@ wired_json="$(
         connected=true
       fi
 
+      # Docker/libvirt leave a handful of unmanaged veth* "ethernet" devices
+      # in `dev status` too — cheap to list, but not worth a handful of
+      # extra nmcli/sysfs calls apiece when they can never be `connected`.
+      ip_addr=""
+      gateway=""
+      speed_mbps=""
+      if [[ "$connected" == true ]]; then
+        ip_addr="$(nmcli -g IP4.ADDRESS device show "$device" 2>/dev/null | head -n1 | cut -d/ -f1)"
+        gateway="$(nmcli -g IP4.GATEWAY device show "$device" 2>/dev/null)"
+        speed_mbps="$(cat "/sys/class/net/$device/speed" 2>/dev/null || true)"
+        [[ "$speed_mbps" =~ ^[0-9]+$ ]] || speed_mbps=""
+      fi
+
       jq -n \
         --arg device "$device" \
         --arg state "$state" \
         --arg connection "$connection" \
         --argjson connected "$(json_bool "$connected")" \
-        '{device: $device, state: $state, connection: $connection, connected: $connected}'
+        --arg ip "$ip_addr" \
+        --arg gateway "$gateway" \
+        --arg speedMbps "$speed_mbps" \
+        '{
+          device: $device,
+          state: $state,
+          connection: $connection,
+          connected: $connected,
+          ip: $ip,
+          gateway: $gateway,
+          speedMbps: (if $speedMbps == "" then null else ($speedMbps | tonumber) end)
+        }'
     done |
     jq -s '.'
 )"
