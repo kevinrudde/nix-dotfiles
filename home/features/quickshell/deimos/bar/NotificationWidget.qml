@@ -1,19 +1,13 @@
 import QtQuick
-import QtQuick.Layouts
 import qs
 import qs.popups
 import qs.services
 import qs.widgets
 
-// Bell with the number of pending notifications. Right click toggles do not
-// disturb, which also drops the toasts currently on screen. Count and icon
-// are two separately-centred items, not one combined string — see
-// CenteredGlyph.qml for why that matters here. The row itself is a
-// RowLayout, not a plain Row: a Row sets its children's y directly and
-// ignores any anchors.verticalCenter on them, so the shorter count badge
-// would sit pinned to the top of the taller icon's row instead of centred
-// against it — the same top-alignment gap Bar.qml's own RowLayout switch
-// was for.
+// Bell with the number of pending notifications riding on its corner. Right
+// click toggles do not disturb, which also drops the toasts currently on
+// screen. See BadgedIcon.qml for why the count sits on the glyph instead of
+// beside it.
 Pill {
     id: root
 
@@ -26,7 +20,7 @@ Pill {
     text: ""
     horizontalPadding: Theme.pillPadIcon
     minPillWidth: 0
-    implicitWidth: contentRow.implicitWidth + root.horizontalPadding * 2
+    implicitWidth: bell.implicitWidth + root.horizontalPadding * 2
     tooltip: NotificationService.dnd
         ? "Do not disturb"
         : NotificationService.count + (NotificationService.count === 1 ? " notification" : " notifications")
@@ -38,25 +32,14 @@ Pill {
             Popups.toggle("notifications", root.barScreen);
     }
 
-    RowLayout {
-        id: contentRow
+    BadgedIcon {
+        id: bell
 
         anchors.centerIn: parent
-        spacing: 4
-
-        CenteredGlyph {
-            Layout.alignment: Qt.AlignVCenter
-            visible: NotificationService.count > 0
-            text: String(NotificationService.count)
-            font.pixelSize: Theme.fontSizeSmall
-            color: root.tint
-        }
-
-        CenteredGlyph {
-            Layout.alignment: Qt.AlignVCenter
-            text: NotificationService.icon
-            color: root.tint
-        }
+        icon: NotificationService.icon
+        count: NotificationService.count
+        color: root.tint
+        surface: root.hovered ? Theme.barHoverSolid : Theme.barBackground
     }
 
     NotificationCenter {

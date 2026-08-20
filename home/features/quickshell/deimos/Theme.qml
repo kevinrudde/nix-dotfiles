@@ -29,6 +29,17 @@ Singleton {
     // floating panel with the desktop showing through it like the islands and
     // popups are.
     readonly property color barBackground: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 1)
+    // What a hovered pill actually resolves to once `hoverBackground` is
+    // composited over the strip. A count badge punches its digits out of
+    // whatever is behind them, so it needs that as one solid colour rather
+    // than the translucent tint — derived here instead of written out so the
+    // two cannot drift apart.
+    readonly property color barHoverSolid: {
+        const tint = root.hoverBackground;
+        const base = root.barBackground;
+        const mix = (over, under) => tint.a * over + (1 - tint.a) * under;
+        return Qt.rgba(mix(tint.r, base.r), mix(tint.g, base.g), mix(tint.b, base.b), 1);
+    }
 
     // Notification cards sit on their own background and use a softer border
     // than the bar so a stack of them does not read as a grid of boxes.
@@ -40,6 +51,9 @@ Singleton {
     // Nerd Font glyphs, so no separate icon font element is needed.
     readonly property string fontFamily: "JetBrains Mono"
 
+    // Only for the count badge riding on an icon's corner: below fontSizeTiny
+    // on purpose, since it has to stay smaller than the glyph it sits on.
+    readonly property int fontSizeBadge: 10
     readonly property int fontSizeTiny: 11
     readonly property int fontSizeSmall: 12
     readonly property int fontSizeNormal: 13
@@ -61,6 +75,14 @@ Singleton {
     // "collapsed vs. expanded" width, so there is no second value to keep in
     // sync with it.
     readonly property int barGap: 8
+
+    // A count badge sits in the top-right corner of its icon rather than
+    // beside it, overlapping the glyph by `badgeOverlap` — so a counted icon
+    // costs a few pixels more width than a bare one instead of a whole extra
+    // digit plus a gap.
+    readonly property int badgeHeight: 13
+    readonly property int badgePad: 2
+    readonly property int badgeOverlap: 5
 
     readonly property int pillHeight: 28
     readonly property int pillRadius: 8

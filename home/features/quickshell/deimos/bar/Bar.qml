@@ -81,15 +81,12 @@ PanelWindow {
 
         WindowTitle {
             anchors.verticalCenter: parent.verticalCenter
-            // The bar's own centre only matches the free space around the
-            // title when both groups are the same width — rightGroup has
-            // grown well past leftGroup, so centring on the bar itself would
-            // leave far more room on the left than the right. This offsets
-            // to the midpoint of the actual gap between the two groups
-            // instead, and re-settles on its own as either group's width
-            // changes.
+            // Centred on the screen, not on the free space between the two
+            // groups: rightGroup is much wider than leftGroup, so splitting
+            // the gap would pull the title visibly left of the monitor's
+            // middle. availableWidth below keeps it from reaching either
+            // group while it stays put.
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.horizontalCenterOffset: (leftGroup.width - rightGroup.width) / 2
             // Symmetrical around the centre: whichever group is wider decides,
             // otherwise the title would sit off-centre or overlap one side.
             availableWidth: content.width - 2 * Math.max(leftGroup.width, rightGroup.width) - 60

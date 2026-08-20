@@ -35,11 +35,12 @@ Singleton {
 
     readonly property var connectedDevices: root.devices.filter(device => device && device.connected)
 
-    // Bar label: the count when something is connected, the crossed-out icon
-    // when the adapter is off.
-    readonly property string label: root.powered
-        ? (root.connectedDevices.length > 0 ? root.connectedDevices.length + " " + Theme.iconBluetooth : Theme.iconBluetooth)
-        : Theme.iconBluetoothOff
+    // Bar label: the icon alone, crossed out when the adapter is off. No
+    // connected-device count — it is almost always 1, `foreground` below
+    // already says whether anything is connected, and the tooltip and the
+    // popup both name the devices. A number here would be a digit in the bar
+    // that never changes and never needs acting on.
+    readonly property string label: root.powered ? Theme.iconBluetooth : Theme.iconBluetoothOff
 
     readonly property color foreground: {
         if (!root.powered)
