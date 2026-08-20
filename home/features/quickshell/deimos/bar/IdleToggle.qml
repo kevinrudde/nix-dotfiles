@@ -7,6 +7,7 @@ import qs.widgets
 Pill {
     visible: BarState.expanded
     text: BarState.idleInhibited ? Theme.iconIdleOn : Theme.iconIdleOff
+    fontSize: Theme.fontSizeIcon
     horizontalPadding: Theme.pillPadIcon
     tooltip: BarState.idleInhibited ? "Idle inhibited" : "Inhibit idle"
     onClicked: BarState.idleInhibited = !BarState.idleInhibited

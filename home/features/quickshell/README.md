@@ -93,6 +93,30 @@ detail-level switch anymore.
   repository browser. GitHub's search has `user-review-requested` but no
   complementary team-only qualifier, so the team list is a plain
   `review-requested` fetch with the direct list subtracted from it in `jq`.
+- **A number this shell cannot verify does not appear, even approximated.**
+  `ClaudeUsage` shows token counts by day and by model, and the current
+  5-hour rate-limit window's usage from Claude Code's own local session
+  transcripts (`~/.claude/projects/**/*.jsonl`, which already carry
+  `message.usage` and `message.model` per turn). Its rate-limit percentages
+  (session, weekly, and any model-scoped window) come from a real read of
+  Anthropic's OAuth usage endpoint, the same one Claude Code's own client
+  reads — not a guess, and not shown at all if that read is not available.
+- **A credential this shell only reads is never the one it renews.**
+  `claude-usage.sh` reads the existing `accessToken`/`expiresAt`/
+  `rateLimitTier`/`subscriptionType` straight out of `~/.claude/.credentials.json`
+  and calls `GET /api/oauth/usage` with it — the exact design Basecamp's
+  Omarchy `omarchy-agent-usage-claude` plugin uses. It never refreshes that
+  token and never writes back to the credentials file; an expired token
+  just degrades to `usageStatusText: "Sign-in expired"` plus whatever
+  limits were last cached (dropping any whose `resetsAt` has already
+  passed), with `authHelpText` pointing the user at `claude auth login` or
+  simply starting Claude Code themselves. A missing token, a transport
+  failure, and an HTTP error status each degrade the same way but with
+  their own status text — a 429's `retry-after` header is surfaced in the
+  message rather than retried against automatically. Live probes are
+  throttled to at most one every 15 seconds regardless of the bar's own
+  refresh cadence, via a small cache at
+  `$XDG_CACHE_HOME/quickshell-claude-usage/limits.json`.
 - **A popup combines domains that are the same kind of decision, even if each
   has a real interaction of its own.** `SystemWidget`/`SystemPopup` fold
   volume, brightness, power profile, CPU/RAM and battery into one pill and one
@@ -175,3 +199,15 @@ startup; `qs log <file>` reads one back.
   `latestId` and is not protected against this the same way — a lower-risk
   spot to hit the same bug if the notification centre is ever reported to
   have it too.
+- **`Popups.open(name, screen)` called from a `Timer`, not a real click,
+  does not actually make a `BarPopup` visible on screen** — the Wayland
+  focus grab a popup needs requires a serial tied to a genuine input event,
+  which a Timer-fired property change does not carry. `qs log` still shows
+  the true story: no QML type/binding errors means every row's bindings
+  evaluated correctly against real data, which is what this is actually
+  good for — it is a binding-correctness check, not a "does this render"
+  check, and treating it as the latter earlier in this shell's history was
+  a real gap. To see the actual pixels without a real click, embed a popup's
+  `PopupSurface` content directly inside a plain, always-visible
+  `PanelWindow` in a throwaway probe — same rendering, none of the layer-shell
+  grab machinery to fight with.

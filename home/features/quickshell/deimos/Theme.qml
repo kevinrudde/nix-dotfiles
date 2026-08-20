@@ -15,6 +15,11 @@ Singleton {
     readonly property color success: "#a8ff96"
     readonly property color warning: "#ffd166"
     readonly property color danger: "#ff5874"
+    // The one deliberately branded colour in an otherwise flat, single-hue
+    // bar — Anthropic's own terracotta, used only for the Claude usage icon
+    // so it reads as that specific app rather than another generic status
+    // pill.
+    readonly property color claudeAccent: "#d97757"
 
     readonly property color background: Qt.rgba(21 / 255, 18 / 255, 27 / 255, 0.82)
     readonly property color backgroundStrong: Qt.rgba(10 / 255, 10 / 255, 16 / 255, 0.92)
@@ -96,6 +101,12 @@ Singleton {
     readonly property string iconCpu: root.glyph(0xf2db)
     readonly property string iconRam: root.glyph(0xefc5)
     readonly property string iconPullRequest: root.glyph(0xe726)
+    // Plain Unicode, not a Nerd Font codepoint: there is no standard glyph
+    // for "Claude" the way there is for a Linux distro or a git host, and a
+    // guessed private-use codepoint would risk showing as a blank box
+    // instead. An eight-pointed asterisk reads close enough to the real
+    // mark and is guaranteed to render in any font.
+    readonly property string iconClaude: "✳"
     readonly property string iconChecksSuccess: root.glyph(0xf012c)
     readonly property string iconChecksRunning: root.glyph(0xf046e)
     readonly property string iconChecksFailed: root.glyph(0xf0156)

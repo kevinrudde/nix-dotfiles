@@ -24,6 +24,11 @@ Singleton {
     property string band: ""
     property var pingMs: null
     property var packetLoss: null
+    // The address the last ping probe actually went to — the DNS server
+    // handed out for this connection, or the gateway when no resolver is
+    // known yet. Shown next to the reading so "Ping" never implies a target
+    // it did not use.
+    property string pingTarget: ""
     property string dns: ""
     property bool ignoreAutoDns: false
 
@@ -121,6 +126,7 @@ Singleton {
             root.band = String(data.band || "");
             root.pingMs = typeof data.pingMs === "number" ? data.pingMs : null;
             root.packetLoss = typeof data.packetLoss === "number" ? data.packetLoss : null;
+            root.pingTarget = String(data.pingTarget || "");
             root.dns = String(data.dns || "");
             root.ignoreAutoDns = !!data.ignoreAutoDns;
 

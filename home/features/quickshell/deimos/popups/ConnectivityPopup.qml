@@ -171,7 +171,9 @@ BarPopup {
 
                 InfoRow {
                     Layout.fillWidth: true
-                    label: "Ping"
+                    // "(DNS)" once a resolver is actually known — otherwise
+                    // this is still the gateway fallback, same as before.
+                    label: WifiStats.pingTarget !== "" && WifiStats.pingTarget !== WifiStats.gateway ? "Ping (DNS)" : "Ping"
                     value: WifiStats.pingMs !== null ? Math.round(WifiStats.pingMs) + " ms" : "--"
                 }
 

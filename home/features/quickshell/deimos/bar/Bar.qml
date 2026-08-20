@@ -122,6 +122,11 @@ PanelWindow {
                 barScreen: root.screen
             }
 
+            ClaudeUsageWidget {
+                Layout.alignment: Qt.AlignVCenter
+                barScreen: root.screen
+            }
+
             NotificationWidget {
                 Layout.alignment: Qt.AlignVCenter
                 barScreen: root.screen

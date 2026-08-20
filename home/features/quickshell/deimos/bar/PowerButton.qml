@@ -6,6 +6,7 @@ import qs.widgets
 // not here.
 Pill {
     text: Theme.iconPower
+    fontSize: Theme.fontSizeIcon
     foreground: Theme.danger
     horizontalPadding: Theme.pillPadIcon
     tooltip: "Power menu"
