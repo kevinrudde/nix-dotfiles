@@ -259,8 +259,21 @@ BarPopup {
                 }
             }
 
+            // NotificationService.groups rebuilds fresh group objects on every
+            // access, so a plain-array Repeater would tear down and recreate
+            // every card on any unrelated notification arriving anywhere —
+            // same click-hijack risk as in NotificationGroup's own Repeater.
+            // objectProp: "key" lets ScriptModel match an existing group by
+            // its stable key and keep its delegate instead.
+            ScriptModel {
+                id: groupsModel
+
+                values: NotificationService.groups
+                objectProp: "key"
+            }
+
             Repeater {
-                model: NotificationService.groups
+                model: groupsModel
 
                 NotificationGroup {
                     required property var modelData

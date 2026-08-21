@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -154,10 +155,25 @@ Column {
         }
     }
 
+    // Plain-array Repeater bindings destroy and recreate every delegate on any
+    // change to the source array — including a re-sort that only reorders
+    // items. Since notifications are re-sorted newest-first on every arrival,
+    // that meant a click in flight could get its MouseArea torn down and the
+    // click delivered to whatever card the rebuild left under the cursor
+    // instead — clicking one notification's action and triggering another's.
+    // ScriptModel diffs by identity so an unchanged notification keeps its
+    // delegate (and live MouseArea) across a reorder.
+    ScriptModel {
+        id: notificationsModel
+
+        values: root.expanded || !root.expandable ? root.group.notifications : []
+        objectProp: "id"
+    }
+
     Repeater {
         // A single notification never collapses — there would be nothing to
         // expand into.
-        model: root.expanded || !root.expandable ? root.group.notifications : []
+        model: notificationsModel
 
         NotificationCard {
             required property var modelData
