@@ -71,4 +71,16 @@ if [[ "${#missing_packages[@]}" -eq 0 ]]; then
 fi
 
 echo "Installing missing host packages for '$host' via paru"
-paru -S --needed --noconfirm "${missing_packages[@]}"
+
+# --noconfirm silences pacman's yes/no confirmations but NOT the "there are
+# N providers available" selection prompt, which still blocks on stdin and
+# would hang a headless rebuild. Feed it blank lines so it always takes the
+# default (first-listed) provider. `yes` dies of SIGPIPE once paru stops
+# reading, which pipefail would otherwise treat as a script failure even
+# when paru succeeds — so check paru's own exit status via PIPESTATUS.
+set +o pipefail
+yes "" | paru -S --needed --noconfirm "${missing_packages[@]}"
+paru_status="${PIPESTATUS[1]}"
+set -o pipefail
+
+exit "$paru_status"

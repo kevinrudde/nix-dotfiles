@@ -1,0 +1,6 @@
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --remember --remember-session --cmd /home/kevin/.config/nix-dotfiles/systems/shared/bin/start-hyprland-session.sh"
+user = "greeter"

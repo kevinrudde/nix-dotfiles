@@ -1,4 +1,6 @@
-local main_mod = "ALT"
+-- Main modifier; hosts may override by setting the HL_MAIN_MOD global in
+-- their hyprland.lua entrypoint before conf.bindings is required.
+local main_mod = HL_MAIN_MOD or "ALT"
 
 local workspaces = require("conf.workspaces")
 
@@ -58,8 +60,11 @@ hl.bind("MOD5 + L", hl.dsp.exec_cmd(lock_cmd), {
 
 hl.bind(main_mod .. " + F1", workspaces.focus(0))
 hl.bind(main_mod .. " + SHIFT + F1", workspaces.move_window(0))
-hl.bind(main_mod .. " + SUPER + Left", hl.dsp.focus({ workspace = "m-1" }))
-hl.bind(main_mod .. " + SUPER + Right", hl.dsp.focus({ workspace = "m+1" }))
+
+-- When the main modifier IS super, don't stack it twice.
+local ws_switch_mod = main_mod ~= "SUPER" and (main_mod .. " + ") or ""
+hl.bind(ws_switch_mod .. "SUPER + Left", hl.dsp.focus({ workspace = "m-1" }))
+hl.bind(ws_switch_mod .. "SUPER + Right", hl.dsp.focus({ workspace = "m+1" }))
 
 for workspace = 1, 6 do
   hl.bind(main_mod .. " + " .. workspace, workspaces.focus(workspace))
@@ -96,5 +101,5 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("uwsm app -- playerctl previous"), { lo
 
 hl.bind(main_mod .. " + SHIFT + S", hl.dsp.exec_cmd([[sh -lc 'grim -g "$(slurp)" - | wl-copy']]))
 
-hl.bind("ALT + mouse:272", hl.dsp.window.drag(), { mouse = true })    -- ALT + LMB: Move a window by dragging more than 10px.
-hl.bind("ALT + mouse:272", hl.dsp.window.resize(), { mouse = true })  -- ALT + LMB: Floats a window by clicking
+hl.bind(main_mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })    -- main_mod + LMB: Move a window by dragging.
+hl.bind(main_mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })  -- main_mod + RMB: Resize a window by dragging.

@@ -1,0 +1,4 @@
+# Restart logid when a Logitech HID++ device (USB or Bluetooth) is added so
+# that late-arriving /dev/hidraw nodes (notably Bluetooth-paired devices like
+# the MX Master 3S) are picked up without a manual restart.
+ACTION=="add", SUBSYSTEM=="hid", DRIVER=="logitech-hidpp-device", TAG+="systemd", ENV{SYSTEMD_WANTS}="logid-restart.service"

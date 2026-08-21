@@ -6,18 +6,11 @@ set -euo pipefail
 # rebuild (systemctl enable, idempotent symlink farms, ...). Anything that
 # only makes sense once still belongs in a migration.
 
-if ((EUID != 0)) && ! command -v sudo >/dev/null 2>&1; then
-  echo "sudo is required to apply host state" >&2
-  exit 1
-fi
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "$script_dir/../.." && pwd)"
 
-run_as_root() {
-  if ((EUID == 0)); then
-    "$@"
-  else
-    sudo "$@"
-  fi
-}
+# shellcheck source=../shared/apply-system-state-common.sh
+source "$repo_root/systems/shared/apply-system-state-common.sh"
 
 # Make $link a symlink to $target. Replaces an empty placeholder file
 # (widevine-installer drops one at the Chromium x64 probe path).
@@ -76,30 +69,6 @@ if [[ -d "$widevine_dir" && -f "$widevine_lib" ]]; then
   fi
 fi
 
-# Docker Engine: enable the service and put the active user in the docker
-# group so they can talk to /var/run/docker.sock without sudo. Packages come
-# from the docker-ce DNF repo in fedora-packages-sync.
-if command -v docker >/dev/null 2>&1; then
-  target_user="${SUDO_USER:-$(id -un)}"
-
-  if [[ "$target_user" == "root" ]]; then
-    echo "apply-system-state: refusing to add root to the docker group" >&2
-    exit 1
-  fi
-
-  run_as_root systemctl enable --now docker.service
-  run_as_root systemctl enable --now containerd.service
-
-  if ! getent group docker >/dev/null; then
-    run_as_root groupadd docker
-  fi
-
-  if ! id -nG "$target_user" | tr ' ' '\n' | grep -Fxq docker; then
-    run_as_root usermod -aG docker "$target_user"
-    echo "Added '$target_user' to the docker group. Log out and back in (or run 'newgrp docker') for it to take effect."
-  fi
-fi
-
 # SDDM display manager: enable the service and set graphical.target as the
 # boot default. /etc/sddm.conf.d/20-deimos.conf comes from rootfs.
 if command -v sddm >/dev/null 2>&1; then
@@ -111,28 +80,5 @@ if command -v sddm >/dev/null 2>&1; then
   if [[ "$(systemctl get-default)" != "graphical.target" ]]; then
     run_as_root systemctl set-default graphical.target
     echo "Set default target to graphical.target"
-  fi
-fi
-
-# 1Password permission repair. /opt/1Password is populated by the
-# install-1password-linux-arm64 migration, which also runs upstream's
-# after-install.sh once; here we maintain the SUID/SGID bits + onepassword
-# group on every rebuild so they survive package updates and stay consistent.
-# The JSON browser manifests + custom_allowed_browsers live in rootfs.
-onepassword_dir="/opt/1Password"
-
-if [[ -d "$onepassword_dir" ]]; then
-  run_as_root chown -R root:root "$onepassword_dir"
-
-  if [[ -e "$onepassword_dir/chrome-sandbox" ]]; then
-    run_as_root chmod 4755 "$onepassword_dir/chrome-sandbox"
-  fi
-
-  if [[ -e "$onepassword_dir/1Password-BrowserSupport" ]]; then
-    if ! getent group onepassword >/dev/null 2>&1; then
-      run_as_root groupadd --system onepassword
-    fi
-    run_as_root chown root:onepassword "$onepassword_dir/1Password-BrowserSupport"
-    run_as_root chmod 2755 "$onepassword_dir/1Password-BrowserSupport"
   fi
 fi

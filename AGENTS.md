@@ -4,7 +4,8 @@ Personal nix-dotfiles. Home-manager + Nix for user-space; a shell pipeline
 for root-owned state. Entrypoint: `scripts/rebuild-system.sh`.
 
 Hosts: **deimos** (Fedora Asahi, aarch64), **cachy** (CachyOS, x86_64),
-**phobos** (macOS via nix-darwin).
+**hyperion** (CachyOS, x86_64, Hyprland desktop), **phobos** (macOS via
+nix-darwin).
 
 ## Layout
 
@@ -16,6 +17,13 @@ Hosts: **deimos** (Fedora Asahi, aarch64), **cachy** (CachyOS, x86_64),
   - `migrations/*.sh` — one-shot stamped scripts
   - `sync-config-post.sh` — reacts to rootfs file changes
   - `packages.txt` + DNF repo lists (Fedora hosts)
+- `systems/shared/` — cross-host non-Nix state read directly by absolute
+  repo path (not synced via `sync-host-config.sh`): macOS nix-darwin
+  modules, plus the shared Hyprland lua config, uwsm env files, the
+  `apply-system-state-common.sh` helper, and the host-agnostic
+  `bin/start-hyprland-session.sh` used by every Linux Hyprland host.
+  Per-host `systems/<host>/config/hypr/` only keeps a thin `hyprland.lua`
+  entrypoint and `hosts/<host>.lua` (monitor layout).
 - `scripts/rebuild-system.sh` runs: native package sync → migrations →
   rootfs sync → `apply-system-state.sh` → home-manager.
 

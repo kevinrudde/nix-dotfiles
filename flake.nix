@@ -107,6 +107,13 @@
           pkgs = mkPkgs "aarch64-linux";
           extraSpecialArgs = extraArgs;
         };
+
+        # CachyOS Hyprland host (Dell XPS 16)
+        "kevin@hyperion" = home-manager.lib.homeManagerConfiguration {
+          modules = [ ./home/hyperion.nix ];
+          pkgs = mkPkgs "x86_64-linux";
+          extraSpecialArgs = extraArgs;
+        };
       };
     };
 }

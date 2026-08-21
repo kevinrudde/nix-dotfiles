@@ -49,8 +49,11 @@ Rectangle {
         id: label
 
         anchors.centerIn: parent
+        // No `clip` here: the box is the glyph advance width, but Nerd Font ink
+        // often overhangs it (the launcher badge's left edge, the wifi arcs).
+        // The pill has padding on each side to absorb that overflow; clipping
+        // would shear the glyph instead.
         width: root.drawnTextWidth
-        clip: true
         text: root.text
         color: root.foreground
         elide: Text.ElideRight

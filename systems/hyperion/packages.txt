@@ -1,0 +1,65 @@
+# One package name per line.
+# Official repo packages and AUR packages can both be installed through paru.
+
+# Hyprland / UWSM session
+hyprland
+uwsm
+
+# Login manager
+greetd
+greetd-tuigreet
+
+# Fonts
+ttf-jetbrains-mono
+ttf-jetbrains-mono-nerd
+
+# Core Wayland desktop tools
+ghostty
+foot
+fuzzel
+wireplumber
+wl-clipboard
+grim
+slurp
+brightnessctl
+playerctl
+
+# Hypr ecosystem
+hypridle
+hyprlock
+quickshell
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+nautilus
+
+# Intel Arc graphics (mesa stack)
+mesa
+vulkan-intel
+intel-media-driver
+
+# Qt Wayland support
+qt5-wayland
+qt6-wayland
+
+# Qt theming (shared uwsm env sets QT_QPA_PLATFORMTHEME=qt6ct and
+# QT_STYLE_OVERRIDE=kvantum; without these Qt apps crash at startup)
+qt6ct
+kvantum
+
+# Multimedia codecs
+ffmpeg
+gst-plugins-base
+gst-plugins-good
+gst-plugins-bad
+gst-plugins-ugly
+gst-libav
+
+# Logitech daemon (logiops provides logid.service)
+logiops
+
+# Apps
+1password
+1password-cli
+zen-browser
+docker
+tailscale

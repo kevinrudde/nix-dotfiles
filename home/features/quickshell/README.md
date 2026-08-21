@@ -1,12 +1,13 @@
-# Quickshell (deimos)
+# Quickshell
 
 The bar, its popups, toasts and the volume OSD, as a Quickshell QML shell.
-Nix side: `default.nix`, shell source: `deimos/`.
+Nix side: `default.nix`, shell source: `shell/`. Shared across every
+Hyprland host (deimos, hyperion, ...) — no per-host divergence.
 
 ## Layout
 
 ```
-deimos/
+shell/
   shell.qml        entry point: one Bar and one ToastLayer per monitor, the OSD
   Theme.qml        every colour, size, font and icon codepoint
   services/        state and data, one singleton per concern
@@ -146,7 +147,7 @@ detail-level switch anymore.
 Run straight from the repository, without a rebuild:
 
 ```bash
-qs -p ~/.config/nix-dotfiles/home/features/quickshell/deimos
+qs -p ~/.config/nix-dotfiles/home/features/quickshell/shell
 ```
 
 Quickshell reloads changed files itself. It prints the path of its log file at
@@ -154,6 +155,13 @@ startup; `qs log <file>` reads one back.
 
 ## Gotchas
 
+- **Do not let quickshell inherit `QT_QPA_PLATFORMTHEME=qt6ct`.** Its style
+  plugin SEGVs during `QStyleFactory` metadata parsing under CachyOS's
+  jemalloc preload, crash-looping the shell at startup (`coredumpctl` shows
+  the frame chain through `Qt6CTProxyStyle::reloadSettings`). The autostart
+  line in `systems/shared/hypr/conf/autostart.lua` clears it (plus
+  `QT_STYLE_OVERRIDE`) just for quickshell; everything self-drawn in QML,
+  so nothing is lost. Real Qt apps keep both vars.
 - **A new file has to be `git add`ed before it reaches a build.** Flakes only
   see tracked files, so an untracked module is silently missing from the
   generation while `qs -p` still works.
