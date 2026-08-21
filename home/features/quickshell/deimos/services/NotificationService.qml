@@ -20,6 +20,14 @@ Singleton {
     // Group key -> true. Absent means collapsed.
     property var expandedGroups: ({})
 
+    // Notification id -> the time it arrived. The freedesktop protocol gives
+    // us no such field, so the centre has to stamp it itself, on the way in.
+    property var receivedAt: ({})
+
+    // Live filter for the centre's search field. Applied in `groups` below so
+    // a query narrows the same list the cards render from, not a separate copy.
+    property string searchQuery: ""
+
     readonly property int count: server.trackedNotifications ? server.trackedNotifications.values.length : 0
 
     readonly property string icon: root.dnd
@@ -33,7 +41,9 @@ Singleton {
     readonly property alias toastModel: toastList
 
     readonly property var groups: {
-        const notifications = server.trackedNotifications ? server.trackedNotifications.values : [];
+        const all = server.trackedNotifications ? server.trackedNotifications.values : [];
+        const query = root.searchQuery.trim().toLowerCase();
+        const notifications = query === "" ? all : all.filter(notification => root.matches(notification, query));
         const byKey = {};
         const groups = [];
 
@@ -70,6 +80,25 @@ Singleton {
             group.notifications = group.notifications.slice().sort((left, right) => (right ? right.id : 0) - (left ? left.id : 0));
 
         return groups;
+    }
+
+    // Matches app name, summary and body as one blob rather than field-by-field:
+    // the search box has no way to scope a query, so it should find a word
+    // wherever it appears.
+    function matches(notification: var, query: string): bool {
+        if (!notification)
+            return false;
+
+        const haystack = [root.appName(notification), notification.summary, notification.body].join(" ").toLowerCase();
+        return haystack.includes(query);
+    }
+
+    // "12:43", stamped by `receivedAt` on arrival. Empty for a notification
+    // this run never saw arrive (there is none — every tracked notification
+    // passed through `onNotification` first).
+    function timeLabel(notification: var): string {
+        const ms = notification ? root.receivedAt[notification.id] : undefined;
+        return ms ? Qt.formatDateTime(new Date(ms), "hh:mm") : "";
     }
 
     function appName(notification: var): string {
@@ -200,8 +229,17 @@ Singleton {
 
         onNotification: notification => {
             notification.tracked = true;
+
+            const times = Object.assign({}, root.receivedAt);
+            times[notification.id] = Date.now();
+            root.receivedAt = times;
+
             notification.closed.connect(function () {
                 root.removeToast(notification);
+
+                const next = Object.assign({}, root.receivedAt);
+                delete next[notification.id];
+                root.receivedAt = next;
             });
 
             if (!root.dnd)
@@ -234,8 +272,10 @@ Singleton {
         target: Popups
 
         function onNameChanged(): void {
-            if (Popups.name !== "notifications")
+            if (Popups.name !== "notifications") {
                 root.expandedGroups = ({});
+                root.searchQuery = "";
+            }
         }
     }
 }

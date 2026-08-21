@@ -2,6 +2,7 @@ import Quickshell.Services.Notifications
 import QtQuick
 import QtQuick.Layouts
 import qs
+import qs.services
 import qs.widgets
 
 // One notification: app name, summary, body and its actions. Used both as a
@@ -15,6 +16,7 @@ Rectangle {
     property bool expanded: false
 
     readonly property bool critical: !!(card.notification && card.notification.urgency === NotificationUrgency.Critical)
+    readonly property alias hovered: cardArea.containsMouse
 
     signal dismissed(var notification)
     signal clicked(var notification)
@@ -72,9 +74,17 @@ Rectangle {
     color: card.critical ? Theme.criticalBackground : Theme.background
     border.color: card.critical ? Theme.danger : Theme.cardBorder
     border.width: 1
-    radius: Theme.popupRadius
+    radius: Theme.notificationRadius
+
+    Behavior on border.color {
+        ColorAnimation {
+            duration: 120
+        }
+    }
 
     MouseArea {
+        id: cardArea
+
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: card.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
@@ -90,6 +100,22 @@ Rectangle {
                 card.invokeDefaultAction();
             else
                 card.clicked(card.notification);
+        }
+    }
+
+    // A faint lift on hover — the same trick macOS uses on its own
+    // notification list — rather than swapping in `hoverBackground`, whose
+    // blue tint would fight the critical card's red.
+    Rectangle {
+        anchors.fill: parent
+        radius: parent.radius
+        color: Theme.foreground
+        opacity: card.hovered ? 0.035 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 120
+            }
         }
     }
 
@@ -120,11 +146,29 @@ Rectangle {
                 font.pixelSize: Theme.fontSizeTiny
             }
 
+            StyledText {
+                text: card.notification ? NotificationService.timeLabel(card.notification) : ""
+                color: Theme.muted
+                font.bold: false
+                font.pixelSize: Theme.fontSizeTiny
+                opacity: 0.86
+            }
+
+            // Dim at rest, full strength on hover: a discoverable "hover to
+            // dismiss" affordance rather than a button competing with the
+            // summary for attention on every card at once.
             TextButton {
-                text: "x"
+                text: "×"
                 restColor: Theme.muted
                 font.pixelSize: Theme.fontSizeNormal
+                opacity: card.hovered ? 1 : 0.55
                 onClicked: card.dismissed(card.notification)
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 120
+                    }
+                }
             }
         }
 

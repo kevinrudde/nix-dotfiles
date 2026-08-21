@@ -122,6 +122,13 @@ Singleton {
     readonly property int toastWidth: 420
     readonly property int toastSpacing: 6
 
+    // Notification centre only: a softer, larger corner than the rest of the
+    // shell's popups, so the stack reads closer to a native notification list
+    // than to the flat bar it hangs off. Kept separate from `popupRadius`
+    // rather than raising that value, since every other popup deliberately
+    // keeps the bar's tighter corner.
+    readonly property int notificationRadius: 12
+
     // ── Icons (Nerd Font) ────────────────────────────────────────────────
     // Kept as codepoints rather than literals: the glyphs live in Unicode
     // private-use areas and do not survive editors, terminals and diffs
@@ -184,6 +191,7 @@ Singleton {
     readonly property string iconBellEmpty: root.glyph(0xf009c)
     readonly property string iconBellDnd: root.glyph(0xf009b)
     readonly property string iconBellDndEmpty: root.glyph(0xf0a91)
+    readonly property string iconSearch: root.glyph(0xf002)
 
     // ── Helpers ──────────────────────────────────────────────────────────
     function clampPercent(value: real): int {

@@ -26,7 +26,7 @@ Column {
         color: Theme.activeBackground
         border.color: root.accent
         border.width: 1
-        radius: Theme.popupRadius
+        radius: Theme.notificationRadius
 
         MouseArea {
             id: headerArea
@@ -77,7 +77,7 @@ Column {
         color: Theme.background
         border.color: root.accent
         border.width: 1
-        radius: Theme.popupRadius
+        radius: Theme.notificationRadius
 
         MouseArea {
             anchors.fill: parent
@@ -115,6 +115,13 @@ Column {
                 StyledText {
                     text: root.group.notifications.length + " grouped"
                     color: root.accent
+                    font.pixelSize: Theme.fontSizeTiny
+                }
+
+                StyledText {
+                    text: root.latest ? NotificationService.timeLabel(root.latest) : ""
+                    color: Theme.muted
+                    font.bold: false
                     font.pixelSize: Theme.fontSizeTiny
                 }
 
