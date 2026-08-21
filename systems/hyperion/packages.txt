@@ -9,6 +9,10 @@ uwsm
 greetd
 greetd-tuigreet
 
+# Secrets + auth agents (Secret Service provider for 1Password, polkit agent)
+gnome-keyring
+hyprpolkitagent
+
 # Fonts
 ttf-jetbrains-mono
 ttf-jetbrains-mono-nerd
@@ -57,9 +61,49 @@ gst-libav
 # Logitech daemon (logiops provides logid.service)
 logiops
 
+# Audio DSP. The four CS35L57 amps only run Cirrus' protection/calibration
+# firmware -- none of the voicing EQ Dell ships on Windows -- so the speakers
+# need a userspace curve. easyeffects' equalizer comes from lsp-plugins-lv2 and
+# its bass enhancer from calf; both are optdepends, so list them explicitly.
+easyeffects
+lsp-plugins-lv2
+calf
+
+# Power management. thermald owns thermal/DPTF control; intel-lpmd reacts to
+# the CPU's workload-type hints. Both recognise this silicon: thermald 2.5.12
+# carries `{ 6, 0xcc, 1 } // Panther Lake L` in its supported-id table, and
+# intel-lpmd ships a model-matched intel_lpmd_config_F6_M204.xml.
+intel-lpmd
+thermald
+
 # Apps
 1password
 1password-cli
 zen-browser
 docker
 tailscale
+helium-browser-bin
+google-chrome
+slack-desktop
+
+# Intel IPU7 MIPI webcam (OV08X40 behind the Panther Lake IPU).
+# Dependencies of the vendored intel-ipu7-camera PKGBUILD, which
+# pkgbuild-sync.sh builds after this list is installed. linux-cachyos-headers
+# is listed explicitly because DKMS needs a header tree for every installed
+# kernel, and the PKGBUILD depends on it by name.
+dkms
+linux-cachyos-headers
+linux-cachyos-lts-headers
+v4l2loopback-dkms
+v4l2-relayd
+gstreamer
+jsoncpp
+libdrm
+
+# DKMS toolchain. Both CachyOS kernels on this host are clang + ThinLTO
+# builds, so out-of-tree modules must be compiled with LLVM=1 -- gcc rejects
+# the clang-only flags their Kbuild emits. Needed on every kernel upgrade,
+# not just the first install.
+clang
+llvm
+lld

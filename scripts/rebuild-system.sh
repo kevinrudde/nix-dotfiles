@@ -61,12 +61,14 @@ sync_linux_native_packages() {
       ;;
     *" arch "*|*" cachyos "*)
       "$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
+      "$repo_root/scripts/pkgbuild-sync.sh" --host "$host" --repo "$repo_root"
       ;;
     *)
       if command -v dnf5 >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
         "$repo_root/scripts/fedora-packages-sync.sh" --host "$host" --repo "$repo_root"
       elif command -v paru >/dev/null 2>&1; then
         "$repo_root/scripts/paru-sync.sh" --host "$host" --repo "$repo_root"
+        "$repo_root/scripts/pkgbuild-sync.sh" --host "$host" --repo "$repo_root"
       else
         local packages_file="$repo_root/systems/$host/packages.txt"
         local copr_repos_file="$repo_root/systems/$host/copr-repos.txt"

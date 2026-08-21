@@ -17,6 +17,8 @@ nix-darwin).
   - `migrations/*.sh` — one-shot stamped scripts
   - `sync-config-post.sh` — reacts to rootfs file changes
   - `packages.txt` + DNF repo lists (Fedora hosts)
+  - `pkgbuilds/<name>/` — vendored PKGBUILDs built by
+    `scripts/pkgbuild-sync.sh` (Arch hosts)
 - `systems/shared/` — cross-host non-Nix state read directly by absolute
   repo path (not synced via `sync-host-config.sh`): macOS nix-darwin
   modules, plus the shared Hyprland lua config, uwsm env files, the
@@ -24,8 +26,9 @@ nix-darwin).
   `bin/start-hyprland-session.sh` used by every Linux Hyprland host.
   Per-host `systems/<host>/config/hypr/` only keeps a thin `hyprland.lua`
   entrypoint and `hosts/<host>.lua` (monitor layout).
-- `scripts/rebuild-system.sh` runs: native package sync → migrations →
-  rootfs sync → `apply-system-state.sh` → home-manager.
+- `scripts/rebuild-system.sh` runs: native package sync → vendored
+  PKGBUILD sync → migrations → rootfs sync → `apply-system-state.sh` →
+  home-manager.
 
 ## Picking the right shape for a root-level change
 
@@ -37,7 +40,12 @@ nix-darwin).
    `nmcli connection modify`, perm repair) → `apply-system-state.sh`.
    Must be a no-op when state already matches — guard every action
    with `is-enabled` / `getent` / `readlink -f` / value-compare.
-3. **Real one-shot** (signed-tarball install, etc.) → `migrations/`.
+3. **Native package** → `packages.txt` if paru can resolve it from the
+   official repos or the AUR. If it exists in neither, vendor the PKGBUILD
+   under `pkgbuilds/<name>/` and list its deps in `packages.txt`;
+   `pkgbuild-sync.sh` skips any package whose installed `pkgver-pkgrel`
+   already matches, so it stays a no-op.
+4. **Real one-shot** (signed-tarball install, etc.) → `migrations/`.
    Stamped in `~/.local/state/nix-dotfiles/migrations/system/<host>/`
    after success. Rare in practice; most things end up as (1) or (2).
 

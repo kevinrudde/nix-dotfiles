@@ -23,7 +23,6 @@ in
     unixtools.watch
     nmap
     htop
-    coreutils
     pigz
     ssm-session-manager-plugin
     wget
@@ -57,5 +56,9 @@ in
     kind
   ] ++ lib.optionals isDarwin [
     _1password-cli
+    # GNU coreutils only on Darwin: on glibc Linux the system already ships
+    # them, and shadowing them breaks native apps that shell out to coreutils
+    # under a system LD_LIBRARY_PATH (Nix glibc vs. system glibc mismatch).
+    coreutils
   ];
 }

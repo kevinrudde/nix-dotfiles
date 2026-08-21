@@ -55,6 +55,7 @@ Common host-owned files live under `systems/<hostname>/`:
 - `copr-repos.txt`: optional Fedora COPR repositories enabled before package install
 - `dnf-release-rpms.txt`: optional Fedora repository release RPMs installed before package install
 - `dnf-enabled-repos.txt`: optional Fedora repository IDs enabled before package install
+- `pkgbuilds/`: vendored PKGBUILDs for packages that exist in neither the official repos nor the AUR
 - `migrations/`: timestamped host migration scripts
 - `rootfs/`: optional always-run root filesystem overlay installed by `rebuild-system`
 - `sync-config-post.sh`: optional hook called after the root filesystem overlay syncs
@@ -152,6 +153,40 @@ You can run the sync scripts manually:
 ```
 
 If there are no native package, Fedora COPR, RPM key, or DNF repository definitions for a host, the sync step is skipped.
+
+## Host Vendored PKGBUILDs
+
+Some packages exist in neither the official repos nor the AUR, so paru cannot
+install them by name. For those, vendor the PKGBUILD and its auxiliary files
+into:
+```bash
+systems/<hostname>/pkgbuilds/<package>/
+```
+
+On Arch-based hosts `rebuild-system` runs `./scripts/pkgbuild-sync.sh` right
+after the paru sync. For each vendored directory it compares the `pkgver-pkgrel`
+in the PKGBUILD against what pacman reports installed, and builds with `makepkg`
+only when they differ — so a normal rebuild prints `Current <package> <version>`
+and does nothing.
+
+`makepkg` runs without `-s`, so dependencies are not resolved during the build.
+List every dependency in `packages.txt` instead, so the paru sync installs it
+first. This is deliberate: it keeps `makepkg` from pulling an Arch stock package
+when a CachyOS equivalent is already installed.
+
+Builds happen in a temporary copy of the directory, so the repo working tree
+never collects `src/`, `pkg/`, or built tarballs.
+
+You can run it manually, and force a rebuild of an already-current package with
+`--force`:
+```bash
+./scripts/pkgbuild-sync.sh --host <hostname>
+./scripts/pkgbuild-sync.sh --host <hostname> --force
+```
+
+Record where a vendored PKGBUILD came from, and any local delta against
+upstream, in a comment header at the top of the file. `hyperion`'s
+`intel-ipu7-camera` is the reference example.
  
 ## MacOS Settings
 

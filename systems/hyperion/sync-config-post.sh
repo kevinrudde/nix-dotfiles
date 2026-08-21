@@ -57,3 +57,8 @@ if systemctl cat logid.service >/dev/null 2>&1; then
     echo "Restarted logid.service"
   fi
 fi
+
+if target_changed /etc/NetworkManager/conf.d/10-dns-resolved.conf; then
+  run_as_root systemctl reload NetworkManager.service
+  echo "Reloaded NetworkManager"
+fi

@@ -41,3 +41,72 @@ if [ -x "$target_shell" ]; then
     echo "Set $target_user's login shell to $target_shell"
   fi
 fi
+
+# DNS: hand /etc/resolv.conf to systemd-resolved. NetworkManager is pinned
+# to dns=systemd-resolved + rc-manager=unmanaged by
+# rootfs/etc/NetworkManager/conf.d/10-dns-resolved.conf, so it leaves the
+# symlink alone and the search list resolved publishes includes the domains
+# tailscaled programs onto tailscale0. Without this tailscaled reports
+# resolv-conf-mode=foreign and warns that resolved and NetworkManager are
+# wired together incorrectly (https://tailscale.com/s/resolved-nm).
+resolved_stub="/run/systemd/resolve/stub-resolv.conf"
+
+if ! systemctl is-enabled --quiet systemd-resolved.service; then
+  run_as_root systemctl enable --now systemd-resolved.service
+  echo "Enabled systemd-resolved.service"
+fi
+
+if [ "$(readlink /etc/resolv.conf 2>/dev/null || true)" != "$resolved_stub" ]; then
+  run_as_root ln -sfn "$resolved_stub" /etc/resolv.conf
+  echo "Pointed /etc/resolv.conf at $resolved_stub"
+fi
+
+# Power management daemons. thermald handles thermal/DPTF control; intel-lpmd
+# watches the CPU's workload-type hints and confines tasks to a core subset
+# when the silicon reports an idle workload. Neither fights
+# power-profiles-daemon -- PPD's Conflicts= covers only
+# tuned/tlp/auto-cpufreq/system76-power, and intel-lpmd reads PPD's active
+# profile rather than overriding it.
+#
+# Both ship as Type=dbus units with SuccessExitStatus=2, which is the exit
+# path they take on hardware they don't support. Enabling them on a host that
+# turns out to be unsupported is therefore inert, not a restart loop -- so the
+# unit-exists guard is all the gating this needs.
+for unit in thermald.service intel_lpmd.service; do
+  if systemctl cat "$unit" >/dev/null 2>&1; then
+    if ! systemctl is-enabled --quiet "$unit"; then
+      run_as_root systemctl enable --now "$unit"
+      echo "Enabled $unit"
+    fi
+  fi
+done
+
+# Intel IPU7 camera: re-assert what intel-ipu7-camera's pacman install
+# scriptlet does. The scriptlet only fires on install/upgrade, so a plain
+# reinstall or a manually disabled unit would otherwise stay that way. The
+# service chain is intel-ipu7-camera.service -> camera-init.service (loads
+# intel_cvs, then ov08x40, then v4l2loopback) -> v4l2-relayd@ipu7.service,
+# which republishes the ISP output as /dev/video50. Only that loopback node is
+# meant to be user-visible; the raw ISYS nodes stay hidden by udev + a
+# WirePlumber drop-in shipped in the package.
+if systemctl cat intel-ipu7-camera.service >/dev/null 2>&1; then
+  if ! systemctl is-enabled --quiet intel-ipu7-camera.service; then
+    run_as_root systemctl enable intel-ipu7-camera.service
+    echo "Enabled intel-ipu7-camera.service"
+  fi
+
+  # camera-init and v4l2-relayd are started by intel-ipu7-camera.service after
+  # graphical.target, never enabled on their own -- enabling them would race
+  # the ownership handover from the vision-sensing controller at boot.
+  for unit in camera-init.service v4l2-relayd@ipu7.service; do
+    if systemctl is-enabled --quiet "$unit" 2>/dev/null; then
+      run_as_root systemctl disable "$unit"
+      echo "Disabled $unit (started by intel-ipu7-camera.service instead)"
+    fi
+  done
+
+  if ! id -nG "$target_user" | tr ' ' '\n' | grep -Fxq video; then
+    run_as_root usermod -aG video "$target_user"
+    echo "Added $target_user to the video group"
+  fi
+fi

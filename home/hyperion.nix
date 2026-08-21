@@ -3,6 +3,7 @@
 {
   imports = [
     ./default.nix
+    ./features/easyeffects
     ./features/ghostty
     ./features/hypr
     ./features/quickshell
