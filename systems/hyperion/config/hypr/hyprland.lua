@@ -9,6 +9,11 @@ end
 -- Windows key as the main modifier for this host (see conf.bindings).
 HL_MAIN_MOD = "SUPER"
 
+-- This host runs vicinae (home/features/vicinae) instead of the shared
+-- default of fuzzel. `toggle` is a one-shot IPC call into the user-service
+-- daemon, so it does not get a uwsm app scope of its own.
+HL_LAUNCHER = "vicinae toggle"
+
 require("conf.env")
 require("conf.input")
 require("conf.looknfeel")

@@ -8,6 +8,7 @@
     ./features/hypr
     ./features/quickshell
     ./features/theme
+    ./features/vicinae
   ];
 
   home.username = "kevin";

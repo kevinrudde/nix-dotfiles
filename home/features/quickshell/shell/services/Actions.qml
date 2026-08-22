@@ -14,8 +14,12 @@ Singleton {
         SystemStatus.refreshSoon();
     }
 
+    // hyperion runs vicinae (home/features/vicinae), where this is a one-shot IPC
+    // call into the daemon and so wants no uwsm app scope of its own; every other
+    // host is still on fuzzel. Mirrors the launcher bind in
+    // systems/shared/hypr/conf/bindings.lua, which the host picks via HL_LAUNCHER.
     function launcher(): void {
-        root.run("uwsm app -- fuzzel");
+        root.run(Quickshell.env("DOTFILES_HOST") === "hyperion" ? "vicinae toggle" : "uwsm app -- fuzzel");
     }
 
     function powerMenu(): void {

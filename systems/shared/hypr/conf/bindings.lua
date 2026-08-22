@@ -5,7 +5,9 @@ local main_mod = HL_MAIN_MOD or "ALT"
 local workspaces = require("conf.workspaces")
 
 local terminal = "ghostty +new-window"
-local launcher = "fuzzel"
+-- Launcher command; hosts may override by setting the HL_LAUNCHER global in
+-- their hyprland.lua entrypoint before conf.bindings is required.
+local launcher = HL_LAUNCHER or "uwsm app -- fuzzel"
 local browser = "zen-browser"
 local lock_cmd = "uwsm app -- hyprlock --immediate-render"
 local resize_step = 50
@@ -13,7 +15,7 @@ local resize_step = 50
 hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 
 hl.bind(main_mod .. " + Return", hl.dsp.exec_cmd(terminal))
-hl.bind(main_mod .. " + D", hl.dsp.exec_cmd("uwsm app -- " .. launcher))
+hl.bind(main_mod .. " + D", hl.dsp.exec_cmd(launcher))
 hl.bind(main_mod .. " + B", hl.dsp.exec_cmd("uwsm app -- " .. browser))
 hl.bind(main_mod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(main_mod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))

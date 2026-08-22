@@ -20,6 +20,11 @@ ttf-jetbrains-mono-nerd
 # Core Wayland desktop tools
 ghostty
 foot
+# App launcher. Native rather than nixpkgs' because the Nix build cannot reach
+# the system Mesa ICDs on this non-NixOS host -- see home/features/vicinae.
+vicinae-bin
+# fuzzel is no longer the app launcher; it stays for its --dmenu mode, which
+# backs the Quickshell power menu.
 fuzzel
 wireplumber
 wl-clipboard
