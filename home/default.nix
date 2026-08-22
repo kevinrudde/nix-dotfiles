@@ -12,6 +12,7 @@
     ./features/git
     ./features/nvim
     ./features/secrets
+    ./features/ssh
     ./features/tmux
     ./features/wezterm
     ./features/ghostty

@@ -62,9 +62,9 @@ hl.bind(main_mod .. " + F1", workspaces.focus(0))
 hl.bind(main_mod .. " + SHIFT + F1", workspaces.move_window(0))
 
 -- When the main modifier IS super, don't stack it twice.
-local ws_switch_mod = main_mod ~= "SUPER" and (main_mod .. " + ") or ""
-hl.bind(ws_switch_mod .. "SUPER + Left", hl.dsp.focus({ workspace = "m-1" }))
-hl.bind(ws_switch_mod .. "SUPER + Right", hl.dsp.focus({ workspace = "m+1" }))
+local ws_switch_mod = (main_mod ~= "SUPER" and (main_mod .. " + ") or "") .. "SUPER + SHIFT + "
+hl.bind(ws_switch_mod .. "Left", hl.dsp.focus({ workspace = "m-1" }))
+hl.bind(ws_switch_mod .. "Right", hl.dsp.focus({ workspace = "m+1" }))
 
 for workspace = 1, 6 do
   hl.bind(main_mod .. " + " .. workspace, workspaces.focus(workspace))
