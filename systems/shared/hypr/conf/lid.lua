@@ -12,7 +12,8 @@
 --
 -- Hosts opt in from their hosts/<host>.lua by handing over the very same spec
 -- they passed to hl.monitor(), which is also what gets replayed on lid-open --
--- a monitor rule can only be undone by restating it in full.
+-- a monitor rule can only be undone by restating it in full, and "in full"
+-- includes disabled = false.
 --
 --   local internal = { output = "eDP-1", mode = "preferred", ... }
 --   hl.monitor(internal)
@@ -39,6 +40,18 @@ function M.setup(spec)
     return false
   end
 
+  -- disabled is an *optional* field, so a spec that simply omits it says
+  -- nothing about the panel's enabled state and leaves the lid-close rule
+  -- standing: hl.monitor() answers ok and the output stays dark until the
+  -- session is reloaded. Lid-open has to ask for disabled = false in as many
+  -- words, so the restore spec is the host's rule plus that one key. The
+  -- host's own value still wins if it ever sets one.
+  local restored = { disabled = false }
+
+  for key, value in pairs(spec) do
+    restored[key] = value
+  end
+
   hl.bind("switch:on:Lid Switch", function()
     if docked() then
       hl.monitor({ output = internal, disabled = true })
@@ -46,7 +59,7 @@ function M.setup(spec)
   end, { locked = true, desc = "Lid closed: drop the built-in panel" })
 
   hl.bind("switch:off:Lid Switch", function()
-    hl.monitor(spec)
+    hl.monitor(restored)
   end, { locked = true, desc = "Lid opened: restore the built-in panel" })
 end
 
