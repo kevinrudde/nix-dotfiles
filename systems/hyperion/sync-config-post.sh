@@ -58,7 +58,28 @@ if systemctl cat logid.service >/dev/null 2>&1; then
   fi
 fi
 
+# logind has no ExecReload, so the lid policy only lands on a restart. That is
+# safe to do under a live graphical session: the unit carries a
+# FileDescriptorStoreMax, so the session's device fds survive the bounce.
+if target_changed /etc/systemd/logind.conf.d/10-lid.conf; then
+  run_as_root systemctl restart systemd-logind.service
+  echo "Restarted systemd-logind (lid policy)"
+fi
+
 if target_changed /etc/NetworkManager/conf.d/10-dns-resolved.conf; then
   run_as_root systemctl reload NetworkManager.service
   echo "Reloaded NetworkManager"
+fi
+
+# k3d needs bridged traffic to pass through iptables for Kubernetes Service
+# ClusterIPs to work from pods. modprobe here makes it live immediately
+# instead of waiting for the next reboot's systemd-modules-load pass.
+if target_changed /etc/modules-load.d/k3d.conf; then
+  run_as_root modprobe br_netfilter
+  echo "Loaded br_netfilter"
+fi
+
+if target_changed /etc/sysctl.d/99-k3d.conf; then
+  run_as_root sysctl --system >/dev/null
+  echo "Applied k3d sysctl settings"
 fi

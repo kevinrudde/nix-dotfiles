@@ -9,7 +9,7 @@ uwsm
 greetd
 greetd-tuigreet
 
-# Secrets + auth agents (Secret Service provider for 1Password, polkit agent)
+# Secrets + auth agents 
 gnome-keyring
 hyprpolkitagent
 
@@ -20,11 +20,7 @@ ttf-jetbrains-mono-nerd
 # Core Wayland desktop tools
 ghostty
 foot
-# App launcher. Native rather than nixpkgs' because the Nix build cannot reach
-# the system Mesa ICDs on this non-NixOS host -- see home/features/vicinae.
 vicinae-bin
-# fuzzel is no longer the app launcher; it stays for its --dmenu mode, which
-# backs the Quickshell power menu.
 fuzzel
 wireplumber
 wl-clipboard
@@ -49,9 +45,6 @@ intel-media-driver
 # Qt Wayland support
 qt5-wayland
 qt6-wayland
-
-# Qt theming (shared uwsm env sets QT_QPA_PLATFORMTHEME=qt6ct and
-# QT_STYLE_OVERRIDE=kvantum; without these Qt apps crash at startup)
 qt6ct
 kvantum
 
@@ -63,21 +56,12 @@ gst-plugins-bad
 gst-plugins-ugly
 gst-libav
 
-# Logitech daemon (logiops provides logid.service)
 logiops
 
-# Audio DSP. The four CS35L57 amps only run Cirrus' protection/calibration
-# firmware -- none of the voicing EQ Dell ships on Windows -- so the speakers
-# need a userspace curve. easyeffects' equalizer comes from lsp-plugins-lv2 and
-# its bass enhancer from calf; both are optdepends, so list them explicitly.
 easyeffects
 lsp-plugins-lv2
 calf
 
-# Power management. thermald owns thermal/DPTF control; intel-lpmd reacts to
-# the CPU's workload-type hints. Both recognise this silicon: thermald 2.5.12
-# carries `{ 6, 0xcc, 1 } // Panther Lake L` in its supported-id table, and
-# intel-lpmd ships a model-matched intel_lpmd_config_F6_M204.xml.
 intel-lpmd
 thermald
 
@@ -90,6 +74,7 @@ tailscale
 helium-browser-bin
 google-chrome
 slack-desktop
+teams-for-linux
 
 # Intel IPU7 MIPI webcam (OV08X40 behind the Panther Lake IPU).
 # Dependencies of the vendored intel-ipu7-camera PKGBUILD, which

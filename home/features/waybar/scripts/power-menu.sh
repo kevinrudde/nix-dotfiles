@@ -25,7 +25,7 @@ confirm_destructive() {
 
 case "$choice" in
   Lock)
-    uwsm app -- hyprlock
+    loginctl lock-session
     ;;
   Suspend)
     systemctl suspend

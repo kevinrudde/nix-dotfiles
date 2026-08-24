@@ -7,11 +7,16 @@ hl.monitor({
   scale = "auto",
 })
 
-hl.monitor({
+-- Kept in a local so conf.lid can replay the exact same rule when the lid
+-- opens again; disabling a monitor is only undone by restating its rule.
+local internal = {
   output = "eDP-1",
   mode = "preferred",
   position = "auto-right",
   scale = "1",
-})
+}
+
+hl.monitor(internal)
+require("conf.lid").setup(internal)
 
 workspaces.configure_rules()

@@ -32,6 +32,14 @@ hl.config({
 		disable_hyprland_logo = true,
 		disable_splash_rendering = true,
 		focus_on_activate = true,
+
+		-- Waking a blanked screen is a keyboard-only gesture: the lock screen
+		-- comes back when you start typing your password, and a bumped desk or
+		-- a mouse dragged past the laptop leaves it dark. The other half of
+		-- this lives in home/features/hypr/hypridle.conf, whose lock-gated
+		-- dpms-off rules deliberately carry no on-resume.
+		key_press_enables_dpms = true,
+		mouse_move_enables_dpms = false,
 	},
 })
 

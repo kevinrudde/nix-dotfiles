@@ -9,7 +9,11 @@ local terminal = "ghostty +new-window"
 -- their hyprland.lua entrypoint before conf.bindings is required.
 local launcher = HL_LAUNCHER or "uwsm app -- fuzzel"
 local browser = "zen-browser"
-local lock_cmd = "uwsm app -- hyprlock --immediate-render"
+-- Locking goes through logind rather than straight to hyprlock, so this
+-- keybind, the power menu and hypridle's idle/before-sleep locks all land on
+-- one code path: hypridle's lock_cmd. Going through logind is also what sets
+-- LockedHint, so anything else on the bus knows the session is locked.
+local lock_cmd = "loginctl lock-session"
 local resize_step = 50
 
 hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
