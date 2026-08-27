@@ -272,6 +272,20 @@ BarPopup {
                 label: "Health"
                 value: BatteryInfo.healthText
             }
+
+            InfoRow {
+                width: parent.width
+                visible: BatteryInfo.thresholdText !== ""
+                label: "Charge limit"
+                value: BatteryInfo.thresholdText
+            }
+
+            InfoRow {
+                width: parent.width
+                visible: BatteryInfo.cyclesText !== ""
+                label: "Cycles"
+                value: BatteryInfo.cyclesText
+            }
         }
     }
 }

@@ -3,10 +3,10 @@
 {
   imports = [
     ./default.nix
-    ./features/easyeffects
     ./features/ghostty
     ./features/hypr
     ./features/quickshell
+    ./features/speaker-tuning
     ./features/theme
     ./features/vicinae
   ];

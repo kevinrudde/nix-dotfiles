@@ -1,0 +1,29 @@
+# Limine boot configuration. limine-update regenerates /boot/limine.conf from
+# this file; sync-config-post.sh runs it whenever this file changes.
+#
+# KERNEL_CMDLINE[default] applies to every generated entry, so the LTS kernel
+# inherits it too -- which is what makes booting LTS a usable A/B test.
+#
+# Crash capture. This host has hung hard twice with the display corrupting on
+# eDP-1 and left no kernel output at all either time, because the kernel ships
+# every detector we need and CachyOS's default cmdline switched them all off:
+#
+#   nowatchdog  disabled both lockup detectors. The NMI hard-lockup detector is
+#               the only thing that can still speak from a CPU that has stopped
+#               taking timer interrupts, which is exactly this failure mode.
+#   quiet       raised the console loglevel so a panic never prints.
+#   splash      handed the framebuffer to plymouth, hiding whatever did print.
+#
+# Dropping all three re-enables the detectors and lets drm_panic (CONFIG_DRM_PANIC=y,
+# and xe registers its planes with it) draw the panic on screen out of a live
+# Wayland session, so it can be photographed. pstore.backend=efi additionally
+# writes the tail of the log to EFI NVRAM, which survives the power cut; the
+# panic sysctls that turn a detected lockup into an actual panic -- without
+# which none of this fires -- live in /etc/sysctl.d/99-lockup-capture.conf.
+#
+# Cost of losing splash: the LUKS passphrase prompt is plain console text
+# instead of plymouth's graphical one. Put `quiet splash` back once the hangs
+# are understood.
+ESP_PATH="/boot"
+KERNEL_CMDLINE[default]+="rw rootflags=subvol=/@ rd.luks.uuid=e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 root=/dev/mapper/luks-e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 pstore.backend=efi"
+BOOT_ORDER="*, *lts, *fallback, Snapshots"

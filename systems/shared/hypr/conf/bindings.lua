@@ -90,6 +90,18 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("uwsm app -- wpctl set-mute @DEFAULT_AU
   repeating = true,
 })
 
+-- The mic mute key has its own LED in the keycap on laptops that ship one (the
+-- XPS 16 does, as platform::micmute off dell-laptop), and nothing drives it: the
+-- kernel exposes the node but leaves the state to userspace, so the light stays
+-- dark however the mic is set. Toggle the source and push the result to the LED
+-- in one place, so the key, the light and PipeWire cannot disagree. The mute
+-- state is read back from wpctl rather than assumed, since anything else may
+-- have muted the source since the last press. A host without the LED node stops
+-- after the toggle.
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd([[sh -c 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle; led=platform::micmute; [ -e "/sys/class/leds/$led" ] || exit 0; wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -q MUTED && v=1 || v=0; brightnessctl -q --class=leds --device="$led" set "$v"']]), {
+  locked = true,
+})
+
 hl.bind("XF86Launch5", hl.dsp.exec_cmd("uwsm app -- brightnessctl set 10%-"), {
   locked = true,
   repeating = true,

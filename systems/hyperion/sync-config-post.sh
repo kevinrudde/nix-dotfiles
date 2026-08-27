@@ -79,7 +79,15 @@ if target_changed /etc/modules-load.d/k3d.conf; then
   echo "Loaded br_netfilter"
 fi
 
-if target_changed /etc/sysctl.d/99-k3d.conf; then
+if any_target_changed /etc/sysctl.d/99-k3d.conf /etc/sysctl.d/99-lockup-capture.conf; then
   run_as_root sysctl --system >/dev/null
-  echo "Applied k3d sysctl settings"
+  echo "Applied sysctl settings"
+fi
+
+# The cmdline in /etc/default/limine only reaches the boot entries through
+# limine-update, which rewrites /boot/limine.conf for every installed kernel.
+# Nothing about it takes effect until the next boot either way.
+if target_changed /etc/default/limine; then
+  run_as_root limine-update
+  echo "Regenerated Limine boot entries (reboot to pick up the new cmdline)"
 fi

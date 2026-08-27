@@ -136,9 +136,9 @@ Singleton {
     }
 
     // Something is reading from a source. `isStream && !isSink` alone is not
-    // enough: a filter chain is a stream too, and this machine's speaker and
-    // microphone DSP are connected from boot, so the plain check reads as
-    // "always recording". Only a real client carries `application.name`.
+    // enough: a filter chain is a stream too, and this machine's speaker tuning
+    // is connected from boot, so the plain check reads as "always recording".
+    // Only a real client carries `application.name`.
     //
     // No check on `pulse.corked` — an app can hold the source open without
     // pulling from it, but corking flips on a live node, and this list is only

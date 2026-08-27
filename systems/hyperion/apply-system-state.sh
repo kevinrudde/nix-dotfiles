@@ -110,3 +110,16 @@ if systemctl cat intel-ipu7-camera.service >/dev/null 2>&1; then
     echo "Added $target_user to the video group"
   fi
 fi
+
+# Crash capture: archive kernel panic records out of pstore. The efi pstore
+# backend (pstore.backend=efi, set in rootfs/etc/default/limine) writes the
+# tail of the log to EFI NVRAM on panic, where it survives a power cut. This
+# unit moves those records to /var/lib/systemd/pstore/<timestamp>/ on the next
+# boot and clears the pstore area, which also matters because NVRAM space is
+# small -- left uncleared, the first capture would block the second.
+if systemctl cat systemd-pstore.service >/dev/null 2>&1; then
+  if ! systemctl is-enabled --quiet systemd-pstore.service; then
+    run_as_root systemctl enable systemd-pstore.service
+    echo "Enabled systemd-pstore.service"
+  fi
+fi

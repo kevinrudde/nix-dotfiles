@@ -58,12 +58,18 @@ gst-libav
 
 logiops
 
-easyeffects
+# The lookahead limiter that ends the speaker tuning graph in
+# home/features/speaker-tuning is an LV2 plugin. Without it the filter-chain
+# fails to instantiate and the tuning sink silently never appears.
 lsp-plugins-lv2
-calf
 
 intel-lpmd
 thermald
+
+# Dell publishes XPS 16 BIOS and Thunderbolt firmware through LVFS, and the
+# Panther Lake platform firmware is still moving quickly -- worth being able to
+# check for updates without booting Windows.
+fwupd
 
 # Apps
 1password
