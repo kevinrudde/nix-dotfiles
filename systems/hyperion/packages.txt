@@ -81,6 +81,7 @@ helium-browser-bin
 google-chrome
 slack-desktop
 teams-for-linux
+obsidian
 
 # Intel IPU7 MIPI webcam (OV08X40 behind the Panther Lake IPU).
 # Dependencies of the vendored intel-ipu7-camera PKGBUILD, which

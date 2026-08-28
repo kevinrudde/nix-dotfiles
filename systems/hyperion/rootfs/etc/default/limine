@@ -4,26 +4,45 @@
 # KERNEL_CMDLINE[default] applies to every generated entry, so the LTS kernel
 # inherits it too -- which is what makes booting LTS a usable A/B test.
 #
-# Crash capture. This host has hung hard twice with the display corrupting on
-# eDP-1 and left no kernel output at all either time, because the kernel ships
-# every detector we need and CachyOS's default cmdline switched them all off:
+# Everything on the KERNEL_CMDLINE line below is CachyOS's stock installer
+# cmdline -- verified against a 22 Aug copy as `quiet nowatchdog splash` plus
+# the rw/rootflags/luks/root tokens and nothing else, no mitigations=, no
+# zswap, no pstate knob -- except the trailing xe parameter. No package owns
+# this file, so this comment is the only record of the stock line.
 #
-#   nowatchdog  disabled both lockup detectors. The NMI hard-lockup detector is
-#               the only thing that can still speak from a CPU that has stopped
-#               taking timer interrupts, which is exactly this failure mode.
-#   quiet       raised the console loglevel so a panic never prints.
-#   splash      handed the framebuffer to plymouth, hiding whatever did print.
+# The crash-capture instrumentation that lived here from 23 to 28 Aug is gone:
+# dropping `nowatchdog`/`quiet`/`splash`, `pstore.backend=efi
+# efi_pstore.pstore_disable=0`, and the panic sysctls that were in
+# /etc/sysctl.d/99-lockup-capture.conf. It ran across six hangs and captured
+# nothing, and that null result is itself the finding. The efi pstore backend
+# was confirmed registered and the NMI hard-lockup detector confirmed armed,
+# yet the detector never fired once -- so the hang stops cores below the
+# kernel's reach (hung SMI/SMM handler, PMC fault, or a C-state the silicon
+# does not return from). pstore only writes on panic, no panic ever happened,
+# so it had nothing to persist. Re-arming it would not add to that.
 #
-# Dropping all three re-enables the detectors and lets drm_panic (CONFIG_DRM_PANIC=y,
-# and xe registers its planes with it) draw the panic on screen out of a live
-# Wayland session, so it can be photographed. pstore.backend=efi additionally
-# writes the tail of the log to EFI NVRAM, which survives the power cut; the
-# panic sysctls that turn a detected lockup into an actual panic -- without
-# which none of this fires -- live in /etc/sysctl.d/99-lockup-capture.conf.
+# Panel Replay. Upstream drivers/gpu/drm/i915/display/intel_quirks.c carries a
+# quirk_disable_edp_panel_replay entry for PCI subsystem 1028:0dba -- this exact
+# machine, the XPS 16 DA16260 -- because the Panel Replay Selective Update
+# handshake wedges the display engine on it. The entry is gated on the panel's
+# sink IEEE OUI 00:22:b9, which is the Samsung OLED option. This unit has the
+# Sharp LQ160N1 (EDID SHP 0x15C4), so the quirk never fires and
+# i915_edp_psr_status reports "Panel Replay Selective Update enabled (Early
+# Transport)" -- the mode upstream considers broken here.
 #
-# Cost of losing splash: the LUKS passphrase prompt is plain console text
-# instead of plymouth's graphical one. Put `quiet splash` back once the hangs
-# are understood.
+# The published failure for that mode (ASUS B9406CAA, same xe/Panther Lake
+# generation, same Early Transport path) is "Timed out waiting PSR idle state"
+# plus "DSB 0 timed out waiting for idle", ending with the internal panel black
+# and only a reboot recovering it. Our hang starts the same way -- eDP-1 scanout
+# corrupting while DP-1 stays clean -- and then takes the whole box with it.
+#
+# So xe.enable_panel_replay=0 is the only non-stock token here, and the sole
+# remaining A/B variable. It replaced a 60Hz pin on both outputs (hyperion.lua
+# is back to mode = "preferred"), which was a blunter guess and cost the panel
+# half its refresh rate; this one is the fix upstream already wrote for this
+# model, just not for this panel. Baseline is ~1 hang/day, so a crash-free week
+# clears it. Drop the parameter if the hangs continue -- it is not free, Panel
+# Replay is a real idle-power win.
 ESP_PATH="/boot"
-KERNEL_CMDLINE[default]+="rw rootflags=subvol=/@ rd.luks.uuid=e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 root=/dev/mapper/luks-e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 pstore.backend=efi"
+KERNEL_CMDLINE[default]+="quiet nowatchdog splash rw rootflags=subvol=/@ rd.luks.uuid=e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 root=/dev/mapper/luks-e6a763ab-0c7d-4e55-9ac4-d349b234d5a7 xe.enable_panel_replay=0"
 BOOT_ORDER="*, *lts, *fallback, Snapshots"

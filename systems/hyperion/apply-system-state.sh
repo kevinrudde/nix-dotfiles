@@ -111,15 +111,23 @@ if systemctl cat intel-ipu7-camera.service >/dev/null 2>&1; then
   fi
 fi
 
-# Crash capture: archive kernel panic records out of pstore. The efi pstore
-# backend (pstore.backend=efi, set in rootfs/etc/default/limine) writes the
-# tail of the log to EFI NVRAM on panic, where it survives a power cut. This
-# unit moves those records to /var/lib/systemd/pstore/<timestamp>/ on the next
-# boot and clears the pstore area, which also matters because NVRAM space is
-# small -- left uncleared, the first capture would block the second.
-if systemctl cat systemd-pstore.service >/dev/null 2>&1; then
-  if ! systemctl is-enabled --quiet systemd-pstore.service; then
-    run_as_root systemctl enable systemd-pstore.service
-    echo "Enabled systemd-pstore.service"
-  fi
+# Teardown of the 23-28 Aug crash-capture instrumentation. The cmdline side
+# reverted to stock in rootfs/etc/default/limine, but neither half of that
+# undoes itself: sync-host-config.sh only installs files, it never prunes them,
+# and a systemctl enable is not withdrawn by deleting the code that made it. So
+# both have to be unwound explicitly, and both are guarded to no-op afterwards.
+#
+# Safe to delete this block once hyperion has rebuilt once and both guards
+# report nothing to do.
+stale_sysctl="/etc/sysctl.d/99-lockup-capture.conf"
+
+if [ -e "$stale_sysctl" ]; then
+  run_as_root rm -f "$stale_sysctl"
+  run_as_root sysctl --system >/dev/null
+  echo "Removed $stale_sysctl (crash-capture teardown)"
+fi
+
+if systemctl is-enabled --quiet systemd-pstore.service 2>/dev/null; then
+  run_as_root systemctl disable systemd-pstore.service
+  echo "Disabled systemd-pstore.service (crash-capture teardown)"
 fi

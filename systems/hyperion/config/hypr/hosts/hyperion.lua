@@ -2,7 +2,7 @@ local workspaces = require("conf.workspaces")
 
 hl.monitor({
   output = "DP-1",
-  mode = "preferred",
+  mode = "3440x1440@60",
   position = "0x0",
   scale = "auto",
 })
@@ -11,7 +11,7 @@ hl.monitor({
 -- opens again; disabling a monitor is only undone by restating its rule.
 local internal = {
   output = "eDP-1",
-  mode = "preferred",
+  mode = "1920x1200@60",
   position = "auto-right",
   scale = "1",
 }
