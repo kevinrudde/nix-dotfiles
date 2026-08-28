@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""keyboard-debounce: filter mechanical-switch chatter out of evdev keyboards.
+
+Grabs every keyboard whose name matches --match (so the compositor stops
+seeing it directly), re-emits its events through a uinput clone, and drops a
+key press that arrives less than --threshold-ms after that key's previous
+release -- together with the release that belongs to the dropped press.
+A human cannot re-press the same key that fast; a bouncing switch can.
+
+Every dropped event is logged, so the journal doubles as evidence of how
+often (and on which keys) the keyboard actually chatters:
+
+    journalctl -u keyboard-debounce -f
+
+Devices are picked up and let go dynamically, so the same instance covers a
+keyboard on its 2.4 GHz dongle, over Bluetooth and on a USB cable.
+"""
+
+import argparse
+import re
+import selectors
+import sys
+import time
+
+import evdev
+from evdev import InputDevice, UInput, ecodes
+
+SUFFIX = " (debounced)"
+RESCAN_S = 2.0
+
+
+def log(msg):
+    print(msg, flush=True)
+
+
+class Debouncer:
+    """Per-device chatter filter. Timestamps are the kernel's (seconds)."""
+
+    def __init__(self, threshold_s):
+        self.threshold_s = threshold_s
+        self.last_release = {}
+        self.suppressed = set()
+
+    def accept(self, ev):
+        """Return (forward, reason). reason is set when the event is dropped."""
+        if ev.type != ecodes.EV_KEY:
+            return True, None
+        code, value, ts = ev.code, ev.value, ev.timestamp()
+        if value == 1:  # press
+            last = self.last_release.get(code)
+            if last is not None and 0 <= ts - last < self.threshold_s:
+                self.suppressed.add(code)
+                return False, "re-press %.1f ms after release" % ((ts - last) * 1000)
+            return True, None
+        if value == 0:  # release
+            if code in self.suppressed:
+                self.suppressed.discard(code)
+                return False, "release of a dropped press"
+            self.last_release[code] = ts
+            return True, None
+        # value == 2: autorepeat
+        if code in self.suppressed:
+            return False, "repeat of a dropped press"
+        return True, None
+
+
+class Grabbed:
+    def __init__(self, dev, threshold_s):
+        self.dev = dev
+        self.ui = UInput.from_device(
+            dev,
+            name=dev.name + SUFFIX,
+            vendor=dev.info.vendor,
+            product=dev.info.product,
+            version=dev.info.version,
+        )
+        self.filter = Debouncer(threshold_s)
+        dev.grab()
+
+    def close(self):
+        for fn in (self.dev.ungrab, self.dev.close, self.ui.close):
+            try:
+                fn()
+            except OSError:
+                pass
+
+
+def key_name(code):
+    name = ecodes.KEY.get(code, code)
+    return name[0] if isinstance(name, list) else str(name)
+
+
+def is_keyboard(dev, pattern):
+    if dev.name.endswith(SUFFIX) or not pattern.search(dev.name):
+        return False
+    keys = dev.capabilities().get(ecodes.EV_KEY, ())
+    # Only interfaces that carry letter keys; leaves consumer/system-control
+    # interfaces (volume, power) untouched.
+    return ecodes.KEY_A in keys and ecodes.KEY_Z in keys
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--match", required=True, help="regex on the evdev device name")
+    ap.add_argument("--threshold-ms", type=float, default=40.0,
+                    help="drop a same-key re-press faster than this (default 40)")
+    args = ap.parse_args()
+    pattern = re.compile(args.match, re.IGNORECASE)
+    threshold_s = args.threshold_ms / 1000.0
+
+    sel = selectors.DefaultSelector()
+    grabbed = {}  # path -> Grabbed
+    next_scan = 0.0
+    log("keyboard-debounce: match=%r threshold=%.0fms" % (args.match, args.threshold_ms))
+
+    while True:
+        now = time.monotonic()
+        if now >= next_scan:
+            next_scan = now + RESCAN_S
+            for path in evdev.list_devices():
+                if path in grabbed:
+                    continue
+                try:
+                    dev = InputDevice(path)
+                    if not is_keyboard(dev, pattern):
+                        dev.close()
+                        continue
+                    g = Grabbed(dev, threshold_s)
+                except OSError as e:
+                    log("skip %s: %s" % (path, e))
+                    continue
+                grabbed[path] = g
+                sel.register(dev.fd, selectors.EVENT_READ, path)
+                log("grabbed %s (%s) -> %s" % (dev.name, path, g.ui.device.path))
+
+        for key, _ in sel.select(timeout=max(0.0, next_scan - time.monotonic())):
+            path = key.data
+            g = grabbed.get(path)
+            if g is None:
+                continue
+            try:
+                for ev in g.dev.read():
+                    forward, reason = g.filter.accept(ev)
+                    if forward:
+                        g.ui.write_event(ev)
+                    else:
+                        log("dropped %s %s on %s: %s" % (
+                            key_name(ev.code),
+                            {1: "press", 0: "release", 2: "repeat"}.get(ev.value, ev.value),
+                            g.dev.name, reason))
+            except OSError:
+                # Device went away (dongle unplugged, BT disconnect, cable out).
+                sel.unregister(key.fd)
+                g.close()
+                del grabbed[path]
+                log("released %s (%s)" % (g.dev.name, path))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)

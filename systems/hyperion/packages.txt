@@ -58,6 +58,10 @@ gst-libav
 
 logiops
 
+# keyboard-debounce (rootfs/usr/local/bin) filters switch chatter from the
+# NuPhy Air75; it is plain python-evdev so it works for dongle, BT and cable.
+python-evdev
+
 # The lookahead limiter that ends the speaker tuning graph in
 # home/features/speaker-tuning is an LV2 plugin. Without it the filter-chain
 # fails to instantiate and the tuning sink silently never appears.

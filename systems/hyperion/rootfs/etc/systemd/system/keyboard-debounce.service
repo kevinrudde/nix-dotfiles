@@ -1,0 +1,23 @@
+[Unit]
+Description=Filter mechanical-switch chatter from the NuPhy keyboard
+Documentation=file:///usr/local/bin/keyboard-debounce
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+# 50 ms: measured chatter re-presses were 19-31 ms; the fastest genuine
+# same-key re-press we measured was 68 ms.
+ExecStart=/usr/local/bin/keyboard-debounce --match 'NuPhy' --threshold-ms 50
+Restart=on-failure
+RestartSec=2
+Nice=-10
+# Needs /dev/input/* (grab) and /dev/uinput; nothing else.
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+DeviceAllow=char-input rw
+DeviceAllow=/dev/uinput rw
+
+[Install]
+WantedBy=multi-user.target
