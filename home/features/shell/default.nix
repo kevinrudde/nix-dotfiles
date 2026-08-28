@@ -109,10 +109,15 @@ in
         aws sts get-caller-identity &> /dev/null
         if test $status != 0
             echo "AWS SSO Session expired. Logging in..."
-            aws sso login
+            if not aws sso login
+                echo "SSO login failed - kubectl and k9s stay locked."
+                return 1
+            end
         else
             echo "Found valid SSO session, using it!"
         end
+
+        set -gx AWSX_SESSION_ACTIVE 1
       '';
       ssm-headscale = ''
         set HEADSCALE_INSTANCE_ID (aws ec2 describe-instances --filters "Name=tag:Name,Values=headscale" --query 'Reservations[].Instances[].InstanceId' --output text)
