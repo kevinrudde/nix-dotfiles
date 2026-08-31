@@ -162,14 +162,21 @@ Singleton {
         return name.indexOf("monitor") >= 0 || description.indexOf("monitor") >= 0;
     }
 
+    // EasyEffects' own sink/source are routing plumbing for its effects chain,
+    // not a device to pick — same reasoning as excluding monitors.
+    function isEasyEffects(node: PwNode): bool {
+        const name = String(node ? node.name : "").toLowerCase();
+        return name.indexOf("easyeffects") >= 0 || name.indexOf("xps16_speaker_tuning") >= 0;
+    }
+
     // Streams are individual applications and monitors are loopbacks of a sink;
     // neither is something to switch the default device to.
     function isOutput(node: PwNode): bool {
-        return !!(node && node.audio && node.isSink && !node.isStream && !root.isMonitor(node));
+        return !!(node && node.audio && node.isSink && !node.isStream && !root.isMonitor(node) && !root.isEasyEffects(node));
     }
 
     function isInput(node: PwNode): bool {
-        return !!(node && node.audio && !node.isSink && !node.isStream && !root.isMonitor(node));
+        return !!(node && node.audio && !node.isSink && !node.isStream && !root.isMonitor(node) && !root.isEasyEffects(node));
     }
 
     function sorted(nodes: var): var {
