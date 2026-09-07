@@ -92,9 +92,22 @@ if target_changed /etc/modules-load.d/k3d.conf; then
   echo "Loaded br_netfilter"
 fi
 
-if target_changed /etc/sysctl.d/99-k3d.conf; then
+if target_changed /etc/sysctl.d/99-k3d.conf || target_changed /etc/sysctl.d/99-docker-forward.conf; then
   run_as_root sysctl --system >/dev/null
   echo "Applied sysctl settings"
+fi
+
+if target_changed /etc/docker/daemon.json; then
+  # firewalld 2.4 dropped the iptables backend, so its default backend fails
+  # with INVALID_IPV on bridge setup; pin nftables and disable Docker's own
+  # iptables/ip6tables management so it doesn't fight firewalld's rules. With
+  # iptables management disabled, dockerd no longer enables IPv4 forwarding
+  # itself either, so 99-docker-forward.conf sets that explicitly.
+  # A full restart is required to re-apply these engine-level settings.
+  if systemctl is-active --quiet docker.service; then
+    run_as_root systemctl restart docker.service
+    echo "Restarted docker.service to apply daemon.json"
+  fi
 fi
 
 # The cmdline in /etc/default/limine only reaches the boot entries through
