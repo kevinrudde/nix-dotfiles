@@ -2,7 +2,7 @@ local workspaces = require("conf.workspaces")
 
 hl.monitor({
   output = "DP-1",
-  mode = "3440x1440@60",
+  mode = "3440x2560@60",
   position = "0x0",
   scale = "auto",
 })
