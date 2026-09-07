@@ -45,6 +45,12 @@
           }
         ];
       };
+      # Built-in lazygit editor integration: pressing 'e' on a file quits
+      # lazygit (which lets Snacks.lazygit() auto-close its floating
+      # terminal) and opens the file in a new tab of the running nvim
+      # instance, via $NVIM. Falls back to a plain `nvim file` when run
+      # outside nvim. See pkg/config/editor_presets.go in lazygit upstream.
+      os.editPreset = "nvim-remote";
     };
   };
 
