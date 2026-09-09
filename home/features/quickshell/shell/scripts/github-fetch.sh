@@ -29,9 +29,19 @@ warnings="$tmp/warnings"
 # the head commit's check rollup alongside the pull request itself, and the
 # per-PR check state is exactly what the panel colours its icons by. Search
 # syntax is otherwise identical between the two endpoints.
-pr_search_query='query($search:String!) { search(query:$search,type:ISSUE,first:50) { nodes { ... on PullRequest {
+#
+# `reviews` is fetched too so a PR you've already approved can be dropped
+# locally: GitHub's search qualifiers have no "not approved by me" filter, and
+# assignment in particular has nothing to do with review state, so an
+# assigned PR you approved would otherwise sit in the list forever. A PR can
+# reappear under review-requested after new commits even though your old
+# review is still on record — that's judged by your *latest* review, so a
+# stale approval is treated as already-approved (hidden) but a later
+# change-request or dismissal is not.
+pr_search_query='query($search:String!) { viewer { login } search(query:$search,type:ISSUE,first:50) { nodes { ... on PullRequest {
   number title url updatedAt createdAt isDraft repository { nameWithOwner }
   commits(last:1) { nodes { commit { statusCheckRollup { state } } } }
+  reviews(last:30) { nodes { author { login } state submittedAt } }
 } } } }'
 
 fetch_pr_search() {
@@ -39,7 +49,13 @@ fetch_pr_search() {
   local err="$tmp/$label.err" result
 
   if result=$(gh api graphql -f query="$pr_search_query" -F search="$query" 2>"$err"); then
-    printf '%s\n' "$result" | jq '[.data.search.nodes[] | select(.number != null) | {
+    printf '%s\n' "$result" | jq '
+      (.data.viewer.login // "") as $viewer |
+      [.data.search.nodes[] | select(.number != null) |
+        select(
+          ([.reviews.nodes[]? | select(.author.login == $viewer)] | sort_by(.submittedAt) | last) as $latest |
+          $latest == null or $latest.state != "APPROVED"
+        ) | {
         id: ((.repository.nameWithOwner // "") + "#" + (.number|tostring)),
         number,
         title: (.title // ""),
