@@ -42,6 +42,21 @@ if [ -x "$target_shell" ]; then
   fi
 fi
 
+# ufw: Docker's daemon.json uses the native nftables firewall backend, which
+# creates its own dedicated nftables tables/hooks for container forwarding
+# and masquerading rather than inserting into ufw's own chains. Those are
+# independent base chains at the same netfilter hook, so ufw's default-drop
+# forward policy still applies on its own and drops container traffic
+# regardless of what Docker's rules allow. Docker (and k3d, which runs on
+# top of it) also creates a new bridge network per project/cluster with a
+# dynamic interface name (br-xxxxxxxxxxxx), so a scoped "ufw route allow"
+# rule can't be kept up to date either -- allowing routed traffic by default
+# is the simplest fix.
+if ! grep -qx 'DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw 2>/dev/null; then
+  run_as_root ufw default allow routed
+  echo "Set ufw's default forward policy to allow routed traffic"
+fi
+
 # DNS: hand /etc/resolv.conf to systemd-resolved. NetworkManager is pinned
 # to dns=systemd-resolved + rc-manager=unmanaged by
 # rootfs/etc/NetworkManager/conf.d/10-dns-resolved.conf, so it leaves the

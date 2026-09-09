@@ -1,5 +1,4 @@
 {
-  "iptables": false,
-  "ip6tables": false,
+  "iptables": true,
   "firewall-backend": "nftables"
 }
