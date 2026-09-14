@@ -33,6 +33,11 @@
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sofka = {
+      url = "github:nklmilojevic/sofka";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -46,6 +51,7 @@
     , catppuccin
     , mac-app-util
     , nixgl
+    , sofka
     , ...
     }:
     let
@@ -53,7 +59,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv nixgl;
+          inherit sops-nix catppuccin mac-app-util devenv nixgl sofka;
         };
       };
       mkPkgs = system: import nixpkgs {

@@ -9,6 +9,7 @@ in
 
   home.packages = with pkgs; [
     inputs.devenv.packages.${system}.devenv
+    inputs.sofka.packages.${system}.sofka
     cachix
     nh
 
