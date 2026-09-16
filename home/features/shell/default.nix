@@ -123,6 +123,14 @@ in
         set HEADSCALE_INSTANCE_ID (aws ec2 describe-instances --filters "Name=tag:Name,Values=headscale" --query 'Reservations[].Instances[].InstanceId' --output text)
         aws ssm start-session --document-name AWS-StartInteractiveCommand  --parameters command="bash -l" --target $HEADSCALE_INSTANCE_ID
       '';
+      sofka = ''
+        set -gx AWSX_SESSION_ACTIVE 1
+        command sofka $argv
+      '';
+      k9s = ''
+        set -gx AWSX_SESSION_ACTIVE 1
+        command k9s $argv
+      '';
     } // lib.optionalAttrs isDarwin {
       day = ''
         set -l vault "/Users/kevin/Library/Mobile Documents/iCloud~md~obsidian/Documents/Kevins Brain"
