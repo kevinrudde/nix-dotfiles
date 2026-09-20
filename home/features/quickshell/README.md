@@ -77,11 +77,14 @@ detail-level switch anymore.
   telemetry, GitHub, notifications, system stats, the active submap, the
   bar's expanded state) is a singleton in `services/`.
 - **A service that only matters while its popup is open gates its own poll
-  loop on that, rather than always running.** `WifiStats` pings the gateway
-  and re-reads the network device's byte counters every few seconds — a fair
-  cost while the network tab is visible, a pointless one otherwise. Because
-  one `ConnectivityPopup` instance exists per monitor but `WifiStats` is a
-  single shared singleton, the gate is set imperatively
+  loop on that, rather than always running.** `LinkStats` pings the active
+  connection's resolver and re-reads its device's byte counters every few
+  seconds — a fair cost while the network tab is visible, a pointless one
+  otherwise. It follows whichever link actually carries the default route,
+  wired or Wi-Fi, rather than assuming Wi-Fi — the DNS controls it backs
+  need to work on either. Because one `ConnectivityPopup` instance exists
+  per monitor but `LinkStats` is a single shared singleton, the gate is set
+  imperatively
   (`onOpenChanged`/`onModeChanged`), not as a continuous binding — two
   instances both binding the same singleton property from their own state
   would fight over it every time either one changed.
@@ -178,7 +181,7 @@ startup; `qs log <file>` reads one back.
   to end with the script stubbed out behind a fake state file standing in
   for `nmcli` — proving the refresh cycle fires correctly — rather than by
   actually flipping the real radio or forcing a real reconnect, either of
-  which is a live disruption with no undo. Only `wifi-status.sh`'s read side
+  which is a live disruption with no undo. Only `link-status.sh`'s read side
   (ping, sysfs byte counters, `nmcli` reads) was run against the real
   connection.
 - **`Row` top-aligns children of different heights; it does not centre

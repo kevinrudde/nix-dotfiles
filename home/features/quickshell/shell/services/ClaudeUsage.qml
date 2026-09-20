@@ -14,7 +14,7 @@ Singleton {
     id: root
 
     // Set by the popup: true only while it is open, the same convention
-    // WifiStats uses — a full transcript scan is cheap but still not worth
+    // LinkStats uses — a full transcript scan is cheap but still not worth
     // repeating on a timer nobody is looking at.
     property bool watching: false
 

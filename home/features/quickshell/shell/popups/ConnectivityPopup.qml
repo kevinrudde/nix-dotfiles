@@ -18,15 +18,15 @@ BarPopup {
     popupName: "connectivity"
     body: surface
 
-    // One WifiStats singleton is shared by a popup instance per monitor, so
+    // One LinkStats singleton is shared by a popup instance per monitor, so
     // this has to be imperative rather than a continuous binding: two
-    // instances both binding `WifiStats.watching` to their own `open`/`mode`
+    // instances both binding `LinkStats.watching` to their own `open`/`mode`
     // would fight over the same property. Popups.qml only ever lets one
     // instance be open at a time, so only the instance whose own state just
     // changed ever writes here — the other, closed, instance has nothing to
     // change and stays silent.
-    onOpenChanged: WifiStats.watching = root.open && root.mode === "network"
-    onModeChanged: WifiStats.watching = root.open && root.mode === "network"
+    onOpenChanged: LinkStats.watching = root.open && root.mode === "network"
+    onModeChanged: LinkStats.watching = root.open && root.mode === "network"
 
     PopupSurface {
         id: surface
@@ -117,7 +117,7 @@ BarPopup {
             spacing: Theme.popupSpacing
 
             // Whether the custom-DNS field is showing. Separate from
-            // `WifiStats.dnsProvider === "custom"` so clicking the chip opens
+            // `LinkStats.dnsProvider === "custom"` so clicking the chip opens
             // the field immediately rather than waiting on the reconnect that
             // confirms the change actually took.
             property bool dnsCustomOpen: false
@@ -131,8 +131,12 @@ BarPopup {
                 spacing: 10
 
                 StyledText {
-                    text: WifiStats.connected ? NetworkInfo.signalIcon((NetworkInfo.activeEntry() || {}).signal || 0) : Theme.iconWifi0
-                    color: NetworkInfo.wifiEnabled ? (WifiStats.connected ? Theme.primary : Theme.muted) : Theme.muted
+                    // NetworkInfo.activeWifi, not LinkStats.connected: this row is
+                    // specifically about the Wi-Fi radio, and LinkStats now follows
+                    // whichever link carries the default route — which can be the
+                    // wired one while Wi-Fi sits here idle or off.
+                    text: NetworkInfo.activeWifi !== "" ? NetworkInfo.signalIcon((NetworkInfo.activeEntry() || {}).signal || 0) : Theme.iconWifi0
+                    color: NetworkInfo.wifiEnabled ? (NetworkInfo.activeWifi !== "" ? Theme.primary : Theme.muted) : Theme.muted
                     font.pixelSize: Theme.fontSizeDisplay
                 }
 
@@ -142,14 +146,14 @@ BarPopup {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: WifiStats.connected ? NetworkInfo.activeWifi : (NetworkInfo.wifiEnabled ? "Not connected" : "Wi-Fi off")
+                        text: NetworkInfo.activeWifi !== "" ? NetworkInfo.activeWifi : (NetworkInfo.wifiEnabled ? "Not connected" : "Wi-Fi off")
                         elide: Text.ElideRight
                         font.pixelSize: Theme.fontSizeLarge
                     }
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: WifiStats.connected ? "connected" : (NetworkInfo.wifiEnabled ? "searching" : "off")
+                        text: NetworkInfo.activeWifi !== "" ? "connected" : (NetworkInfo.wifiEnabled ? "searching" : "off")
                         color: Theme.muted
                         font.bold: false
                         font.pixelSize: Theme.fontSizeTiny
@@ -162,9 +166,19 @@ BarPopup {
                 }
             }
 
+            // Labelled by link type since this grid (and the DNS section
+            // below) now follows whichever connection actually carries the
+            // default route, wired or Wi-Fi — not necessarily the Wi-Fi
+            // radio the row above is about.
+            Caption {
+                width: parent.width
+                visible: LinkStats.connected
+                label: LinkStats.type === "wifi" ? "Wi-Fi" : "Ethernet"
+            }
+
             GridLayout {
                 width: parent.width
-                visible: WifiStats.connected
+                visible: LinkStats.connected
                 columns: 2
                 columnSpacing: 16
                 rowSpacing: 2
@@ -173,67 +187,67 @@ BarPopup {
                     Layout.fillWidth: true
                     // "(DNS)" once a resolver is actually known — otherwise
                     // this is still the gateway fallback, same as before.
-                    label: WifiStats.pingTarget !== "" && WifiStats.pingTarget !== WifiStats.gateway ? "Ping (DNS)" : "Ping"
-                    value: WifiStats.pingMs !== null ? Math.round(WifiStats.pingMs) + " ms" : "--"
+                    label: LinkStats.pingTarget !== "" && LinkStats.pingTarget !== LinkStats.gateway ? "Ping (DNS)" : "Ping"
+                    value: LinkStats.pingMs !== null ? Math.round(LinkStats.pingMs) + " ms" : "--"
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Packet loss"
-                    value: WifiStats.packetLoss !== null ? WifiStats.packetLoss + "%" : "--"
+                    value: LinkStats.packetLoss !== null ? LinkStats.packetLoss + "%" : "--"
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Receiving"
-                    value: WifiStats.rateText(WifiStats.rxRate)
+                    value: LinkStats.rateText(LinkStats.rxRate)
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Sending"
-                    value: WifiStats.rateText(WifiStats.txRate)
+                    value: LinkStats.rateText(LinkStats.txRate)
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Downloaded"
-                    value: WifiStats.byteUnits(WifiStats.rawRx)
+                    value: LinkStats.byteUnits(LinkStats.rawRx)
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Uploaded"
-                    value: WifiStats.byteUnits(WifiStats.rawTx)
+                    value: LinkStats.byteUnits(LinkStats.rawTx)
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "IP address"
-                    value: WifiStats.ip
+                    value: LinkStats.ip
                 }
 
                 InfoRow {
                     Layout.fillWidth: true
                     label: "Gateway"
-                    value: WifiStats.gateway
+                    value: LinkStats.gateway
                 }
             }
 
             Divider {
-                visible: WifiStats.connected
+                visible: LinkStats.connected
             }
 
             StyledText {
                 width: parent.width
-                visible: WifiStats.connected && WifiStats.band !== ""
-                text: "Wi-Fi band: " + WifiStats.band
+                visible: LinkStats.connected && LinkStats.band !== ""
+                text: "Wi-Fi band: " + LinkStats.band
                 color: Theme.muted
                 font.bold: false
             }
 
             Divider {
-                visible: WifiStats.connected
+                visible: LinkStats.connected
             }
 
             // Ethernet, independent of whatever Wi-Fi is doing above — a
@@ -304,12 +318,15 @@ BarPopup {
 
             Column {
                 width: parent.width
-                visible: WifiStats.connected
+                visible: LinkStats.connected
                 spacing: Theme.popupSpacing
 
                 Caption {
                     width: parent.width
-                    label: "DNS provider"
+                    // Names the connection this applies to — no longer
+                    // implicitly "the Wi-Fi network" now that a wired link
+                    // can be the one actually in use.
+                    label: "DNS provider" + (LinkStats.connection !== "" ? " — " + LinkStats.connection : "")
                 }
 
                 Row {
@@ -319,44 +336,44 @@ BarPopup {
                     Chip {
                         width: (parent.width - parent.spacing * 3) / 4
                         text: "DHCP"
-                        selected: WifiStats.dnsProvider === "dhcp"
+                        selected: LinkStats.dnsProvider === "dhcp"
                         onClicked: {
                             networkPane.dnsCustomOpen = false;
-                            WifiStats.setDns("dhcp", "");
+                            LinkStats.setDns("dhcp", "");
                         }
                     }
 
                     Chip {
                         width: (parent.width - parent.spacing * 3) / 4
                         text: "Cloudflare"
-                        selected: WifiStats.dnsProvider === "cloudflare"
+                        selected: LinkStats.dnsProvider === "cloudflare"
                         onClicked: {
                             networkPane.dnsCustomOpen = false;
-                            WifiStats.setDns("cloudflare", "");
+                            LinkStats.setDns("cloudflare", "");
                         }
                     }
 
                     Chip {
                         width: (parent.width - parent.spacing * 3) / 4
                         text: "Google"
-                        selected: WifiStats.dnsProvider === "google"
+                        selected: LinkStats.dnsProvider === "google"
                         onClicked: {
                             networkPane.dnsCustomOpen = false;
-                            WifiStats.setDns("google", "");
+                            LinkStats.setDns("google", "");
                         }
                     }
 
                     Chip {
                         width: (parent.width - parent.spacing * 3) / 4
                         text: "Custom"
-                        selected: WifiStats.dnsProvider === "custom"
+                        selected: LinkStats.dnsProvider === "custom"
                         onClicked: networkPane.dnsCustomOpen = !networkPane.dnsCustomOpen
                     }
                 }
 
                 Row {
                     width: parent.width
-                    visible: networkPane.dnsCustomOpen || WifiStats.dnsProvider === "custom"
+                    visible: networkPane.dnsCustomOpen || LinkStats.dnsProvider === "custom"
                     spacing: 6
 
                     Rectangle {
@@ -380,9 +397,9 @@ BarPopup {
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                             verticalAlignment: TextInput.AlignVCenter
-                            text: WifiStats.dnsProvider === "custom" ? WifiStats.dns.split(",").join(" ") : ""
+                            text: LinkStats.dnsProvider === "custom" ? LinkStats.dns.split(",").join(" ") : ""
 
-                            onAccepted: WifiStats.setDns("custom", text)
+                            onAccepted: LinkStats.setDns("custom", text)
                         }
                     }
 
@@ -405,7 +422,7 @@ BarPopup {
 
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: WifiStats.setDns("custom", dnsCustomInput.text)
+                            onClicked: LinkStats.setDns("custom", dnsCustomInput.text)
                         }
                     }
                 }

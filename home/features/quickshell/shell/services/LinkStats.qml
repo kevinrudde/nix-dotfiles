@@ -1,7 +1,8 @@
 pragma Singleton
 
-// Live telemetry for the network tab's header and stat grid: ping, packet
-// loss, throughput, and the connection's DNS setting. Deliberately not
+// Live telemetry for the network tab's stat grid and DNS controls: ping,
+// packet loss, throughput, and the connection's DNS setting — for whichever
+// connection is actually carrying traffic, wired or Wi-Fi. Deliberately not
 // always-on — a ping every few seconds is a fair cost while the popup is
 // open and a pointless one while it is not, so `watching` gates every timer
 // here. NetworkInfo's static per-network facts (signal, security, saved)
@@ -18,6 +19,9 @@ Singleton {
 
     property bool connected: false
     property string device: ""
+    // "wifi" or "ethernet" — which kind of link `device`/`connection` below
+    // actually refer to, since a wired link can be the active one too.
+    property string type: ""
     property string connection: ""
     property string ip: ""
     property string gateway: ""
@@ -97,9 +101,10 @@ Singleton {
         root.lastSampleAt = root.tickTimestamp;
     }
 
-    // A device change mid-session (Wi-Fi handed off, adapter swapped) makes
-    // the previous counters meaningless — sampling across that jump would
-    // report a nonsense spike instead of skipping one tick.
+    // A device change mid-session (Wi-Fi handed off, cable plugged in,
+    // adapter swapped) makes the previous counters meaningless — sampling
+    // across that jump would report a nonsense spike instead of skipping
+    // one tick.
     function resetThroughput(): void {
         root.prevRx = -1;
         root.prevTx = -1;
@@ -120,6 +125,7 @@ Singleton {
 
             root.connected = !!data.connected;
             root.device = String(data.device || "");
+            root.type = String(data.type || "");
             root.connection = String(data.connection || "");
             root.ip = String(data.ip || "");
             root.gateway = String(data.gateway || "");
@@ -151,7 +157,7 @@ Singleton {
     Process {
         id: fetchProcess
 
-        command: [Quickshell.shellDir + "/scripts/wifi-status.sh"]
+        command: [Quickshell.shellDir + "/scripts/link-status.sh"]
 
         stdout: StdioCollector {
             onStreamFinished: root.apply(this.text)
