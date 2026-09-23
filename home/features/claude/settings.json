@@ -1,6 +1,21 @@
 {
   "theme": "auto",
   "tui": "fullscreen",
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "d=$(ls -d \"$HOME\"/.claude/plugins/cache/caveman/caveman/*/ 2>/dev/null | sort -V | tail -1); [ -n \"$d\" ] && bash \"${d}src/hooks/caveman-statusline.sh\""
+  },
   "hooks": {
     "PreToolUse": [
       {
