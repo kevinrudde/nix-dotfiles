@@ -75,6 +75,9 @@ thermald
 # check for updates without booting Windows.
 fwupd
 
+# MySQL CLI tools, pinned to the 8.0 client series (AUR)
+mysql-clients80
+
 # Apps
 1password
 1password-cli

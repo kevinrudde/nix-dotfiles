@@ -72,7 +72,16 @@ local ws_switch_mod = (main_mod ~= "SUPER" and (main_mod .. " + ") or "") .. "SU
 hl.bind(ws_switch_mod .. "Left", hl.dsp.focus({ workspace = "m-1" }))
 hl.bind(ws_switch_mod .. "Right", hl.dsp.focus({ workspace = "m+1" }))
 
-for workspace = 1, 6 do
+-- Driven off conf.workspaces rather than a literal range, so the number keys
+-- and the monitor each workspace is routed to cannot drift apart. The
+-- secondary row (MOD + 7) lands on the side screen, or on the primary one at a
+-- desk that has none.
+for _, workspace in ipairs(workspaces.primary_workspaces) do
+  hl.bind(main_mod .. " + " .. workspace, workspaces.focus(workspace))
+  hl.bind(main_mod .. " + SHIFT + " .. workspace, workspaces.move_window(workspace))
+end
+
+for _, workspace in ipairs(workspaces.secondary_workspaces) do
   hl.bind(main_mod .. " + " .. workspace, workspaces.focus(workspace))
   hl.bind(main_mod .. " + SHIFT + " .. workspace, workspaces.move_window(workspace))
 end
