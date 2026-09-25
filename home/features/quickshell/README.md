@@ -57,7 +57,7 @@ Every bar item is always in its compact, icon-only form; there is no more
 "expanded" variant that swaps an icon for icon-plus-percentage. Percentages,
 device lists and everything else still live one click away in the popup.
 `BarState.expanded` survives with a narrower job: it now only reveals the
-system tray and the idle-inhibit toggle, the two things worth keeping out of
+system tray and the sleep-inhibit toggle, the two things worth keeping out of
 sight by default. `ExpandToggle`'s "<"/">" is that overflow chevron, not a
 detail-level switch anymore.
 

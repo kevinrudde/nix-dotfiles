@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Wayland
 import qs
 import qs.services
 
@@ -27,13 +26,6 @@ PanelWindow {
 
     surfaceFormat {
         opaque: true
-    }
-
-    // Inhibiting idle needs a surface to hang off; the bar is the one window
-    // that is always there.
-    IdleInhibitor {
-        window: root
-        enabled: BarState.idleInhibited
     }
 
     Item {
