@@ -5,9 +5,11 @@ After=systemd-udevd.service
 
 [Service]
 Type=simple
-# 50 ms: measured chatter re-presses were 19-31 ms; the fastest genuine
-# same-key re-press we measured was 68 ms.
-ExecStart=/usr/local/bin/keyboard-debounce --match 'NuPhy' --threshold-ms 50
+# 35 ms: measured chatter re-presses were 15-31 ms. 50 ms also ate presses
+# at 35-45 ms that were likely genuine double letters or backspace taps.
+# Over Bluetooth the board announces itself as "Air75 V3 ISO-1 Keyboard"
+# without the vendor name, so match the model too.
+ExecStart=/usr/local/bin/keyboard-debounce --match 'NuPhy|Air75' --threshold-ms 35
 Restart=on-failure
 RestartSec=2
 Nice=-10

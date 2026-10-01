@@ -7,8 +7,9 @@ key press that arrives less than --threshold-ms after that key's previous
 release -- together with the release that belongs to the dropped press.
 A human cannot re-press the same key that fast; a bouncing switch can.
 
-Every dropped event is logged, so the journal doubles as evidence of how
-often (and on which keys) the keyboard actually chatters:
+Every dropped press is logged with its timing but without the key, so the
+journal shows how often the keyboard chatters without turning into a
+keylogger:
 
     journalctl -u keyboard-debounce -f
 
@@ -85,11 +86,6 @@ class Grabbed:
                 pass
 
 
-def key_name(code):
-    name = ecodes.KEY.get(code, code)
-    return name[0] if isinstance(name, list) else str(name)
-
-
 def is_keyboard(dev, pattern):
     if dev.name.endswith(SUFFIX) or not pattern.search(dev.name):
         return False
@@ -143,11 +139,8 @@ def main():
                     forward, reason = g.filter.accept(ev)
                     if forward:
                         g.ui.write_event(ev)
-                    else:
-                        log("dropped %s %s on %s: %s" % (
-                            key_name(ev.code),
-                            {1: "press", 0: "release", 2: "repeat"}.get(ev.value, ev.value),
-                            g.dev.name, reason))
+                    elif ev.value == 1:
+                        log("dropped press on %s: %s" % (g.dev.name, reason))
             except OSError:
                 # Device went away (dongle unplugged, BT disconnect, cable out).
                 sel.unregister(key.fd)
