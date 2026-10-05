@@ -1,0 +1,3 @@
+- Language: English only - all code, comments, docs, examples, commits, configs, errors, tests
+- Never commit or push using git if I do not ask you 
+- Style: Prefer self-documenting code over comments, only write tests if you see a real benefit not because of line coverage

@@ -3,6 +3,7 @@ let
   managed = ./settings.json;
 in
 {
+  home.file.".claude/CLAUDE.md".source = ./CLAUDE.md;
 
   home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     claudeSettings="${config.home.homeDirectory}/.claude/settings.json"
