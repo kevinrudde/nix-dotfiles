@@ -43,6 +43,17 @@ in
     # 'on_demand' avoids that, and is what makes close_on_focus_loss above
     # meaningful -- an exclusive layer surface never reports focus loss.
     launcher_window.layer_shell.keyboard_interactivity = "on_demand";
+
+    providers.snippets = {
+      enabled = false;
+      preferences = {
+        enabled = false;
+        undo = true;
+        layout = "";
+        prePasteDelay = "0";
+        keyDelay = "2";
+      };
+    };
   };
 
   # graphical-session.target is only reached once `uwsm finalize` has published
