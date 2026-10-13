@@ -100,3 +100,8 @@ if target_changed /etc/NetworkManager/conf.d/90-cloudflare-dns.conf; then
     echo "Reloaded NetworkManager configuration"
   fi
 fi
+
+if target_changed /etc/nix/nix.custom.conf; then
+  run_as_root systemctl restart nix-daemon.service
+  echo "Restarted nix-daemon (nix.custom.conf)"
+fi

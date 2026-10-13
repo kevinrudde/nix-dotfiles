@@ -34,10 +34,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sofka = {
-      url = "github:nklmilojevic/sofka";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # No nixpkgs follows: the nkl-sofka cache is built against sofka's own pin.
+    sofka.url = "github:nklmilojevic/sofka";
   };
 
   outputs =
@@ -90,8 +88,9 @@
                 auto-optimise-store = true;
                 lazy-trees = true;
                 trusted-users = [ "root kevin" ];
-                trusted-substituters = "https://cachix.cachix.org https://nixpkgs.cachix.org";
-                trusted-public-keys = "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+                extra-substituters = "https://nkl-sofka.cachix.org";
+                trusted-substituters = "https://cachix.cachix.org https://nixpkgs.cachix.org https://nkl-sofka.cachix.org";
+                trusted-public-keys = "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nkl-sofka.cachix.org-1:hLg9frFNJynrxe7SSBb/p6pbawlpZmG10bw+wLsTufw=";
               };
             }
           ];

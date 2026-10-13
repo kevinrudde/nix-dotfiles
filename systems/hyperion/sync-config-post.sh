@@ -117,3 +117,8 @@ if target_changed /etc/default/limine; then
   run_as_root limine-update
   echo "Regenerated Limine boot entries (reboot to pick up the new cmdline)"
 fi
+
+if target_changed /etc/nix/nix.custom.conf; then
+  run_as_root systemctl restart nix-daemon.service
+  echo "Restarted nix-daemon (nix.custom.conf)"
+fi

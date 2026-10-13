@@ -1213,6 +1213,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_14": {
+      "locked": {
+        "lastModified": 1791031588,
+        "narHash": "sha256-/FGDr01siZ8txrVzkOz6CYjiz0XR27JuVJP+aWchi4s=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "825e2028c29b702a4a5f085f08095d12099784f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1789921291,
@@ -1432,16 +1448,14 @@
     "sofka": {
       "inputs": {
         "home-manager": "home-manager_3",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs_14"
       },
       "locked": {
-        "lastModified": 1791724988,
-        "narHash": "sha256-H5NrBJkzzc2qOfMUBvCfuL4rHDjgxvyuRoH8nriRiTg=",
+        "lastModified": 1791875648,
+        "narHash": "sha256-EPyKUbV7zAz1jGNvmaoiVtF5kaa+QIYPOSDjr4XbVtE=",
         "owner": "nklmilojevic",
         "repo": "sofka",
-        "rev": "edc6d589c2838d8e09cd0318c09e46c69f979af9",
+        "rev": "ef828ff1572a1773144ef3f251a6040403d785ae",
         "type": "github"
       },
       "original": {
