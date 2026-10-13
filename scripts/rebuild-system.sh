@@ -103,7 +103,7 @@ case "$(uname -s)" in
     fi
 
     if command -v nh >/dev/null 2>&1; then
-      nh home switch "$repo_root"
+      nh home switch --show-activation-logs "$repo_root"
     else
       NIXPKGS_ALLOW_UNFREE=1 nix run home-manager -- switch --flake "$repo_root#$user_name@$host" --impure
     fi
@@ -113,7 +113,7 @@ case "$(uname -s)" in
     echo ""
 
     if command -v nh >/dev/null 2>&1; then
-      nh darwin switch "$repo_root"
+      nh darwin switch --show-activation-logs "$repo_root"
     else
       sudo NIXPKGS_ALLOW_UNFREE=1 nix run nix-darwin -- switch --flake "$repo_root#$host" --show-trace
     fi
