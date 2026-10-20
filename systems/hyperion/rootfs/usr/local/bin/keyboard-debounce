@@ -28,10 +28,19 @@ from evdev import InputDevice, UInput, ecodes
 
 SUFFIX = " (debounced)"
 RESCAN_S = 2.0
+# Longest gap between two loop wake-ups that still counts as "awake the whole
+# time". The loop wakes at least every RESCAN_S, so anything beyond this means
+# the machine slept in between.
+SUSPEND_GAP_S = 10.0
 
 
 def log(msg):
     print(msg, flush=True)
+
+
+def slept_seconds():
+    """Time spent suspended so far: CLOCK_BOOTTIME keeps running, MONOTONIC stops."""
+    return time.clock_gettime(time.CLOCK_BOOTTIME) - time.clock_gettime(time.CLOCK_MONOTONIC)
 
 
 class Debouncer:
@@ -107,10 +116,23 @@ def main():
     sel = selectors.DefaultSelector()
     grabbed = {}  # path -> Grabbed
     next_scan = 0.0
+    slept = slept_seconds()
     log("keyboard-debounce: match=%r threshold=%.0fms" % (args.match, args.threshold_ms))
 
     while True:
         now = time.monotonic()
+        slept_now = slept_seconds()
+        if slept_now - slept > SUSPEND_GAP_S:
+            # A suspend can leave the uinput clone holding keys whose release
+            # never arrived, which kills those keys on every keyboard until the
+            # clone is recreated. Replug-equivalent: drop every grab and let
+            # the rescan below build fresh clones.
+            for path, g in list(grabbed.items()):
+                sel.unregister(g.dev.fd)
+                g.close()
+                del grabbed[path]
+                log("resumed from suspend: released %s (%s)" % (g.dev.name, path))
+        slept = slept_now
         if now >= next_scan:
             next_scan = now + RESCAN_S
             for path in evdev.list_devices():
