@@ -16,6 +16,12 @@ hl.config({
 		enabled = false,
 	},
 
+	render = {
+		-- 2 = auto: scan out directly only for windows tagged as games, so
+		-- fullscreen video and browsers keep going through the compositor.
+		direct_scanout = 2,
+	},
+
 	general = {
 		col = {
 			active_border = "rgba(89b4faff)",
