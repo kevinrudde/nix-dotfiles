@@ -103,6 +103,8 @@ v4l2-relayd
 gstreamer
 jsoncpp
 libdrm
+# makedepends: pkgbuild-sync.sh runs makepkg without -s
+cmake
 
 # DKMS toolchain. Both CachyOS kernels on this host are clang + ThinLTO
 # builds, so out-of-tree modules must be compiled with LLVM=1 -- gcc rejects
