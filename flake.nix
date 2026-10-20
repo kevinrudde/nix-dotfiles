@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # https://github.com/DeterminateSystems/determinate/releases
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.21.5";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.23.3";
 
     nix-darwin.url = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -14,8 +14,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    devenv.url = "github:cachix/devenv/v2.1";
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -44,7 +42,6 @@
     , determinate
     , nix-darwin
     , home-manager
-    , devenv
     , sops-nix
     , catppuccin
     , mac-app-util
@@ -57,7 +54,7 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       extraArgs = {
         inputs = {
-          inherit sops-nix catppuccin mac-app-util devenv nixgl sofka;
+          inherit sops-nix catppuccin mac-app-util nixgl sofka;
         };
       };
       mkPkgs = system: import nixpkgs {
