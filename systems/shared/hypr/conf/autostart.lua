@@ -16,6 +16,7 @@ hl.on("hyprland.start", function()
   -- gtk-icon-theme-name without pulling in qt6ct's crashing style plugin, and
   -- libqgtk3.so ships in qt6-base, which quickshell already depends on.
   hl.exec_cmd("env QT_QPA_PLATFORMTHEME=gtk3 QT_STYLE_OVERRIDE= uwsm app -- quickshell --no-duplicate --config shell")
+  hl.exec_cmd("uwsm app -- set-wallpapers")
   hl.exec_cmd("uwsm app -- hypridle")
   hl.exec_cmd("uwsm app -- tailscale systray")
   -- hl.exec_cmd("sleep 10 && uwsm app -- librepods --start-minimized")

@@ -28,7 +28,7 @@
 
 pkgname=intel-ipu7-camera
 pkgver=1.0.6
-pkgrel=3
+pkgrel=5
 pkgdesc="Intel IPU7 MIPI camera stack for Hurrican/Performance (OV08X40 + hardware ISP)"
 arch=('x86_64')
 url="https://github.com/TsaiGaggery/hurrican_omarchy_enabling"
@@ -67,8 +67,10 @@ _icamerasrc_commit="4fb31db76b618aae72184c59314b839dedb42689"
 # Linux 7.2 moved the Intel CVS (Computer Vision Sensing) controller into the
 # IPU media graph, so the sensor only appears once drivers/media/i2c/cvs is
 # loaded. linux-omarchy builds that driver in-tree, signed and carrying the
-# XPS 14 speaker-ID wake-IRQ fix, and camera-init loads it. Kernels before 7.2
-# use the legacy misc driver from vision-drivers instead.
+# XPS 14 speaker-ID wake-IRQ fix, and camera-init loads it. linux-cachyos 7.2
+# leaves it disabled, so the intel-cvs DKMS module builds the unmodified v7.2
+# sources instead. Kernels before 7.2 use the legacy misc driver from
+# vision-drivers.
 #
 # 0008-0011 are image quality fixes for the XPS 14 / 16 camera:
 # - 0011: the graph asks for ISP tuning mode 4, which the OV08X40 tuning does
@@ -102,6 +104,11 @@ source=(
   "0011-camhal-fall-back-to-the-default-ISP-tuning-when-the-mode-is-missing.patch"
   "dkms-ipu7-drivers.conf"
   "dkms-vision-drivers.conf"
+  "dkms-intel-cvs.conf"
+  "intel-cvs.Makefile"
+  "intel-cvs-core.c::https://raw.githubusercontent.com/torvalds/linux/v7.2/drivers/media/i2c/cvs/core.c"
+  "intel-cvs-v4l2.c::https://raw.githubusercontent.com/torvalds/linux/v7.2/drivers/media/i2c/cvs/v4l2.c"
+  "intel-cvs-icvs.h::https://raw.githubusercontent.com/torvalds/linux/v7.2/drivers/media/i2c/cvs/icvs.h"
   "camera-deps.conf"
   "v4l2loopback-modprobe.conf"
   "camera-init.service"
@@ -120,9 +127,10 @@ source=(
 sha256sums=(
   'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
   'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'b4a90ad1815c02e4cadc1b5ad6c576ae0b150cb365c68d2c934cf964a995d91f'
+  'e988014f54b1b5183e9ef43b602d73bbc2c991f19a8d503560a8cdba112b76c6' '6dcd5201fb78766a440038c8eba2cc8c3892064ba829065e2269c30dc1905983' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
   'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP'
+  'SKIP' 'SKIP'
 )
 
 prepare() {
@@ -271,6 +279,15 @@ package() {
   cp -r "${srcdir}/vision-drivers/"* "${cvs_dkms_dir}/"
   install -Dm644 "${srcdir}/dkms-vision-drivers.conf" "${cvs_dkms_dir}/dkms.conf"
   sed -i "s/@PKGVER@/${pkgver}/" "${cvs_dkms_dir}/dkms.conf"
+
+  # DKMS: Intel CVS CSI-2 bridge from the v7.2 kernel tree, kernels 7.2+
+  local intel_cvs_dkms_dir="${pkgdir}/usr/src/intel-cvs-${pkgver}"
+  install -Dm644 "${srcdir}/intel-cvs-core.c" "${intel_cvs_dkms_dir}/core.c"
+  install -Dm644 "${srcdir}/intel-cvs-v4l2.c" "${intel_cvs_dkms_dir}/v4l2.c"
+  install -Dm644 "${srcdir}/intel-cvs-icvs.h" "${intel_cvs_dkms_dir}/icvs.h"
+  install -Dm644 "${srcdir}/intel-cvs.Makefile" "${intel_cvs_dkms_dir}/Makefile"
+  install -Dm644 "${srcdir}/dkms-intel-cvs.conf" "${intel_cvs_dkms_dir}/dkms.conf"
+  sed -i "s/@PKGVER@/${pkgver}/" "${intel_cvs_dkms_dir}/dkms.conf"
 
   # Firmware
   install -dm755 "${pkgdir}/usr/lib/firmware/intel/ipu"

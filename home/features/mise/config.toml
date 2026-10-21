@@ -3,3 +3,6 @@ pi = "latest"
 pnpm = "latest"
 terraform = "latest"
 terragrunt = "latest"
+
+[settings.github]
+credential_command = "gh auth token --hostname \"$MISE_CREDENTIAL_HOST\""

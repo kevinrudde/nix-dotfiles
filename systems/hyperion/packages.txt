@@ -32,6 +32,7 @@ playerctl
 # Hypr ecosystem
 hypridle
 hyprlock
+hyprpaper
 quickshell
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk

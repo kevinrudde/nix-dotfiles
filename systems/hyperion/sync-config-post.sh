@@ -59,17 +59,17 @@ if systemctl cat logid.service >/dev/null 2>&1; then
   fi
 fi
 
-if systemctl cat keyboard-debounce.service >/dev/null 2>&1; then
-  if ! systemctl is-enabled --quiet keyboard-debounce.service; then
-    run_as_root systemctl enable keyboard-debounce.service
-    echo "Enabled keyboard-debounce.service"
-  fi
-
-  if any_target_changed /usr/local/bin/keyboard-debounce /etc/systemd/system/keyboard-debounce.service; then
-    run_as_root systemctl restart keyboard-debounce.service
-    echo "Restarted keyboard-debounce.service"
-  fi
-fi
+# if systemctl cat keyboard-debounce.service >/dev/null 2>&1; then
+#   if ! systemctl is-enabled --quiet keyboard-debounce.service; then
+#     run_as_root systemctl enable keyboard-debounce.service
+#     echo "Enabled keyboard-debounce.service"
+#   fi
+#
+#   if any_target_changed /usr/local/bin/keyboard-debounce /etc/systemd/system/keyboard-debounce.service; then
+#     run_as_root systemctl restart keyboard-debounce.service
+#     echo "Restarted keyboard-debounce.service"
+#   fi
+# fi
 
 # logind has no ExecReload, so the lid policy only lands on a restart. That is
 # safe to do under a live graphical session: the unit carries a
