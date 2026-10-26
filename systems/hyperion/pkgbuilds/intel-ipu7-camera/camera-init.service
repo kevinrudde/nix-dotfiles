@@ -6,6 +6,7 @@ Before=graphical.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+ExecStartPre=/bin/bash -c "for _ in {1..60}; do grep -q sof-soundwire /proc/asound/cards && exit 0; sleep 0.5; done"
 ExecStart=/bin/bash -c "modprobe intel_cvs && sleep 2 && modprobe ov08x40 && modprobe v4l2loopback"
 
 [Install]
