@@ -1,0 +1,15 @@
+[Unit]
+Description=Rebind Synaptics touchpad so hid-multitouch starts from a clean state
+After=multi-user.target
+After=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
+
+[Service]
+Type=oneshot
+# Taps arrive as 10-20 ms contacts that libinput never turns into clicks
+# until i2c_hid_acpi is unbound and bound again.
+ExecStart=/usr/bin/bash -c 'echo i2c-VEN_06CB:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind'
+ExecStart=/usr/bin/sleep 1
+ExecStart=/usr/bin/bash -c 'echo i2c-VEN_06CB:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/bind'
+
+[Install]
+WantedBy=multi-user.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target

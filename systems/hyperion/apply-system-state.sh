@@ -96,6 +96,12 @@ for unit in thermald.service intel_lpmd.service; do
   fi
 done
 
+# Touchpad rebind: unit file ships via rootfs/, enabling is a state op.
+if ! systemctl is-enabled --quiet touchpad-rebind.service; then
+  run_as_root systemctl enable touchpad-rebind.service
+  echo "Enabled touchpad-rebind.service"
+fi
+
 # Intel IPU7 camera: re-assert what intel-ipu7-camera's pacman install
 # scriptlet does. The scriptlet only fires on install/upgrade, so a plain
 # reinstall or a manually disabled unit would otherwise stay that way. The

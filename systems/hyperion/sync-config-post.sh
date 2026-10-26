@@ -34,6 +34,7 @@ systemd_unit_changes=(
   /etc/systemd/system/logid.service.d/override.conf
   /etc/systemd/system/logid-restart.service
   /etc/systemd/system/keyboard-debounce.service
+  /etc/systemd/system/touchpad-rebind.service
 )
 
 if any_target_changed "${systemd_unit_changes[@]}"; then
