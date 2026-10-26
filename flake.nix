@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # https://github.com/DeterminateSystems/determinate/releases
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.23.3";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.24.1";
 
     nix-darwin.url = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
