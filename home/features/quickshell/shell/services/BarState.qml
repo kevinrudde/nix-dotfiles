@@ -13,14 +13,14 @@ Singleton {
     property bool expanded: false
     property bool sleepInhibited: false
 
-    // A systemd block inhibitor rather than a Wayland idle inhibitor: the idle
-    // chain in hypridle.conf still dims, locks and blanks the panels, and only
-    // its suspend rules stand down while logind reports a sleep block. Lives
-    // here, not in Bar.qml, so there is one inhibitor however many monitors
+    // A systemd block inhibitor rather than a Wayland idle inhibitor: hypridle
+    // honours logind idle blocks, so its whole chain (dim, lock, blank) pauses,
+    // and its suspend rules also stand down while logind reports a sleep block.
+    // A manual lock still works. Lives here, not in Bar.qml, so there is one inhibitor however many monitors
     // are connected. setpriv ties the placeholder child to systemd-inhibit, so
     // stopping the Process does not leave an orphaned sleep behind.
     Process {
         running: root.sleepInhibited
-        command: ["systemd-inhibit", "--what=sleep", "--mode=block", "--who=quickshell", "--why=Sleep toggle in the bar", "setpriv", "--pdeathsig", "TERM", "sleep", "infinity"]
+        command: ["systemd-inhibit", "--what=sleep:idle", "--mode=block", "--who=quickshell", "--why=Idle toggle in the bar", "setpriv", "--pdeathsig", "TERM", "sleep", "infinity"]
     }
 }

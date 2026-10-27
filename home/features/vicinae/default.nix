@@ -11,7 +11,7 @@ let
   # Mesa directly. Same reasoning that keeps quickshell on the native package.
   #
   # Home-manager still owns the config and the user unit; only the binary is
-  # native (vicinae-bin, in systems/hyperion/packages.txt). The unit below
+  # native (vicinae-bin, in systems/<host>/packages.txt). The unit below
   # shadows the /usr/lib/systemd/user/vicinae.service that package ships, since
   # units under ~/.config take precedence.
   vicinae = "/usr/bin/vicinae";

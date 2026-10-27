@@ -1,0 +1,67 @@
+# One package name per line.
+# Official repo packages and AUR packages can both be installed through paru.
+
+xpadneo-dkms
+blueman
+appimagelauncher
+1password
+1password-cli
+spotify
+vicinae-bin
+
+# Hyprland / UWSM session
+hyprland
+uwsm
+
+# Login manager
+greetd
+greetd-tuigreet
+
+# Secrets + auth agents
+gnome-keyring
+hyprpolkitagent
+
+# Fonts
+ttf-jetbrains-mono
+ttf-jetbrains-mono-nerd
+
+# Core Wayland desktop tools
+ghostty
+foot
+fuzzel
+wireplumber
+wl-clipboard
+grim
+slurp
+playerctl
+
+# Hypr ecosystem
+hypridle
+hyprlock
+hyprpaper
+quickshell
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+nautilus
+
+# Qt Wayland support
+qt5-wayland
+qt6-wayland
+qt6ct
+kvantum
+
+# Multimedia codecs
+ffmpeg
+gst-plugins-base
+gst-plugins-good
+gst-plugins-bad
+gst-plugins-ugly
+gst-libav
+
+# Apps
+zen-browser
+helium-browser-bin
+google-chrome
+slack-desktop
+docker
+tailscale

@@ -96,9 +96,9 @@
 
       homeConfigurations = {
 
-        # Cachy
-        "kevin@cachy" = home-manager.lib.homeManagerConfiguration {
-          modules = [ ./home/cachy.nix ];
+        # CachyOS desktop (RX 7900 XTX)
+        "kevin@tachyon" = home-manager.lib.homeManagerConfiguration {
+          modules = [ ./home/tachyon.nix ];
           pkgs = mkPkgs "x86_64-linux";
           extraSpecialArgs = extraArgs;
         };

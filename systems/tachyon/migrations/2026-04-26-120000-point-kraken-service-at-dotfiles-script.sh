@@ -2,20 +2,20 @@
 set -euo pipefail
 
 # Migration: Point Kraken liquid fan curve service at dotfiles script
-# Host: cachy
+# Host: tachyon
 #
 # Rewrites the existing systemd unit to execute the checked-in script through
 # /etc/nix-dotfiles/env instead of a copied /usr/local/bin snapshot.
 
 repo_root="${DOTFILES_MIGRATION_REPO_ROOT:?missing repo root}"
 host="${DOTFILES_MIGRATION_HOST:?missing host}"
-script_path="$repo_root/systems/cachy/bin/kraken-liquid-fan-curve.sh"
-unit_src="$repo_root/systems/cachy/config/systemd/kraken-liquid-fan-curve.service"
+script_path="$repo_root/systems/tachyon/bin/kraken-liquid-fan-curve.sh"
+unit_src="$repo_root/systems/tachyon/config/systemd/kraken-liquid-fan-curve.service"
 env_path="/etc/nix-dotfiles/env"
 unit_path="/etc/systemd/system/kraken-liquid-fan-curve.service"
 
-if [[ "$host" != "cachy" ]]; then
-  echo "This migration is for cachy, but the active host is $host" >&2
+if [[ "$host" != "tachyon" ]]; then
+  echo "This migration is for tachyon, but the active host is $host" >&2
   exit 1
 fi
 

@@ -140,7 +140,7 @@ Singleton {
     // Launcher badge doubles as a distro badge: CachyOS hosts get the
     // linux-cachyos glyph, the rest keep Fedora's. DOTFILES_HOST is exported
     // by systems/shared/uwsm/env into every session app.
-    readonly property string iconLauncher: root.glyph(Quickshell.env("DOTFILES_HOST") === "hyperion" ? 0xf385 : 0xf30a)
+    readonly property string iconLauncher: root.glyph(["hyperion", "tachyon"].includes(Quickshell.env("DOTFILES_HOST")) ? 0xf385 : 0xf30a)
     readonly property string iconPower: root.glyph(0xf011)
     readonly property string iconUnknown: root.glyph(0xf071)
     readonly property string iconCheck: root.glyph(0xf00c)

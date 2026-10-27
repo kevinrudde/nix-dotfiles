@@ -5,7 +5,7 @@ After=multi-user.target
 [Service]
 Type=simple
 EnvironmentFile=/etc/nix-dotfiles/env
-ExecStart=/usr/bin/bash -lc 'exec "$DOTFILES_REPO_ROOT/systems/cachy/bin/kraken-liquid-fan-curve.sh"'
+ExecStart=/usr/bin/bash -lc 'exec "$DOTFILES_REPO_ROOT/systems/tachyon/bin/kraken-liquid-fan-curve.sh"'
 Restart=on-failure
 RestartSec=5s
 
