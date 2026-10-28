@@ -25,9 +25,11 @@ in
         /usr/bin/pgrep -x quickshell >/dev/null || break
         sleep 0.1
       done
-      # uwsm shells out to systemd-run and friends, which the Nix-only
-      # activation PATH does not provide.
-      $DRY_RUN_CMD /usr/bin/setsid -f /usr/bin/env PATH="/usr/bin:$PATH" /usr/bin/uwsm app -- env QT_QPA_PLATFORMTHEME=gtk3 QT_STYLE_OVERRIDE= \
+      # The activation PATH is Nix-only: uwsm needs systemd-run from /usr/bin and
+      # the shell's own tools (gh, ...) need the session PATH, so hand the
+      # bar the one the user manager holds.
+      session_path="$(/usr/bin/systemctl --user show-environment | sed -n 's/^PATH=//p')"
+      $DRY_RUN_CMD /usr/bin/setsid -f /usr/bin/env PATH="''${session_path:-/usr/bin:$PATH}" /usr/bin/uwsm app -- env QT_QPA_PLATFORMTHEME=gtk3 QT_STYLE_OVERRIDE= \
         /usr/bin/quickshell --no-duplicate --config shell >/dev/null 2>&1 </dev/null || true
     fi
   '';
