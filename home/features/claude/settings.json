@@ -1,5 +1,8 @@
 {
   "theme": "auto",
+  "env": {
+    "AWSX_GUARD": "1"
+  },
   "tui": "fullscreen",
   "extraKnownMarketplaces": {
     "caveman": {

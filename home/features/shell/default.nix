@@ -10,6 +10,7 @@ in
     fzf
     fd
     bat
+    (writeShellScriptBin "awsx-guard" (builtins.readFile ./awsx-guard.sh))
   ];
 
   programs.direnv = {
