@@ -17,9 +17,13 @@ M.secondary_workspaces = { 7 }
 -- it as the big one in front of you.
 M.external_monitors = {}
 
+-- Hyprland 0.57 rejects workspace 0 and the numeric name "name:0" as invalid,
+-- so the internal panel's workspace gets a real name.
+M.internal_workspace_name = "name:💻"
+
 function M.workspace(workspace)
   if workspace == 0 then
-    return "name:0"
+    return M.internal_workspace_name
   end
 
   return tostring(workspace)
