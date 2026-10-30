@@ -1,15 +1,14 @@
 [Unit]
-Description=Rebind Synaptics touchpad so hid-multitouch starts from a clean state
+Description=Rebind Synaptics touchpad once the compositor is running
 After=multi-user.target
 After=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
 
 [Service]
-Type=oneshot
+Type=simple
 # Taps arrive as 10-20 ms contacts that libinput never turns into clicks
-# until i2c_hid_acpi is unbound and bound again.
-ExecStart=/usr/bin/bash -c 'echo i2c-VEN_06CB:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind'
-ExecStart=/usr/bin/sleep 1
-ExecStart=/usr/bin/bash -c 'echo i2c-VEN_06CB:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/bind'
+# until i2c_hid_acpi is rebound while Hyprland is already running. A rebind
+# before the session starts does not help.
+ExecStart=/usr/bin/bash -c 'for _ in $(seq 120); do pgrep -x Hyprland >/dev/null && break; sleep 1; done; sleep 3; d=/sys/bus/i2c/drivers/i2c_hid_acpi; echo i2c-VEN_06CB:00 > $d/unbind; sleep 1; echo i2c-VEN_06CB:00 > $d/bind'
 
 [Install]
 WantedBy=multi-user.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
