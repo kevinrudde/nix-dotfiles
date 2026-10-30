@@ -17,6 +17,8 @@ Some applications need to be installed through homebrew, so we just install it.
 ### SOPS for secrets (optional)
 If you want to have your secrets decrypted lying in the repository, you need to have you age key located at `/home/<username>/.config/sops/age/keys.txt` (linux) or `/Users/<username>/Library/Application Support/sops/age/keys.txt` (darwin)
 
+`./scripts/bootstrap.sh` installs Determinate Nix and restores the age key from the 1Password item `nix-sops age key` (field `.config/sops/age/keys.txt`) to the path above.
+
 ## Setup
 
 1. Clone the repository
