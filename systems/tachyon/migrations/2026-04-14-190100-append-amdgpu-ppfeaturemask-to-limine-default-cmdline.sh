@@ -9,7 +9,7 @@ set -euo pipefail
 # call sudo only for that step instead of running the whole migration as root.
 
 config_file="/etc/default/limine"
-setting_key="LIMINE_CMDLINE_DEFAULT"
+setting_key="KERNEL_CMDLINE[default]"
 desired_arg="amdgpu.ppfeaturemask=0xffffffff"
 
 echo "Ensuring $desired_arg is present in $config_file"
@@ -35,7 +35,7 @@ setting_key = sys.argv[2]
 desired_arg = sys.argv[3]
 
 lines = config_path.read_text().splitlines()
-pattern = re.compile(rf"^({re.escape(setting_key)}=)([\"'])(.*)\2$")
+pattern = re.compile(rf"^({re.escape(setting_key)}\+=)([\"'])(.*)\2$")
 
 for idx, line in enumerate(lines):
     match = pattern.match(line)
