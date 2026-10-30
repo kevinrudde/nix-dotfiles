@@ -1,0 +1,11 @@
+[Unit]
+Description=Mount SMALL SSD (/mnt/smallssd)
+
+[Mount]
+What=UUID=2E74175D741726DD
+Where=/mnt/smallssd
+Type=ntfs3
+Options=defaults,noatime,nofail,x-gvfs-show,x-gvfs-name=Small%%20SSD,uid=1000,gid=1000,umask=022
+
+[Install]
+WantedBy=multi-user.target

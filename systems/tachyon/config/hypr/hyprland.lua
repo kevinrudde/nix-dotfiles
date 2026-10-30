@@ -14,6 +14,9 @@ HL_MAIN_MOD = "SUPER"
 -- daemon, so it does not get a uwsm app scope of its own.
 HL_LAUNCHER = "vicinae toggle"
 
+-- Desktop: no built-in panel, so no laptop workspace.
+HL_HAS_INTERNAL_PANEL = false
+
 require("conf.env")
 require("conf.input")
 require("conf.looknfeel")

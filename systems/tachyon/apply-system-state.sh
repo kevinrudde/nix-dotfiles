@@ -19,6 +19,14 @@ if command -v greetd >/dev/null 2>&1; then
   fi
 fi
 
+# Data drives: unit files ship via rootfs/, enabling is a state op.
+for unit in mnt-bigm2.mount mnt-smallssd.mount; do
+  if ! systemctl is-enabled --quiet "$unit"; then
+    run_as_root systemctl enable --now "$unit"
+    echo "Enabled $unit"
+  fi
+done
+
 # Default shell: fish, owned by home-manager's features/shell. Skipped until
 # home-manager has run at least once on this host.
 target_user="kevin"

@@ -64,8 +64,10 @@ hl.bind("MOD5 + L", hl.dsp.exec_cmd(lock_cmd), {
   desc = "Lock screen",
 })
 
-hl.bind(main_mod .. " + F1", workspaces.focus(0))
-hl.bind(main_mod .. " + SHIFT + F1", workspaces.move_window(0))
+if workspaces.internal_monitor ~= nil then
+  hl.bind(main_mod .. " + F1", workspaces.focus(0))
+  hl.bind(main_mod .. " + SHIFT + F1", workspaces.move_window(0))
+end
 
 -- When the main modifier IS super, don't stack it twice.
 local ws_switch_mod = (main_mod ~= "SUPER" and (main_mod .. " + ") or "") .. "SUPER + SHIFT + "

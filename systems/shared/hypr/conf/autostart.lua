@@ -1,6 +1,9 @@
 hl.on("hyprland.start", function()
   hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
   hl.exec_cmd("uwsm finalize WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE XCURSOR_SIZE XCURSOR_THEME SSH_AUTH_SOCK")
+  -- Without a graphical agent pkexec falls back to its terminal prompt, which
+  -- fails ("No session for cookie") for anything launched from the session.
+  hl.exec_cmd("systemctl --user start hyprpolkitagent.service")
   -- qt6ct's style plugin SEGVs under CachyOS's jemalloc preload while
   -- QStyleFactory reads plugin metadata (Qt6CTProxyStyle::reloadSettings),
   -- crash-looping quickshell at startup. Quickshell paints all of its own

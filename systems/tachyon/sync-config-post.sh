@@ -24,3 +24,26 @@ if target_changed /etc/nix/nix.custom.conf; then
   run_as_root systemctl restart nix-daemon.service
   echo "Restarted nix-daemon (nix.custom.conf)"
 fi
+
+# Mount options only take effect on a fresh mount, so a changed unit is
+# remounted rather than just reloaded.
+mount_units=(mnt-bigm2.mount mnt-smallssd.mount)
+changed_mount_units=()
+
+for unit in "${mount_units[@]}"; do
+  if target_changed "/etc/systemd/system/$unit"; then
+    changed_mount_units+=("$unit")
+  fi
+done
+
+if ((${#changed_mount_units[@]} > 0)); then
+  run_as_root systemctl daemon-reload
+  echo "Reloaded systemd unit files"
+
+  for unit in "${changed_mount_units[@]}"; do
+    if systemctl is-active --quiet "$unit"; then
+      run_as_root systemctl restart "$unit"
+      echo "Remounted $unit"
+    fi
+  done
+fi

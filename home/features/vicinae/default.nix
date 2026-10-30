@@ -34,15 +34,18 @@ in
       light.name = "tokyo-night";
     };
 
-    # A launcher that stays up after losing focus is a window to dismiss by
-    # hand; close it instead.
-    close_on_focus_loss = true;
+    # 'exclusive' rather than 'on_demand': with Hyprland's follow_mouse = 1 an
+    # on_demand layer surface hands the keyboard straight to whatever window
+    # sits under the cursor, so typing lands there instead of the launcher.
+    # Vicinae's own default config documents 'exclusive' as breaking mouse
+    # input on its popovers (the action panel) under Hyprland.
+    launcher_window.layer_shell.keyboard_interactivity = "exclusive";
 
-    # Vicinae's own default config documents 'exclusive' keyboard interactivity
-    # as breaking mouse input on its popovers (the action panel) under Hyprland.
-    # 'on_demand' avoids that, and is what makes close_on_focus_loss above
-    # meaningful -- an exclusive layer surface never reports focus loss.
-    launcher_window.layer_shell.keyboard_interactivity = "on_demand";
+    # Must stay off for the 'exclusive' above to take effect: with it on,
+    # vicinae silently maps its layer surface as on_demand anyway (verified
+    # via hl.get_layers()). An exclusive surface never reports focus loss, so
+    # there is nothing for it to react to -- Escape or mod+d closes it.
+    close_on_focus_loss = false;
 
     providers.snippets = {
       enabled = false;

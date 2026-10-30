@@ -1,0 +1,11 @@
+[Unit]
+Description=Mount BigM2 (/mnt/bigm2)
+
+[Mount]
+What=UUID=f38e0887-a43a-45dd-8621-7f89dd407abd
+Where=/mnt/bigm2
+Type=ext4
+Options=defaults,noatime,nofail,x-gvfs-show,x-gvfs-name=BigM2
+
+[Install]
+WantedBy=multi-user.target

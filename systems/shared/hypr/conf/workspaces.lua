@@ -1,6 +1,13 @@
 local M = {}
 
-M.internal_monitor = "eDP-1"
+-- Hosts without a built-in panel (desktops) set the HL_HAS_INTERNAL_PANEL
+-- global to false in their hyprland.lua, which drops the laptop workspace
+-- entirely instead of parking it on an external screen.
+if HL_HAS_INTERNAL_PANEL == false then
+  M.internal_monitor = nil
+else
+  M.internal_monitor = "eDP-1"
+end
 M.primary_workspaces = { 1, 2, 3, 4, 5, 6 }
 
 -- Workspaces that live on the side screen rather than the one in front of the
@@ -164,7 +171,9 @@ function M.move_window(workspace)
 end
 
 function M.apply_workspace_monitor_assignments()
-  M.move_workspace_to_target(0)
+  if M.internal_monitor ~= nil then
+    M.move_workspace_to_target(0)
+  end
 
   for _, workspace in ipairs(M.primary_workspaces) do
     M.move_workspace_to_target(workspace)
@@ -180,7 +189,7 @@ function M.configure_workspace_rules()
   local external_monitor = M.external_monitor()
   local primary_monitor = external_monitor or internal_monitor
 
-  if internal_monitor ~= nil then
+  if M.internal_monitor ~= nil and internal_monitor ~= nil then
     hl.workspace_rule({
       workspace = M.workspace(0),
       monitor = internal_monitor,
