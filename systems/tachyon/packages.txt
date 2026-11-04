@@ -2,6 +2,8 @@
 # Official repo packages and AUR packages can both be installed through paru.
 
 xpadneo-dkms
+liquidctl
+it87-dkms-git
 blueman
 appimagelauncher
 1password

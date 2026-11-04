@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 let
   # Quickshell derives QML module names from the directory names below the shell
@@ -8,6 +8,32 @@ let
   shellConfig = ./shell;
 in
 {
+  options.quickshell = {
+    githubWidget = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Show the GitHub pull request widget in the bar.";
+    };
+    claudeUsageWidget = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Show the Claude Code usage widget in the bar.";
+    };
+  };
+
+  config = {
+  xdg.configFile."quickshell/shell/services/HostFeatures.qml".text = ''
+    pragma Singleton
+
+    // Generated from the quickshell.* home-manager options for this host.
+    import Quickshell
+
+    Singleton {
+        readonly property bool githubWidget: ${lib.boolToString config.quickshell.githubWidget}
+        readonly property bool claudeUsageWidget: ${lib.boolToString config.quickshell.claudeUsageWidget}
+    }
+  '';
+
   xdg.configFile."quickshell/shell" = {
     source = shellConfig;
     recursive = true;
@@ -33,4 +59,5 @@ in
         /usr/bin/quickshell --no-duplicate --config shell >/dev/null 2>&1 </dev/null || true
     fi
   '';
+  };
 }

@@ -16,4 +16,9 @@
   nixpkgs.config.allowUnfree = true;
 
   targets.genericLinux.enable = true;
+
+  quickshell = {
+    githubWidget = false;
+    claudeUsageWidget = false;
+  };
 }

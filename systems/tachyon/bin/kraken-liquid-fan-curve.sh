@@ -35,13 +35,11 @@ PUMP_CURVE_POINTS=(
 # Temperature:duty points in Celsius and percent.
 # The script linearly interpolates between points.
 CURVE_POINTS=(
-  "30:20"
-  "34:30"
-  "36:40"
-  "38:50"
-  "40:60"
-  "42:85"
-  "45:100"
+  "25:25"
+  "30:45"
+  "34:60"
+  "38:80"
+  "42:100"
 )
 
 log() {
@@ -88,7 +86,7 @@ find_mb_hwmon_dir() {
   for dir in /sys/class/hwmon/hwmon*; do
     [[ -r "$dir/name" ]] || continue
     case "$(<"$dir/name")" in
-      it8622|it8689)
+      it8622*|it8689*)
         realpath "$dir"
         return 0
         ;;
@@ -302,8 +300,9 @@ main() {
 
     duty=$(curve_duty "$temp") || die "failed to calculate duty from curve"
 
+    set_fan_duty "$duty"
+
     if [[ "$duty" != "$last_duty" ]]; then
-      set_fan_duty "$duty"
       log "$(date '+%F %T') liquid=${temp}C duty=${duty}%"
       last_duty=$duty
     fi

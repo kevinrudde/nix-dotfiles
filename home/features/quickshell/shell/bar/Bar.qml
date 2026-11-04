@@ -144,14 +144,24 @@ PanelWindow {
                 barScreen: root.screen
             }
 
-            GitHubWidget {
+            Loader {
+                active: HostFeatures.githubWidget
+                visible: active
                 Layout.alignment: Qt.AlignVCenter
-                barScreen: root.screen
+
+                sourceComponent: GitHubWidget {
+                    barScreen: root.screen
+                }
             }
 
-            ClaudeUsageWidget {
+            Loader {
+                active: HostFeatures.claudeUsageWidget
+                visible: active
                 Layout.alignment: Qt.AlignVCenter
-                barScreen: root.screen
+
+                sourceComponent: ClaudeUsageWidget {
+                    barScreen: root.screen
+                }
             }
 
             NotificationWidget {
