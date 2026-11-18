@@ -130,5 +130,9 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("uwsm app -- playerctl previous"), { lo
 
 hl.bind(main_mod .. " + SHIFT + S", hl.dsp.exec_cmd([[sh -lc 'grim -g "$(slurp)" - | wl-copy']]))
 
+-- Discord's mute shortcut is only heard while it has focus; forward it to the
+-- window so it works from any workspace.
+hl.bind(main_mod .. " + M", hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "M", window = "class:discord" }))
+
 hl.bind(main_mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })    -- main_mod + LMB: Move a window by dragging.
 hl.bind(main_mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })  -- main_mod + RMB: Resize a window by dragging.
