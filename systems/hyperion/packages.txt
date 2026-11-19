@@ -84,6 +84,12 @@ mysql-clients80
 1password-cli
 zen-browser
 docker
+podman
+netavark
+aardvark-dns
+crun
+passt
+fuse-overlayfs
 tailscale
 helium-browser-bin
 google-chrome

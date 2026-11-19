@@ -31,7 +31,7 @@ case "$choice" in
     systemctl suspend
     ;;
   Logout)
-    hyprctl dispatch exit
+    uwsm stop
     ;;
   Reboot)
     confirm_destructive "Reboot" && systemctl reboot

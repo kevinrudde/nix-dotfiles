@@ -4,6 +4,7 @@
   imports = [
     ./default.nix
     ./features/ghostty
+    ./features/container-engine
     ./features/hypr
     ./features/quickshell
     ./features/speaker-tuning

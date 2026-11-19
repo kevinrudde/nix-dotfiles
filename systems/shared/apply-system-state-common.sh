@@ -18,7 +18,9 @@ run_as_root() {
 }
 
 # Docker Engine: enable the service and put the active user in the docker
-# group so they can talk to /var/run/docker.sock without sudo.
+# group so they can talk to /var/run/docker.sock without sudo. Hosts that
+# coexist with another engine set docker_activation=socket before sourcing
+# this file so the daemon only starts on first use via docker.socket.
 if command -v docker >/dev/null 2>&1; then
   target_user="${SUDO_USER:-$(id -un)}"
 
@@ -27,8 +29,14 @@ if command -v docker >/dev/null 2>&1; then
     exit 1
   fi
 
-  run_as_root systemctl enable --now docker.service
-  run_as_root systemctl enable --now containerd.service
+  if [[ "${docker_activation:-service}" == "socket" ]]; then
+    if ! systemctl is-enabled --quiet docker.socket; then
+      run_as_root systemctl enable --now docker.socket
+    fi
+  else
+    run_as_root systemctl enable --now docker.service
+    run_as_root systemctl enable --now containerd.service
+  fi
 
   if ! getent group docker >/dev/null; then
     run_as_root groupadd docker

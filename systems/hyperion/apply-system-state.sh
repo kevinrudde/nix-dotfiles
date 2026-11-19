@@ -9,8 +9,20 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/../.." && pwd)"
 
+docker_activation=socket
+
 # shellcheck source=../shared/apply-system-state-common.sh
 source "$repo_root/systems/shared/apply-system-state-common.sh"
+
+# Rootless podman: socket-activated user API socket for every user. The
+# `container-engine` home-manager command picks which engine the docker CLI
+# talks to.
+if command -v podman >/dev/null 2>&1; then
+  if ! systemctl --global is-enabled --quiet podman.socket 2>/dev/null; then
+    run_as_root systemctl --global enable podman.socket
+    echo "Enabled podman.socket for all users"
+  fi
+fi
 
 # greetd display manager: enable the service. /etc/greetd/config.toml comes
 # from rootfs and points at the shared Hyprland session launcher directly,

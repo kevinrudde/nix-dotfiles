@@ -35,6 +35,7 @@ systemd_unit_changes=(
   /etc/systemd/system/logid-restart.service
   /etc/systemd/system/keyboard-debounce.service
   /etc/systemd/system/touchpad-rebind.service
+  /etc/systemd/system/user@.service.d/delegate.conf
 )
 
 if any_target_changed "${systemd_unit_changes[@]}"; then
@@ -93,7 +94,7 @@ if target_changed /etc/modules-load.d/k3d.conf; then
   echo "Loaded br_netfilter"
 fi
 
-if target_changed /etc/sysctl.d/99-k3d.conf; then
+if any_target_changed /etc/sysctl.d/99-k3d.conf /etc/sysctl.d/99-unprivileged-ports.conf; then
   run_as_root sysctl --system >/dev/null
   echo "Applied sysctl settings"
 fi
