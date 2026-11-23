@@ -28,7 +28,7 @@
 
 pkgname=intel-ipu7-camera
 pkgver=1.0.6
-pkgrel=8
+pkgrel=9
 pkgdesc="Intel IPU7 MIPI camera stack for Hurrican/Performance (OV08X40 + hardware ISP)"
 arch=('x86_64')
 url="https://github.com/TsaiGaggery/hurrican_omarchy_enabling"
@@ -142,6 +142,12 @@ prepare() {
   # compiles, and the build is the only place that can refuse it.
   patch -Np1 --fuzz=0 -i "${srcdir}/0004-ipu7-psys-register-device-bus.patch"
   patch -Np1 --fuzz=0 -i "${srcdir}/0005-ipu7-psys-harden-userptr-pinning.patch"
+
+  # linux-cachyos 7.3.4+ enables CONFIG_VIDEO_LT6911UXE (mainline driver, no
+  # public header), so serdes-pdata.h includes <media/i2c/lt6911uxe.h> and the
+  # build dies. The HDMI bridge is irrelevant to the OV08X40 laptop camera.
+  grep -rl "CONFIG_VIDEO_LT6911UXE" include drivers |
+    xargs sed -i 's/CONFIG_VIDEO_LT6911UXE/CONFIG_IPU7_UNSUPPORTED_LT6911UXE/g'
 
   cd "${srcdir}/vision-drivers"
   git config user.email "build@localhost"
