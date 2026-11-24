@@ -94,7 +94,7 @@ if target_changed /etc/modules-load.d/k3d.conf; then
   echo "Loaded br_netfilter"
 fi
 
-if any_target_changed /etc/sysctl.d/99-k3d.conf /etc/sysctl.d/99-unprivileged-ports.conf; then
+if any_target_changed /etc/sysctl.d/99-k3d.conf /etc/sysctl.d/99-keyring.conf /etc/sysctl.d/99-unprivileged-ports.conf; then
   run_as_root sysctl --system >/dev/null
   echo "Applied sysctl settings"
 fi
