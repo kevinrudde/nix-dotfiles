@@ -1,0 +1,12 @@
+#!/bin/sh
+# Wifi radio off while ethernet is connected, on again when it disconnects.
+# Only reacts to ethernet link events, so manual `nmcli radio wifi on|off` sticks.
+interface="$1"
+event="$2"
+
+[ "$(nmcli -g GENERAL.TYPE device show "$interface" 2>/dev/null)" = "ethernet" ] || exit 0
+
+case "$event" in
+  up) nmcli radio wifi off ;;
+  down) nmcli radio wifi on ;;
+esac
